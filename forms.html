@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <title>Netlify Forms Detection</title>
+</head>
+<body>
+  <!-- Служебная форма для обнаружения Netlify Forms при деплое. -->
+  <form name="asset-request" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="asset-request">
+    <p>
+      <label>Не заполняйте это поле: <input name="bot-field"></label>
+    </p>
+    <p><label>Имя <input type="text" name="name"></label></p>
+    <p><label>Телефон или Telegram <input type="text" name="phone"></label></p>
+    <p><label>Тип актива <input type="text" name="asset_type"></label></p>
+    <p><label>Город / регион <input type="text" name="region"></label></p>
+    <p><label>Ориентировочная стоимость <input type="text" name="value"></label></p>
+    <p><label>Сколько продаётся <input type="text" name="sale_period"></label></p>
+    <p><label>Краткое описание объекта <textarea name="description"></textarea></label></p>
+    <p><label>Email <input type="email" name="email"></label></p>
+    <p><label>Согласие <input type="checkbox" name="personal_data_consent" value="Согласен"></label></p>
+    <p><button type="submit">Send</button></p>
+  </form>
+</body>
+</html>
