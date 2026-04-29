@@ -55,18 +55,27 @@
       event.preventDefault();
 
       const required = $$('[required]', form);
-      const invalid = required.find((field) => !String(field.value || '').trim());
+      const invalid = required.find((field) => {
+        if (field.type === 'checkbox') return !field.checked;
+        return !String(field.value || '').trim();
+      });
       if (invalid) {
         invalid.focus();
         invalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
-      const phone = form.querySelector('[name="phone"]');
-      if (phone && phone.value.replace(/\D/g, '').length < 10) {
-        phone.focus();
-        phone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
+      const contact = form.querySelector('[name="phone"]');
+      if (contact) {
+        const value = String(contact.value || '').trim();
+        const digits = value.replace(/\D/g, '');
+        const looksLikeTelegram = /^@[A-Za-z0-9_]{5,32}$/.test(value);
+        const looksLikePhone = digits.length >= 10;
+        if (!looksLikeTelegram && !looksLikePhone) {
+          contact.focus();
+          contact.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
       }
 
       const button = form.querySelector('button[type="submit"]');
