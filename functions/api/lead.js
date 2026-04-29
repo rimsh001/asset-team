@@ -28,9 +28,10 @@ const buildTelegramMessage = (data) => {
 };
 
 const sendToTelegram = async (env, message) => {
-  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
+  if (!env.TELEGRAM_BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN is not configured');
+  if (!env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_CHAT_ID is not configured');
 
-  await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  const response = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -40,6 +41,11 @@ const sendToTelegram = async (env, message) => {
       disable_web_page_preview: true
     })
   });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Telegram API error ${response.status}: ${errorText}`);
+  }
 };
 
 const sendToFormspree = async (env, data) => {
@@ -50,11 +56,16 @@ const sendToFormspree = async (env, data) => {
     if (key !== 'bot-field' && key !== 'form-name') payload.append(key, value);
   }
 
-  await fetch(env.FORMSPREE_ENDPOINT, {
+  const response = await fetch(env.FORMSPREE_ENDPOINT, {
     method: 'POST',
     headers: { Accept: 'application/json' },
     body: payload
   });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Formspree API error ${response.status}: ${errorText}`);
+  }
 };
 
 export async function onRequestPost({ request, env }) {
@@ -73,23 +84,27 @@ export async function onRequestPost({ request, env }) {
     const hasMissingRequired = requiredFields.some((field) => !pick(data, field));
 
     if (hasMissingRequired) {
-      return Response.redirect(errorUrl, 303);
+      return Response.redirect(`${url.origin}/?form=missing#request`, 303);
     }
 
     const message = buildTelegramMessage(data);
 
-    await Promise.allSettled([
-      sendToTelegram(env, message),
-      sendToFormspree(env, data)
-    ]);
+    await sendToTelegram(env, message);
+    await sendToFormspree(env, data);
 
     return Response.redirect(thanksUrl, 303);
   } catch (error) {
+    console.error(error);
     return Response.redirect(errorUrl, 303);
   }
 }
 
-export async function onRequestGet({ request }) {
-  const url = new URL(request.url);
-  return Response.redirect(`${url.origin}/#request`, 302);
+export async function onRequestGet({ env }) {
+  return Response.json({
+    ok: true,
+    message: 'Lead function is active',
+    telegramBotTokenConfigured: Boolean(env.TELEGRAM_BOT_TOKEN),
+    telegramChatIdConfigured: Boolean(env.TELEGRAM_CHAT_ID),
+    formspreeConfigured: Boolean(env.FORMSPREE_ENDPOINT)
+  });
 }
