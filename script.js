@@ -57,6 +57,12 @@
   replaceText('#owner .rich-text p:first-child', 'Проект ведёт Андрей Римш. Фокус — сложные активы бизнеса: базы, коммерческая недвижимость, оборудование, спецтехника, складские остатки и непрофильное имущество.');
   replaceText('#owner .rich-text p:nth-child(2)', 'Первичный разбор показывает маршрут сделки: кто может купить, что мешает покупке, какие документы нужны и где возникает риск.');
 
+  $$('p').forEach((p) => {
+    if (p.textContent.includes('Шмитовский проезд, 39, корпус 8, кв. 152')) {
+      p.textContent = p.textContent.replace(', кв. 152', '');
+    }
+  });
+
   if (!$('#case-example')) {
     const formats = $('#formats');
     const section = document.createElement('section');
