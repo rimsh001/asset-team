@@ -13,6 +13,7 @@
     if (!header) return;
     header.classList.toggle('is-scrolled', window.scrollY > 8);
   };
+
   setHeader();
   window.addEventListener('scroll', setHeader, { passive: true });
 
@@ -45,63 +46,6 @@
     });
   });
 
-  const form = $('#asset-form');
-  const success = $('#form-success');
-
-  if (form) {
-    const encode = (data) => new URLSearchParams(data).toString();
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const required = $$('[required]', form);
-      const invalid = required.find((field) => {
-        if (field.type === 'checkbox') return !field.checked;
-        return !String(field.value || '').trim();
-      });
-      if (invalid) {
-        invalid.focus();
-        invalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-
-      const contact = form.querySelector('[name="phone"]');
-      if (contact) {
-        const value = String(contact.value || '').trim();
-        const digits = value.replace(/\D/g, '');
-        const looksLikeTelegram = /^@[A-Za-z0-9_]{5,32}$/.test(value);
-        const looksLikePhone = digits.length >= 10;
-        if (!looksLikeTelegram && !looksLikePhone) {
-          contact.focus();
-          contact.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          return;
-        }
-      }
-
-      const button = form.querySelector('button[type="submit"]');
-      const original = button ? button.textContent : '';
-      if (button) {
-        button.disabled = true;
-        button.textContent = 'Отправляем…';
-      }
-
-      try {
-        const data = new FormData(form);
-        await fetch('/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: encode(data)
-        });
-        form.reset();
-        if (success) success.hidden = false;
-      } catch (error) {
-        if (success) success.hidden = false;
-      } finally {
-        if (button) {
-          button.disabled = false;
-          button.textContent = original;
-        }
-      }
-    });
-  }
+  // Форму заявки не перехватываем через JavaScript.
+  // Netlify Forms надежнее обрабатывает обычную HTML-отправку POST.
 })();
