@@ -81,6 +81,11 @@
     if (formats) formats.before(section);
   }
 
-  // Форму заявки не перехватываем через JavaScript.
-  // Netlify Forms надежнее обрабатывает обычную HTML-отправку POST.
+  const form = $('#asset-form');
+  if (form) {
+    form.setAttribute('action', '/api/lead');
+    form.setAttribute('method', 'POST');
+    form.removeAttribute('data-netlify');
+    form.removeAttribute('netlify-honeypot');
+  }
 })();
