@@ -63,6 +63,52 @@
     }
   });
 
+  if (!$('#messenger-buttons-style')) {
+    const style = document.createElement('style');
+    style.id = 'messenger-buttons-style';
+    style.textContent = `
+      .messenger-cta{margin-top:18px;display:grid;gap:12px;max-width:690px}
+      .messenger-cta__title{font-size:14px;color:rgba(255,255,255,.68)}
+      .messenger-cta__buttons{display:flex;flex-wrap:wrap;gap:12px}
+      .messenger-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border-radius:999px;padding:13px 18px;font-weight:800;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#fff;transition:.2s ease}
+      .messenger-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.11)}
+      .messenger-btn--telegram{background:rgba(42,171,238,.16);border-color:rgba(42,171,238,.34)}
+      .messenger-btn--max{background:rgba(201,149,75,.16);border-color:rgba(201,149,75,.38)}
+      .request-messengers{margin-top:26px;padding:22px;border:1px solid rgba(255,255,255,.12);border-radius:22px;background:rgba(255,255,255,.045)}
+      .request-messengers h3{font-size:24px;margin:0 0 8px;color:#fff}
+      .request-messengers p{color:rgba(255,255,255,.68);margin:0 0 16px}
+      @media(max-width:680px){.messenger-cta__buttons{display:grid}.messenger-btn{width:100%}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  const messengerButtons = `
+    <div class="messenger-cta__buttons">
+      <a class="messenger-btn messenger-btn--telegram" href="/api/contact-telegram" target="_blank" rel="noopener">Написать в Telegram</a>
+      <a class="messenger-btn messenger-btn--max" href="/api/contact-max" target="_blank" rel="noopener">Написать в MAX</a>
+    </div>`;
+
+  const heroActions = $('.hero__actions');
+  if (heroActions && !$('.hero .messenger-cta')) {
+    heroActions.insertAdjacentHTML('afterend', `
+      <div class="messenger-cta">
+        <div class="messenger-cta__title">Хотите без формы — перейдите в мессенджер и ответьте на вопросы AI-агента.</div>
+        ${messengerButtons}
+      </div>
+    `);
+  }
+
+  const contacts = $('.request .contacts');
+  if (contacts && !$('.request-messengers')) {
+    contacts.insertAdjacentHTML('afterend', `
+      <div class="request-messengers">
+        <h3>Написать напрямую</h3>
+        <p>Если удобнее не заполнять форму, перейдите в мессенджер. AI-агент задаст вопросы по активу и соберёт заявку.</p>
+        ${messengerButtons}
+      </div>
+    `);
+  }
+
   const pricingCards = $$('#formats .pricing article');
   const prices = ['от 30 000 ₽', 'от 90 000 ₽', '3–5% от сделки, но не менее 150 000 ₽'];
   pricingCards.forEach((card, index) => {
