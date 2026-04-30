@@ -1,40 +1,19 @@
-const ASSET_TYPES = [
-  'производственная база',
-  'склад',
-  'ангар',
-  'промышленный участок',
-  'коммерческая недвижимость',
-  'оборудование',
-  'спецтехника',
-  'складские остатки',
-  'неликвидные ТМЦ',
-  'имущество после закрытия направлений',
-  'проблемный актив бизнеса'
-];
+const KNOWLEDGE = `
+A&A Asset Team: «Превращаем зависшие активы бизнеса в деньги».
+Работаем с продажей сложного и зависшего имущества бизнеса: производственные базы, склады, ангары, промышленные участки, коммерческая недвижимость, оборудование, спецтехника, складские остатки и неликвидные ТМЦ.
 
-const BUSINESS_KNOWLEDGE = `
-Позиционирование: «Превращаем зависшие активы бизнеса в деньги».
-A&A Asset Team помогает собственникам продавать базы, склады, коммерческую недвижимость, оборудование, спецтехнику, складские остатки и неликвидные ТМЦ, которые долго не находят покупателя.
+Важно: мы не занимаемся арендой и подбором арендаторов. Если клиент спрашивает про аренду, корректно объясни, что наш профиль — продажа и реализация активов, но можно разобрать, имеет ли смысл готовить объект к продаже.
 
-Главная логика: не просто разместить объявление, а разобрать актив как сделку: кто может купить, что мешает покупке, какие риски видит покупатель, какие документы нужны, как упаковать объект, где искать целевой спрос и как вести переговоры.
+Подход: не просто размещаем объявление, а разбираем актив как сделку: кто может купить, что мешает покупке, какие риски видит покупатель, какие документы нужны, как упаковать объект, где искать целевой спрос и как вести переговоры.
 
-Почему активы зависают: завышена или не объяснена цена; непонятен целевой покупатель; слабые фото; нет технического описания; документы не собраны; объект размещен не там; продавец ждет случайного звонка; нет прямого поиска; не сняты риски покупателя; переговоры сводятся к торгу.
+Почему активы зависают: цена не объяснена рынку, непонятен целевой покупатель, слабые фото, нет технического описания, документы не собраны, объект размещен не на тех площадках, продавец ждет случайного звонка, нет прямого поиска покупателей, не сняты риски покупателя, переговоры сводятся к торгу.
 
-Производственная база: важны земля, строения, назначение земли, коммуникации, отопление, электричество, вода, канализация, подъезд, арендаторы, состояние, документы, кадастровые номера, ограничения, сценарии использования.
+Производственная база: важны земля, строения, назначение земли, коммуникации, отопление, электричество, вода, канализация, подъезд, состояние зданий, документы, кадастровые номера, ограничения.
+Склад/ангар: важны площадь, высота, ворота, полы, отопление, подъезд фур, охрана, электричество, документы, состояние.
+Оборудование/спецтехника: марка, модель, год, состояние, комплектность, фото, видео работы, документы, демонтаж, погрузка, доставка.
+ТМЦ/неликвиды: список позиций, объем, состояние, цена по балансу, минимальная партия, возможность продажи частями.
 
-Склад или ангар: важны площадь, высота, ворота, полы, отопление, подъезд фур, охрана, электричество, локация, арендаторы, документы, ставка аренды, возможность продажи или сдачи.
-
-Коммерческая недвижимость: важны назначение, трафик, арендный поток, окупаемость, документы, состояние, ограничения, ликвидность локации, сценарии покупателя.
-
-Оборудование и спецтехника: важны марка, модель, год, наработка, состояние, комплектность, фото, видео работы, документы, демонтаж, погрузка, доставка, цена аналога.
-
-Складские остатки и ТМЦ: важны список позиций, объем, состояние, срок хранения, цена по балансу, минимальная партия, возможность продажи частями, целевой сегмент покупателей.
-
-Аренда вместо продажи: если клиент не хочет продавать, а думает о сдаче, нужно оценить арендопригодность: локация, подъезд, инженерия, отопление, состояние, площадь, ставка, потенциальный арендатор, вложения до сдачи. Иногда аренда лучше продажи, если объект дает поток; иногда продажа лучше, если требуются вложения или спрос слабый.
-
-Формат работы: первичный разбор → сбор материалов → диагностика цены, упаковки и спроса → стратегия продажи или аренды → упаковка объекта → поиск покупателя или арендатора → переговоры → условия договора.
-
-Договор обсуждается после понимания объекта, объема работы и формата сопровождения. Нельзя обещать сделку до диагностики.
+Маршрут работы: первичный разбор → сбор материалов → диагностика цены, упаковки и спроса → стратегия продажи → упаковка объекта → поиск покупателей → переговоры → договор.
 `;
 
 function jsonResponse(data, status = 200) {
@@ -53,192 +32,211 @@ function getText(update) {
 }
 
 function getUser(from = {}) {
-  const fullName = `${from.first_name || ''} ${from.last_name || ''}`.trim();
   return {
     id: from.id || '',
-    fullName,
+    fullName: `${from.first_name || ''} ${from.last_name || ''}`.trim(),
     username: from.username ? `@${from.username}` : ''
   };
 }
 
-function normalizeText(text) {
+function normalize(text) {
   return String(text || '').toLowerCase().replace(/ё/g, 'е');
 }
 
+function sessionKey(chatId) {
+  return `telegram-lead:${chatId}`;
+}
+
+async function loadSession(env, chatId) {
+  if (!env.CHAT_MEMORY) return { lead: {}, messages: [], managerNotified: false };
+  const raw = await env.CHAT_MEMORY.get(sessionKey(chatId));
+  if (!raw) return { lead: {}, messages: [], managerNotified: false };
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { lead: {}, messages: [], managerNotified: false };
+  }
+}
+
+async function saveSession(env, chatId, session) {
+  if (!env.CHAT_MEMORY) return;
+  await env.CHAT_MEMORY.put(sessionKey(chatId), JSON.stringify(session), { expirationTtl: 60 * 60 * 24 * 14 });
+}
+
 function detectAssetType(text) {
-  const value = normalizeText(text);
-  if (value.includes('база')) return 'производственная база';
-  if (value.includes('склад') || value.includes('ангар')) return 'склад / ангар';
-  if (value.includes('участ') || value.includes('земл')) return 'земельный участок';
-  if (value.includes('оборуд')) return 'оборудование';
-  if (value.includes('техник') || value.includes('погруз') || value.includes('кран') || value.includes('экскават')) return 'спецтехника';
-  if (value.includes('тмц') || value.includes('остат') || value.includes('неликвид')) return 'складские остатки / ТМЦ';
-  if (value.includes('недвиж') || value.includes('офис') || value.includes('помещ')) return 'коммерческая недвижимость';
-  return 'не определено';
+  const t = normalize(text);
+  if (t.includes('база')) return 'производственная база';
+  if (t.includes('склад') || t.includes('ангар')) return 'склад / ангар';
+  if (t.includes('участ') || t.includes('земл')) return 'земельный участок';
+  if (t.includes('оборуд')) return 'оборудование';
+  if (t.includes('спецтех') || t.includes('погруз') || t.includes('кран') || t.includes('экскават')) return 'спецтехника';
+  if (t.includes('тмц') || t.includes('остат') || t.includes('неликвид')) return 'ТМЦ / складские остатки';
+  if (t.includes('помещ') || t.includes('офис') || t.includes('недвиж')) return 'коммерческая недвижимость';
+  return '';
 }
 
-function isLikelyLead(text) {
-  const value = normalizeText(text);
-  const assetWords = ['база', 'склад', 'ангар', 'участ', 'земля', 'оборуд', 'техник', 'погруз', 'кран', 'тмц', 'остат', 'неликвид', 'недвиж', 'офис', 'помещ'];
-  return assetWords.some((word) => value.includes(word));
+function extractPatch(text) {
+  const t = normalize(text);
+  const patch = {};
+  const assetType = detectAssetType(text);
+  if (assetType) patch.asset_type = assetType;
+  if (t.includes('прод')) patch.goal = 'продажа';
+  if (t.includes('консульт')) patch.goal = 'консультация по продаже / стратегии реализации';
+  if (t.includes('собственник')) patch.role = 'собственник';
+  if (t.includes('представитель')) patch.role = 'представитель';
+  if (t.includes('фото')) patch.photos = 'есть / упомянуты';
+  if (t.includes('документ')) patch.documents = 'документы упомянуты';
+
+  const area = text.match(/\d+[\d\s,.]*(?:м2|м²|кв\.?\s*м|сот|га)/i)?.[0];
+  if (area) patch.area = area;
+
+  const price = text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0];
+  if (price) patch.price = price;
+
+  const period = text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода)/i)?.[0];
+  if (period) patch.selling_period = period;
+
+  const url = text.match(/https?:\/\/\S+/)?.[0];
+  if (url) patch.url = url;
+
+  const locations = [
+    ['москва', 'Москва'],
+    ['московская область', 'Московская область'],
+    ['ангарск', 'Ангарск'],
+    ['иркутск', 'Иркутск'],
+    ['санкт-петербург', 'Санкт-Петербург'],
+    ['спб', 'Санкт-Петербург']
+  ];
+  for (const [needle, label] of locations) {
+    if (t.includes(needle)) patch.location = label;
+  }
+
+  return patch;
 }
 
-function leadCardFromText({ text, user, chatId }) {
-  return {
-    asset_type: detectAssetType(text),
-    location: text.match(/(?:в|во|г\.?|город)\s+([А-Яа-яA-Za-z\-\s]{3,40})/)?.[1]?.trim() || 'требуется уточнить',
-    contact_role: 'требуется уточнить: собственник / представитель / посредник',
-    task_description: text,
-    selling_period: text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода)/i)?.[0] || 'требуется уточнить',
-    current_price: text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0] || 'требуется уточнить',
-    documents_status: normalizeText(text).includes('документ') ? 'упомянуты в сообщении' : 'требуется уточнить',
-    photos_status: normalizeText(text).includes('фото') ? 'фото есть / упомянуты' : 'требуется уточнить',
-    listing_url: text.match(/https?:\/\/\S+/)?.[0] || 'не указано',
-    main_problem: normalizeText(text).includes('аренд') ? 'клиент рассматривает аренду или консультацию' : 'требуется уточнить цель: продажа, аренда или консультация',
-    ai_assessment: 'Заявка из Telegram-бота. Нужно квалифицировать объект, цель обращения, роль клиента, документы, фото/ссылку и возможный формат работы.',
-    recommended_next_step: 'Связаться с клиентом, уточнить цель, запросить материалы и провести первичный разбор.',
-    telegram_user: `${user.fullName || ''} ${user.username || ''}`.trim(),
-    chat_id: String(chatId)
-  };
+function mergeLead(lead, patch) {
+  return { ...(lead || {}), ...(patch || {}) };
+}
+
+function missingFields(lead = {}) {
+  const missing = [];
+  if (!lead.asset_type) missing.push('что именно продается');
+  if (!lead.location) missing.push('где находится объект');
+  if (!lead.area) missing.push('площадь / объем');
+  if (!lead.price) missing.push('ориентировочная цена');
+  if (!lead.selling_period) missing.push('сколько времени продается');
+  if (!lead.documents) missing.push('что с документами');
+  if (!lead.photos && !lead.url) missing.push('есть ли фото или ссылка на объявление');
+  if (!lead.role) missing.push('вы собственник или представитель');
+  return missing;
+}
+
+function hasAssetContext(lead = {}, text = '') {
+  return Boolean(lead.asset_type || detectAssetType(text));
+}
+
+function buildManagerCard({ user, lead, lastText }) {
+  return [
+    '📌 НОВАЯ ЗАЯВКА ИЗ TELEGRAM-БОТА',
+    '',
+    `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
+    `Тип актива: ${lead.asset_type || 'не указано'}`,
+    `Локация: ${lead.location || 'не указано'}`,
+    `Площадь / объем: ${lead.area || 'не указано'}`,
+    `Цена: ${lead.price || 'не указано'}`,
+    `Срок продажи: ${lead.selling_period || 'не указано'}`,
+    `Фото / ссылка: ${lead.photos || lead.url || 'не указано'}`,
+    `Документы: ${lead.documents || 'не указано'}`,
+    `Кто обратился: ${lead.role || 'не указано'}`,
+    '',
+    'Следующий шаг: связаться с клиентом, запросить материалы и провести первичный разбор.',
+    '',
+    `Последнее сообщение: ${lastText}`
+  ].join('\n');
+}
+
+function fallbackReply(text, session) {
+  const t = normalize(text);
+  const lead = session.lead || {};
+  const missing = missingFields(lead);
+
+  if (t.includes('аренд') || t.includes('сдам') || t.includes('сдать')) {
+    return 'Арендой мы не занимаемся. Наш профиль — продажа и реализация сложных активов. Можем посмотреть объект именно с точки зрения продажи: насколько он ликвиден, что мешает покупателю, какие материалы нужны и какой маршрут реализации выбрать.';
+  }
+
+  if (t.includes('как работает')) {
+    return 'Работаем так: сначала собираем вводные по объекту, затем смотрим цену, документы, упаковку, целевого покупателя и причины, почему актив завис. После первичного разбора можно понять формат: консультация, подготовка к продаже или сопровождение реализации.';
+  }
+
+  if (t.includes('договор')) {
+    return 'Договор обсуждается после первичного разбора. Сначала нужно понять объект, объем работы и формат сопровождения: разбор, упаковка, поиск покупателя или сопровождение реализации.';
+  }
+
+  if (t.includes('сколько') || t.includes('стоим') || t.includes('комисс')) {
+    return 'Стоимость зависит от объекта и формата работы. Сначала нужно понять тип имущества, цену, документы, срок продажи и сложность поиска покупателя. После этого можно предметно обсуждать условия.';
+  }
+
+  if (hasAssetContext(lead, text)) {
+    if (missing.length === 0) {
+      return 'Данных достаточно для первичной фиксации. Передаю информацию на разбор. Следующий шаг — посмотреть материалы по объекту: фото, документы или ссылку на объявление, если сможете прислать.';
+    }
+    return `Принял, дополнил данные по объекту. Осталось уточнить:\n${missing.slice(0, 3).map((item, i) => `${i + 1}. ${item}?`).join('\n')}`;
+  }
+
+  return 'Понял. Уточните, пожалуйста, что именно нужно реализовать: база, склад, помещение, оборудование, техника или ТМЦ?';
 }
 
 function systemPrompt(managerName) {
   return `
 Ты — AI-оператор по разбору активов для A&A Asset Team.
-Ты общаешься с клиентом в Telegram как живой сильный первичный менеджер, а не как автоответчик.
+Общайся как живой первичный менеджер, а не как анкета.
 
-${BUSINESS_KNOWLEDGE}
+${KNOWLEDGE}
 
-Правила диалога:
-1. Отвечай именно на последнее сообщение клиента.
-2. Не повторяй один и тот же шаблон.
-3. Если клиент задает вопрос — сначала ответь на вопрос, потом мягко веди к следующему шагу.
-4. Если клиент хочет консультацию, а не продажу — предложи разбор вариантов: продать, сдать в аренду, подержать, подготовить к продаже.
-5. Если объект еще не выставлялся — объясни, что это хорошо для правильной подготовки упаковки и каналов.
-6. Если спрашивает «как работаете» — дай этапы работы.
-7. Если спрашивает «когда позвонят» — попроси удобное время и контакт.
-8. Если спрашивает про договор — объясни, что договор после первичного разбора и выбора формата.
-9. Если дал объект — задай только самые важные вопросы по его типу.
-10. Не обещай продажу, не гарантируй цену, не давай юридическое заключение.
-
-Формат ответа: обычный текст для Telegram, без таблиц, не длиннее 900 символов.
+Учитывай уже собранные данные. Не задавай повторно вопрос, если клиент уже ответил. Если клиент пишет коротко — это продолжение диалога. Не предлагай аренду: компания ей не занимается. Веди к продаже/реализации, первичному разбору, материалам, созвону и договору. Ответ — обычный текст для Telegram, до 700 символов.
 `;
 }
 
-async function callOpenAIText(env, { text, user, chat }) {
+async function askOpenAI(env, { text, session, user }) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
-    headers: {
-      authorization: `Bearer ${env.OPENAI_API_KEY}`,
-      'content-type': 'application/json'
-    },
+    headers: { authorization: `Bearer ${env.OPENAI_API_KEY}`, 'content-type': 'application/json' },
     body: JSON.stringify({
       model: env.OPENAI_MODEL || 'gpt-4.1-mini',
       input: [
         { role: 'system', content: systemPrompt(env.COMPANY_MANAGER_NAME || 'Андрей') },
-        { role: 'user', content: JSON.stringify({ message_from_client: text, telegram_user: user, telegram_chat: chat, instruction: 'Ответь клиенту как живой профессиональный менеджер по реализации сложных активов. Не повторяй шаблон. Учитывай контекст бизнеса.' }, null, 2) }
+        { role: 'user', content: JSON.stringify({ current_message: text, collected_data: session.lead, missing_fields: missingFields(session.lead), recent_history: session.messages.slice(-8), telegram_user: user }, null, 2) }
       ],
-      temperature: 0.65,
-      max_output_tokens: 800
+      temperature: 0.45,
+      max_output_tokens: 600
     })
   });
-
-  if (!response.ok) throw new Error(`OpenAI error: ${response.status} ${await response.text()}`);
+  if (!response.ok) throw new Error(`OpenAI error ${response.status}: ${await response.text()}`);
   const data = await response.json();
   return data.output_text || data.output?.flatMap((item) => item.content || []).find((item) => item.type === 'output_text')?.text || '';
 }
 
-function fallbackReply(text) {
-  const value = normalizeText(text);
-
-  if (value.includes('не хочу прод') || value.includes('проконсульт') || value.includes('сдам') || value.includes('аренд')) {
-    return 'Понял. Тогда задача не обязательно в продаже — можно разобрать, что выгоднее: продать, сдать в аренду или сначала подготовить объект. Для аренды важно понять локацию, площадь, состояние, отопление/электричество, подъезд и кто может быть арендатором. Напишите, пожалуйста, что за имущество и где оно находится.';
-  }
-
-  if (value.includes('еще не выстав') || value.includes('не выставлял')) {
-    return 'Это нормальная ситуация. Если объект еще не выставлялся, лучше сначала подготовить его правильно: определить целевого покупателя или арендатора, собрать ключевые характеристики, фото, документы и понять стартовую цену. Что за имущество и в каком регионе находится?';
-  }
-
-  if (value.includes('когда позвон')) {
-    return 'После первичного разбора специалист сможет связаться с вами предметно, а не просто задать общие вопросы. Напишите, пожалуйста, удобное время для звонка и номер телефона, если он отличается от Telegram.';
-  }
-
-  if (value.includes('как работает')) {
-    return 'Работа строится по этапам: сначала разбираем имущество и цель — продажа, аренда или консультация. Потом смотрим документы, фото, цену, спрос и слабые места. После этого предлагаем маршрут: как упаковать объект, кому он может быть нужен, где искать покупателя или арендатора и какой формат работы подходит.';
-  }
-
-  if (value.includes('договор')) {
-    return 'Договор имеет смысл обсуждать после первичного разбора. Сначала нужно понять объект, объем работы и формат: консультация, упаковка, поиск покупателя/арендатора или полное сопровождение. После этого условия можно зафиксировать письменно.';
-  }
-
-  if (value.includes('сколько') || value.includes('комисс') || value.includes('стоим')) {
-    return 'Стоимость зависит от задачи. Одно дело — консультация и разбор, другое — упаковка объекта, поиск покупателя или полное сопровождение сделки. Сначала нужно понять имущество, его цену, документы и сложность продажи/аренды, затем можно назвать формат и условия.';
-  }
-
-  if (isLikelyLead(text)) {
-    const type = detectAssetType(text);
-    if (type.includes('база')) {
-      return 'Понял, речь о базе. Для первичного разбора важно понять: земля и строения в собственности или аренде, какая площадь, есть ли отопление, электричество, подъезд, документы и фото. Также важно: вы хотите продать, сдать в аренду или пока сравнить варианты?';
-    }
-    return 'Понял. По такому имуществу сначала нужно определить цель: продать, сдать в аренду или получить консультацию. Дальше смотрим цену, документы, фото, состояние и потенциального покупателя/арендатора. Пришлите, пожалуйста, регион, ориентировочную цену и есть ли материалы по объекту.';
-  }
-
-  return 'Понял вас. Уточните, пожалуйста, что именно за имущество, где оно находится и какая цель сейчас: продать, сдать в аренду или получить консультацию по дальнейшей стратегии.';
-}
-
-async function sendTelegramMessage(env, chatId, text, replyToMessageId) {
+async function sendTelegram(env, chatId, text, replyToMessageId) {
   const response = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text, reply_to_message_id: replyToMessageId || undefined, disable_web_page_preview: true })
   });
-  if (!response.ok) throw new Error(`Telegram sendMessage error: ${response.status} ${await response.text()}`);
-}
-
-function formatManagerCard({ user, status, leadCard, sourceText }) {
-  return [
-    '📌 НОВАЯ ЗАЯВКА ИЗ TELEGRAM-БОТА',
-    '',
-    `Статус: ${status}`,
-    `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
-    '',
-    `Тип актива: ${leadCard.asset_type || 'не указано'}`,
-    `Локация: ${leadCard.location || 'не указано'}`,
-    `Кто обратился: ${leadCard.contact_role || 'не указано'}`,
-    `Суть задачи: ${leadCard.task_description || 'не указано'}`,
-    `Срок продажи: ${leadCard.selling_period || 'не указано'}`,
-    `Цена: ${leadCard.current_price || 'не указано'}`,
-    `Документы: ${leadCard.documents_status || 'не указано'}`,
-    `Фото: ${leadCard.photos_status || 'не указано'}`,
-    `Ссылка: ${leadCard.listing_url || 'не указано'}`,
-    '',
-    `Проблема: ${leadCard.main_problem || 'не указано'}`,
-    `Оценка: ${leadCard.ai_assessment || 'не указано'}`,
-    `Следующий шаг: ${leadCard.recommended_next_step || 'не указано'}`,
-    '',
-    sourceText ? `Исходное сообщение: ${sourceText}` : ''
-  ].filter(Boolean).join('\n');
+  if (!response.ok) throw new Error(`Telegram error ${response.status}: ${await response.text()}`);
 }
 
 async function handleStart(env, message) {
   const chatId = message.chat.id;
-  const hello = [
+  await saveSession(env, chatId, { lead: {}, messages: [], managerNotified: false });
+  const text = [
     'Здравствуйте. Я AI-оператор по разбору активов.',
     '',
-    'Помогу быстро собрать информацию по вашему имуществу и понять, какой следующий шаг нужен для его реализации.',
+    'Помогу быстро собрать информацию по вашему имуществу и понять следующий шаг для продажи или реализации.',
     '',
-    'Напишите, пожалуйста, одним сообщением:',
-    '1. Что хотите реализовать или сдать в аренду?',
-    '2. Где находится имущество?',
-    '3. Какая ориентировочная цена или желаемая аренда?',
-    '4. Продавали или сдавали уже раньше?',
-    '5. Есть ли фото, документы или ссылка на объявление?',
-    '',
-    'После этого я зафиксирую заявку и помогу определить следующий шаг: консультация, продажа, аренда или подготовка объекта.'
+    'Напишите коротко, что нужно реализовать: база, склад, помещение, оборудование, техника, ТМЦ или другой актив. Можно по частям — я буду вести диалог и не буду спрашивать одно и то же повторно.'
   ].join('\n');
-
-  await sendTelegramMessage(env, chatId, hello, message.message_id);
-  return jsonResponse({ ok: true, command: 'start' });
+  await sendTelegram(env, chatId, text, message.message_id);
+  return jsonResponse({ ok: true });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -247,42 +245,45 @@ export async function onRequestPost({ request, env }) {
   const update = await request.json();
   const message = getMessage(update);
   const text = getText(update).trim();
-
-  if (!message || !text) return jsonResponse({ ok: true, skipped: true, reason: 'empty message' });
-  if (message.from?.is_bot) return jsonResponse({ ok: true, skipped: true, reason: 'bot message ignored' });
+  if (!message || !text) return jsonResponse({ ok: true, skipped: true });
+  if (message.from?.is_bot) return jsonResponse({ ok: true, skipped: true, reason: 'bot message' });
   if (text.startsWith('/start')) return handleStart(env, message);
-  if (text.startsWith('/')) return jsonResponse({ ok: true, skipped: true, reason: 'command ignored' });
+  if (text.startsWith('/')) return jsonResponse({ ok: true, skipped: true, reason: 'command' });
 
-  const user = getUser(message.from);
   const chatId = message.chat.id;
-  const chat = { id: chatId, title: message.chat.title || '', type: message.chat.type };
+  const user = getUser(message.from);
 
   try {
-    let clientReply = '';
+    const session = await loadSession(env, chatId);
+    session.lead = mergeLead(session.lead, extractPatch(text));
+    session.messages = [...(session.messages || []), { role: 'client', text, at: new Date().toISOString() }].slice(-20);
+
+    let reply = '';
     if (env.OPENAI_API_KEY) {
       try {
-        clientReply = await callOpenAIText(env, { text, user, chat });
-      } catch (aiError) {
-        console.error('OpenAI fallback used:', aiError.message);
+        reply = await askOpenAI(env, { text, session, user });
+      } catch (error) {
+        console.error('OpenAI fallback:', error.message);
       }
     }
+    if (!reply) reply = fallbackReply(text, session);
 
-    if (!clientReply) clientReply = fallbackReply(text);
-    await sendTelegramMessage(env, chatId, clientReply.trim(), message.message_id);
+    await sendTelegram(env, chatId, reply.trim(), message.message_id);
+    session.messages = [...session.messages, { role: 'bot', text: reply, at: new Date().toISOString() }].slice(-20);
 
-    if (isLikelyLead(text)) {
-      const leadCard = leadCardFromText({ text, user, chatId });
-      const managerCard = formatManagerCard({ user, status: 'новая / требуется квалификация', leadCard, sourceText: text });
-      await sendTelegramMessage(env, env.MANAGER_CHAT_ID || chatId, managerCard);
+    if (hasAssetContext(session.lead, text) && !session.managerNotified && (session.lead.asset_type || session.lead.location || session.lead.price)) {
+      await sendTelegram(env, env.MANAGER_CHAT_ID || chatId, buildManagerCard({ user, lead: session.lead, lastText: text }));
+      session.managerNotified = true;
     }
 
-    return jsonResponse({ ok: true });
+    await saveSession(env, chatId, session);
+    return jsonResponse({ ok: true, memory: Boolean(env.CHAT_MEMORY) });
   } catch (error) {
-    console.error('Telegram webhook processing error:', error.message);
-    return jsonResponse({ ok: false, error: error.message, handled_without_retry: true }, 200);
+    console.error('Webhook error:', error.message);
+    return jsonResponse({ ok: false, error: error.message }, 200);
   }
 }
 
 export async function onRequestGet() {
-  return jsonResponse({ ok: true, service: 'telegram-ai-operator-cloudflare-pages', mode: 'live-manager-dialog-v3' });
+  return jsonResponse({ ok: true, mode: 'stateful-dialog-v5', memory: 'requires Cloudflare KV binding CHAT_MEMORY' });
 }
