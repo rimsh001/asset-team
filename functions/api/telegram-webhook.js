@@ -79,7 +79,7 @@ function systemPrompt(managerName) {
 Компания работает с активами:
 ${ASSET_TYPES.map((item) => `- ${item};`).join('\n')}
 
-Твоя задача — принять заявку в Telegram-группе, квалифицировать ее, задать короткие уточняющие вопросы и подготовить внутреннюю карточку для ${managerName || 'Андрея'}.
+Твоя задача — принять обращение клиента в Telegram, квалифицировать заявку, задать короткие уточняющие вопросы и подготовить внутреннюю карточку для ${managerName || 'Андрея'}.
 
 Стиль общения с клиентом:
 - коротко;
@@ -95,8 +95,10 @@ ${ASSET_TYPES.map((item) => `- ${item};`).join('\n')}
 - давать юридические заключения;
 - называть точную рыночную стоимость без анализа;
 - спорить с клиентом;
-- писать длинные полотна текста;
 - раскрывать внутреннюю логику компании.
+
+Если данных мало — задай клиенту вопросы: что за актив, где находится, цена, срок продажи, документы/фото, кто обращается.
+Если данных достаточно — сформируй карточку и предложи передать заявку Андрею.
 
 Ответ всегда возвращай строго в JSON без markdown.
 `;
@@ -178,7 +180,7 @@ async function sendTelegramMessage(env, chatId, text, replyToMessageId) {
 
 function formatManagerCard({ user, status, leadCard, managerSummary }) {
   return [
-    '📌 НОВАЯ ЗАЯВКА',
+    '📌 НОВАЯ ЗАЯВКА ИЗ TELEGRAM',
     '',
     `Статус: ${status}`,
     `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
@@ -307,17 +309,50 @@ function buildSheetRow({ date, user, chatId, status, leadCard, text }) {
   ];
 }
 
+async function handleStart(env, message, text) {
+  const chatId = message.chat.id;
+  const hello = [
+    'Здравствуйте. Я AI-агент A&A Asset Team.',
+    '',
+    'Помогу собрать первичную информацию по активу для разбора.',
+    '',
+    'Напишите, пожалуйста, одним сообщением:',
+    '1. Что хотите продать?',
+    '2. Где находится актив?',
+    '3. Какая ориентировочная цена?',
+    '4. Сколько времени продаётся?',
+    '5. Есть ли фото, документы или ссылка на объявление?',
+    '',
+    'После этого я подготовлю заявку для Андрея.'
+  ].join('\n');
+
+  await sendTelegramMessage(env, chatId, hello, message.message_id);
+  return jsonResponse({ ok: true, command: 'start' });
+}
+
 export async function onRequestPost({ request, env }) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.OPENAI_API_KEY) {
-    return jsonResponse({ ok: false, error: 'Missing TELEGRAM_BOT_TOKEN or OPENAI_API_KEY' }, 500);
+    return jsonResponse({ ok: false, error: 'Missing TELEGRAM_BOT_TOKEN or OPENAI_API_KEY' }, 200);
   }
 
   const update = await request.json();
   const message = getMessage(update);
   const text = getText(update).trim();
 
-  if (!message || !text || text.startsWith('/')) {
-    return jsonResponse({ ok: true, skipped: true });
+  if (!message || !text) {
+    return jsonResponse({ ok: true, skipped: true, reason: 'empty message' });
+  }
+
+  if (message.from?.is_bot) {
+    return jsonResponse({ ok: true, skipped: true, reason: 'bot message ignored' });
+  }
+
+  if (text.startsWith('/start')) {
+    return handleStart(env, message, text);
+  }
+
+  if (text.startsWith('/')) {
+    return jsonResponse({ ok: true, skipped: true, reason: 'command ignored' });
   }
 
   const user = getUser(message.from);
@@ -326,7 +361,7 @@ export async function onRequestPost({ request, env }) {
 
   try {
     const aiResult = await callOpenAI(env, {
-      instruction: 'Проанализируй новое сообщение в Telegram-группе. Определи, заявка ли это. Если заявка — подготовь короткий ответ клиенту и/или карточку заявки.',
+      instruction: 'Проанализируй новое сообщение клиента в Telegram. Определи, заявка ли это. Если заявка — подготовь короткий ответ клиенту и/или карточку заявки.',
       new_message: text,
       telegram_user: user,
       telegram_chat: {
@@ -362,9 +397,8 @@ export async function onRequestPost({ request, env }) {
 
     return jsonResponse({ ok: true });
   } catch (error) {
-    console.error(error);
-    await sendTelegramMessage(env, env.MANAGER_CHAT_ID || chatId, 'AI-агент не смог обработать сообщение. Проверьте заявку вручную.');
-    return jsonResponse({ ok: false, error: error.message }, 500);
+    console.error('Telegram webhook processing error:', error.message);
+    return jsonResponse({ ok: false, error: error.message, handled_without_retry: true }, 200);
   }
 }
 
