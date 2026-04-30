@@ -17,6 +17,78 @@
   setHeader();
   window.addEventListener('scroll', setHeader, { passive: true });
 
+  const methodLabel = $('#method .section-label');
+  if (methodLabel) methodLabel.textContent = 'Метод';
+
+  if (nav && !nav.querySelector('a[href="#formats"]')) {
+    const requestLink = nav.querySelector('a[href="#request"]');
+    const priceLink = document.createElement('a');
+    priceLink.href = '#formats';
+    priceLink.textContent = 'Стоимость';
+    if (requestLink) nav.insertBefore(priceLink, requestLink);
+    else nav.appendChild(priceLink);
+  }
+
+  const resultSection = $('#result');
+  const requestSection = $('#request');
+  if (!$('#formats') && requestSection) {
+    const pricingSection = document.createElement('section');
+    pricingSection.className = 'section section--cream';
+    pricingSection.id = 'formats';
+    pricingSection.innerHTML = `
+      <div class="container">
+        <div class="section-head">
+          <p class="section-label">Стоимость</p>
+          <h2>Форматы работы и стоимость услуг</h2>
+          <p>Стоимость зависит от типа актива, сложности ситуации, объёма материалов и глубины сопровождения. Ниже — базовые ориентиры, чтобы собственник сразу понимал порядок бюджета.</p>
+        </div>
+        <div class="pricing">
+          <article>
+            <span>01</span>
+            <h3>Первичный разбор</h3>
+            <p class="service-price">от 30 000 ₽</p>
+            <p>Подходит, если нужно понять, почему актив завис, что мешает продаже и какой следующий шаг разумен.</p>
+            <ul>
+              <li>диагностика объекта и текущего предложения</li>
+              <li>оценка слабых мест в цене, упаковке и документах</li>
+              <li>первичная карта целевых покупателей</li>
+              <li>рекомендации по маршруту реализации</li>
+            </ul>
+            <a href="#request">Запросить разбор</a>
+          </article>
+          <article class="featured">
+            <span>02</span>
+            <h3>Упаковка и вывод на рынок</h3>
+            <p class="service-price">от 90 000 ₽</p>
+            <p>Подходит, если актив нужно подготовить к рынку: описание, аргументы, документы, фото, каналы и логика продвижения.</p>
+            <ul>
+              <li>структура предложения для покупателя</li>
+              <li>подготовка описания и аргументации</li>
+              <li>проверка материалов и документов</li>
+              <li>выбор каналов и сегментов спроса</li>
+            </ul>
+            <a href="#request">Обсудить объект</a>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Сопровождение реализации</h3>
+            <p class="service-price">3–5% от сделки, но не менее 150 000 ₽</p>
+            <p>Подходит, если нужна не консультация, а сопровождение продажи до переговоров, условий и результата.</p>
+            <ul>
+              <li>поиск и квалификация покупателей</li>
+              <li>ведение коммуникации и переговорной логики</li>
+              <li>работа с торгом, рисками и возражениями</li>
+              <li>маршрут сделки до финального решения</li>
+            </ul>
+            <a href="#request">Передать актив на оценку</a>
+          </article>
+        </div>
+        <p class="pricing-note">Финальная стоимость фиксируется после первичного понимания объекта, документов, региона, срочности и объёма работ.</p>
+      </div>
+    `;
+    (resultSection || requestSection).insertAdjacentElement(resultSection ? 'afterend' : 'beforebegin', pricingSection);
+  }
+
   const closeMenu = () => {
     if (!burger || !nav) return;
     burger.setAttribute('aria-expanded', 'false');
@@ -57,12 +129,15 @@
       .header-messenger-btn__icon{object-fit:contain;border-radius:4px}
       .header-messenger-btn--telegram{background:rgba(42,171,238,.15);border-color:rgba(42,171,238,.32)}
       .header-messenger-btn--max{background:rgba(83,62,238,.16);border-color:rgba(83,62,238,.38)}
-      .service-price{margin:0 0 14px;color:var(--gold)!important;font-weight:800;font-size:18px}
-      .pricing-note{margin-top:18px;color:var(--muted)}
+      .service-price{margin:0 0 14px;color:var(--gold2)!important;font-weight:800;font-size:24px;line-height:1.15;letter-spacing:-.04em}
+      .pricing .featured .service-price{color:var(--gold)!important}
+      .pricing-note{margin-top:22px;color:var(--muted);font-size:15px}
+      .dark .timeline li{color:var(--ink)}
+      .dark .timeline h3{color:var(--ink)}
       .page-hero{background:radial-gradient(circle at 75% 20%,rgba(201,149,75,.18),transparent 32%),linear-gradient(135deg,#101216 0%,#191d25 55%,#0f1116 100%);color:#fff;padding:82px 0 92px;position:relative;overflow:hidden}
       .page-hero h1{font-size:clamp(42px,6vw,72px);max-width:920px;margin:18px 0 24px}.page-hero p{font-size:20px;color:rgba(255,255,255,.76);max-width:820px}.page-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}.page-link{display:inline-flex;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:11px 15px;color:#fff;background:rgba(255,255,255,.05);font-weight:700}.asset-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.asset-nav a{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px}.asset-nav span{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:700}.asset-nav h3{font-size:23px;margin:12px 0 8px}.asset-nav p{color:var(--muted)}
       @media(max-width:1020px){.header__messengers{display:none}.asset-nav{grid-template-columns:1fr 1fr}}
-      @media(max-width:680px){.asset-nav{grid-template-columns:1fr}}
+      @media(max-width:680px){.asset-nav{grid-template-columns:1fr}.pricing article{min-height:auto}.service-price{font-size:22px!important}}
     `;
     document.head.appendChild(style);
   }
@@ -81,26 +156,6 @@
         </a>
       </div>
     `);
-  }
-
-  const pricingCards = $$('#formats .pricing article');
-  const prices = ['от 30 000 ₽', 'от 90 000 ₽', '3–5% от сделки, но не менее 150 000 ₽'];
-  pricingCards.forEach((card, index) => {
-    if (card.querySelector('.service-price')) return;
-    const title = card.querySelector('h3');
-    if (!title || !prices[index]) return;
-    const price = document.createElement('p');
-    price.className = 'service-price';
-    price.textContent = prices[index];
-    title.insertAdjacentElement('afterend', price);
-  });
-
-  const pricing = $('#formats .pricing');
-  if (pricing && !$('#formats .pricing-note')) {
-    const note = document.createElement('p');
-    note.className = 'pricing-note';
-    note.textContent = 'Итоговая стоимость зависит от типа актива, объёма материалов и глубины сопровождения.';
-    pricing.insertAdjacentElement('afterend', note);
   }
 
   const form = $('#asset-form');
