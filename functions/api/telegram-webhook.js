@@ -74,7 +74,7 @@ const RESPONSE_SCHEMA = {
 
 function systemPrompt(managerName) {
   return `
-Ты — AI-агент-менеджер компании, которая помогает собственникам бизнеса реализовывать зависшее, непрофильное и сложное имущество.
+Ты — AI-оператор компании A&A Asset Team. Компания помогает собственникам бизнеса реализовывать зависшее, непрофильное и сложное имущество.
 
 Компания работает с активами:
 ${ASSET_TYPES.map((item) => `- ${item};`).join('\n')}
@@ -98,7 +98,7 @@ ${ASSET_TYPES.map((item) => `- ${item};`).join('\n')}
 - раскрывать внутреннюю логику компании.
 
 Если данных мало — задай клиенту вопросы: что за актив, где находится, цена, срок продажи, документы/фото, кто обращается.
-Если данных достаточно — сформируй карточку и предложи передать заявку Андрею.
+Если данных достаточно — сформируй карточку, отправь клиенту подтверждение и укажи, что заявка передана специалисту для первичного разбора.
 
 Ответ всегда возвращай строго в JSON без markdown.
 `;
@@ -125,6 +125,61 @@ function getUser(from = {}) {
     id: from.id || '',
     fullName,
     username: from.username ? `@${from.username}` : ''
+  };
+}
+
+function detectAssetType(text) {
+  const value = text.toLowerCase();
+  if (value.includes('база')) return 'производственная база';
+  if (value.includes('склад') || value.includes('ангар')) return 'склад / ангар';
+  if (value.includes('участ')) return 'земельный участок';
+  if (value.includes('оборуд')) return 'оборудование';
+  if (value.includes('техник') || value.includes('погруз') || value.includes('кран')) return 'спецтехника';
+  if (value.includes('тмц') || value.includes('остат')) return 'складские остатки / ТМЦ';
+  if (value.includes('недвиж')) return 'коммерческая недвижимость';
+  return 'не определено';
+}
+
+function fallbackLeadCard(text) {
+  return {
+    asset_type: detectAssetType(text),
+    location: text.match(/(?:в|во|г\.?|город)\s+([А-Яа-яA-Za-z\-\s]{3,40})/)?.[1]?.trim() || 'требуется уточнить',
+    contact_role: 'требуется уточнить: собственник / представитель',
+    task_description: text,
+    selling_period: text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода)/i)?.[0] || 'требуется уточнить',
+    current_price: text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0] || 'требуется уточнить',
+    documents_status: text.toLowerCase().includes('документ') ? 'упомянуты в сообщении' : 'требуется уточнить',
+    photos_status: text.toLowerCase().includes('фото') ? 'фото есть / упомянуты' : 'требуется уточнить',
+    listing_url: text.match(/https?:\/\/\S+/)?.[0] || 'не указано',
+    main_problem: text.toLowerCase().includes('прода') ? 'актив продаётся, требуется диагностика спроса и упаковки' : 'требуется уточнить',
+    ai_assessment: 'Предварительно заявка требует ручного разбора. Данных достаточно для первого контакта, но нужно уточнить документы, цену, роль клиента и параметры объекта.',
+    recommended_next_step: 'Передать Андрею. На первом контакте уточнить параметры объекта, цену, документы, ссылку на объявление и роль заявителя.'
+  };
+}
+
+function fallbackClientReply() {
+  return [
+    'Спасибо, заявку принял.',
+    '',
+    'Передаю информацию специалисту на первичный разбор. Если нужно будет уточнить детали по объекту, с вами свяжутся дополнительно.',
+    '',
+    'Чтобы ускорить разбор, можно сразу прислать ссылку на объявление, фото или основные документы по объекту.'
+  ].join('\n');
+}
+
+function normalizeAiResult(aiResult, text) {
+  const leadCard = aiResult?.lead_card || fallbackLeadCard(text);
+  return {
+    is_lead: aiResult?.is_lead ?? true,
+    status: aiResult?.status || 'передана Андрею',
+    client_reply: aiResult?.client_reply || fallbackClientReply(),
+    should_send_client_reply: true,
+    should_create_card: true,
+    manager_summary: aiResult?.manager_summary || 'Заявка из Telegram-бота. Требуется первичный ручной разбор и контакт с клиентом.',
+    lead_card: {
+      ...fallbackLeadCard(text),
+      ...leadCard
+    }
   };
 }
 
@@ -178,7 +233,7 @@ async function sendTelegramMessage(env, chatId, text, replyToMessageId) {
   }
 }
 
-function formatManagerCard({ user, status, leadCard, managerSummary }) {
+function formatManagerCard({ user, status, leadCard, managerSummary, sourceText }) {
   return [
     '📌 НОВАЯ ЗАЯВКА ИЗ TELEGRAM',
     '',
@@ -199,7 +254,9 @@ function formatManagerCard({ user, status, leadCard, managerSummary }) {
     `Оценка AI: ${leadCard.ai_assessment || 'не указано'}`,
     `Следующий шаг: ${leadCard.recommended_next_step || 'не указано'}`,
     '',
-    managerSummary ? `Комментарий AI: ${managerSummary}` : ''
+    managerSummary ? `Комментарий AI: ${managerSummary}` : '',
+    '',
+    sourceText ? `Исходное сообщение: ${sourceText}` : ''
   ].filter(Boolean).join('\n');
 }
 
@@ -309,12 +366,12 @@ function buildSheetRow({ date, user, chatId, status, leadCard, text }) {
   ];
 }
 
-async function handleStart(env, message, text) {
+async function handleStart(env, message) {
   const chatId = message.chat.id;
   const hello = [
-    'Здравствуйте. Я AI-агент A&A Asset Team.',
+    'Здравствуйте. Я AI-оператор A&A Asset Team.',
     '',
-    'Помогу собрать первичную информацию по активу для разбора.',
+    'Помогу быстро собрать информацию по активу и передать её на первичный разбор специалисту.',
     '',
     'Напишите, пожалуйста, одним сообщением:',
     '1. Что хотите продать?',
@@ -323,7 +380,7 @@ async function handleStart(env, message, text) {
     '4. Сколько времени продаётся?',
     '5. Есть ли фото, документы или ссылка на объявление?',
     '',
-    'После этого я подготовлю заявку для Андрея.'
+    'После этого я передам заявку специалисту. Если объект подходит под наш профиль, с вами свяжутся для уточнения деталей.'
   ].join('\n');
 
   await sendTelegramMessage(env, chatId, hello, message.message_id);
@@ -348,7 +405,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   if (text.startsWith('/start')) {
-    return handleStart(env, message, text);
+    return handleStart(env, message);
   }
 
   if (text.startsWith('/')) {
@@ -360,28 +417,37 @@ export async function onRequestPost({ request, env }) {
   const date = new Date().toISOString();
 
   try {
-    const aiResult = await callOpenAI(env, {
-      instruction: 'Проанализируй новое сообщение клиента в Telegram. Определи, заявка ли это. Если заявка — подготовь короткий ответ клиенту и/или карточку заявки.',
-      new_message: text,
-      telegram_user: user,
-      telegram_chat: {
-        id: chatId,
-        title: message.chat.title || '',
-        type: message.chat.type
-      },
-      manager_name: env.COMPANY_MANAGER_NAME || 'Андрей'
-    });
-
-    if (aiResult.should_send_client_reply && aiResult.client_reply) {
-      await sendTelegramMessage(env, chatId, aiResult.client_reply, message.message_id);
+    let aiResult;
+    try {
+      aiResult = await callOpenAI(env, {
+        instruction: 'Проанализируй новое сообщение клиента в Telegram. Если это заявка по активу — обязательно подготовь ответ клиенту и карточку заявки для Андрея.',
+        new_message: text,
+        telegram_user: user,
+        telegram_chat: {
+          id: chatId,
+          title: message.chat.title || '',
+          type: message.chat.type
+        },
+        manager_name: env.COMPANY_MANAGER_NAME || 'Андрей'
+      });
+    } catch (aiError) {
+      console.error('OpenAI fallback used:', aiError.message);
+      aiResult = null;
     }
 
-    if (aiResult.should_create_card) {
+    const result = normalizeAiResult(aiResult, text);
+
+    if (result.should_send_client_reply && result.client_reply) {
+      await sendTelegramMessage(env, chatId, result.client_reply, message.message_id);
+    }
+
+    if (result.should_create_card) {
       const managerCard = formatManagerCard({
         user,
-        status: aiResult.status,
-        leadCard: aiResult.lead_card,
-        managerSummary: aiResult.manager_summary
+        status: result.status,
+        leadCard: result.lead_card,
+        managerSummary: result.manager_summary,
+        sourceText: text
       });
 
       await sendTelegramMessage(env, env.MANAGER_CHAT_ID || chatId, managerCard);
@@ -389,8 +455,8 @@ export async function onRequestPost({ request, env }) {
         date,
         user,
         chatId,
-        status: aiResult.status,
-        leadCard: aiResult.lead_card,
+        status: result.status,
+        leadCard: result.lead_card,
         text
       }));
     }
@@ -403,5 +469,5 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestGet() {
-  return jsonResponse({ ok: true, service: 'telegram-ai-agent-cloudflare-pages' });
+  return jsonResponse({ ok: true, service: 'telegram-ai-operator-cloudflare-pages' });
 }
