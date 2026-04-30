@@ -9,7 +9,7 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ru_RU">
   <meta property="og:title" content="A&A Asset Team — реализация зависших активов бизнеса">
-  <meta property="og:description" content="Разбираем актив как сделку: покупатель, документы, упаковка, цена, риски и переговоры.">
+  <meta property="og:description" content="Превращаем зависшие активы бизнеса в деньги: диагностика, упаковка, целевой покупатель, переговоры и маршрут сделки.">
   <meta property="og:site_name" content="A&A Asset Team">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,9 +22,9 @@
     <div class="container header__inner">
       <a class="brand" href="index.html" aria-label="A&A Asset Team"><span class="brand__sign">A&A</span><span class="brand__text">Asset Team</span></a>
       <nav class="nav" id="nav" aria-label="Навигация">
-        <a href="index.html#assets">Активы</a><a href="method.html">Метод</a><a href="trust.html">Доверие</a><a href="asset-review.html">Первичный разбор</a><a href="index.html#request">Заявка</a>
+        <a href="#problem">Проблема</a><a href="#method">Метод</a><a href="#assets">Активы</a><a href="#trust">Доверие</a><a href="#request">Заявка</a>
       </nav>
-      <a class="btn btn--small btn--accent header__button" href="asset-review.html">Получить разбор</a>
+      <a class="btn btn--small btn--accent header__button" href="#request">Получить разбор</a>
       <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span></button>
     </div>
   </header>
@@ -33,48 +33,98 @@
     <section class="hero">
       <div class="container hero__grid">
         <div class="hero__content">
-          <p class="kicker">Реализация имущества бизнеса · Москва, МО, регионы РФ</p>
+          <p class="kicker">Продажа сложного имущества бизнеса · Москва, МО, регионы РФ</p>
           <h1>Превращаем зависшие активы бизнеса в деньги</h1>
           <p class="hero__lead">Помогаем собственникам продавать базы, склады, коммерческую недвижимость, оборудование, спецтехнику, складские остатки и неликвидные ТМЦ, которые долго не находят покупателя.</p>
-          <div class="hero__note">Не ждём случайного покупателя. Определяем, кому актив может быть нужен, что мешает сделке, какие материалы нужны покупателю и как вывести объект на целевой спрос.</div>
-          <div class="hero__actions"><a class="btn btn--accent" href="asset-review.html">Получить первичный разбор</a><a class="btn btn--line" href="method.html">Как мы работаем</a></div>
-          <p class="safe">Первичный разбор не обязывает передавать объект в работу.</p>
+          <div class="hero__note">Мы не ждём случайного покупателя. Определяем, кому актив может быть нужен, что мешает сделке, какие риски видит покупатель и как вывести объект на целевой спрос.</div>
+          <div class="hero__actions"><a class="btn btn--accent" href="#request">Получить первичный разбор</a><a class="btn btn--line" href="/api/contact-telegram" target="_blank" rel="noopener">Написать в Telegram</a></div>
+          <p class="safe">Первичный разбор не обязывает передавать объект в работу и не является обещанием продажи.</p>
         </div>
-        <aside class="audit-card" aria-label="Что входит в разбор">
-          <div class="audit-card__top"><span>ASSET REVIEW</span><span>01 / 06</span></div>
-          <h2>Смотрим актив как сделку, а не как объявление</h2>
+        <aside class="audit-card" aria-label="Логика первичного разбора">
+          <div class="audit-card__top"><span>ASSET DEAL LOGIC</span><span>не объявление</span></div>
+          <h2>Смотрим актив как сделку</h2>
           <ul>
-            <li><b>Покупатель:</b> кому актив реально может быть нужен.</li>
-            <li><b>Упаковка:</b> фото, описание, документы, преимущества и ограничения.</li>
-            <li><b>Цена:</b> где цена обоснована, а где покупатель видит риск.</li>
-            <li><b>Маршрут:</b> как довести интерес до решения, а не до бесконечного торга.</li>
+            <li><b>Актив:</b> что продаётся, в каком состоянии, какие ограничения.</li>
+            <li><b>Покупатель:</b> кому объект реально может решить задачу.</li>
+            <li><b>Риск:</b> почему покупатель будет торговаться или откладывать решение.</li>
+            <li><b>Маршрут:</b> какие материалы и действия нужны до переговоров.</li>
           </ul>
-          <div class="audit-card__stats"><div><strong>8</strong><span>типов активов</span></div><div><strong>6</strong><span>этапов работы</span></div><div><strong>3</strong><span>формата старта</span></div></div>
+          <div class="audit-card__stats"><div><strong>7</strong><span>узлов сделки</span></div><div><strong>8</strong><span>типов активов</span></div><div><strong>1</strong><span>цель — продажа</span></div></div>
         </aside>
+      </div>
+    </section>
+
+    <section class="section section--cream" id="problem">
+      <div class="container">
+        <div class="section-head"><p class="section-label">Почему актив не продаётся</p><h2>Если объект завис на рынке, проблема не всегда только в цене</h2><p>Часто рынок просто не понимает объект, не видит сценарий использования или боится рисков. В такой ситуации снижение цены становится не стратегией, а реакцией на слабую подготовку сделки.</p></div>
+        <div class="reason-list" style="background:#101216">
+          <div><span>01</span>Цена не объяснена рынку</div><div><span>02</span>Непонятен целевой покупатель</div><div><span>03</span>Слабые фото и описание</div><div><span>04</span>Нет технического пакета</div><div><span>05</span>Документы не собраны в понятный комплект</div><div><span>06</span>Объект размещён не на тех площадках</div><div><span>07</span>Продавец ждёт случайного звонка</div><div><span>08</span>Не ведётся прямой поиск покупателей</div><div><span>09</span>Не сняты риски покупателя</div><div><span>10</span>Переговоры проваливаются на торге</div>
+        </div>
+        <div class="quote" style="color:#15171c;background:linear-gradient(135deg,rgba(201,149,75,.28),rgba(255,250,241,.8));border-color:rgba(201,149,75,.36)">Мы не начинаем с фразы «давайте снизим цену». Сначала разбираем, что именно мешает покупателю принять решение.</div>
+      </div>
+    </section>
+
+    <section class="section" id="difference">
+      <div class="container">
+        <div class="compare"><div class="compare__left"><p class="section-label">Отличие</p><h2>Обычный подход продаёт объявление. Наш подход собирает сделку.</h2></div><div class="compare__cols"><div><h3>Обычный подход</h3><ul><li>Разместить объект и ждать звонков</li><li>Отвечать всем подряд</li><li>Снижать цену без диагностики</li><li>Показывать документы хаотично</li><li>Терять покупателя на торге</li></ul></div><div><h3>Подход A&A</h3><ul><li>Определить целевого покупателя</li><li>Подготовить объект к восприятию рынка</li><li>Собрать аргументы, фото и документы</li><li>Снять ключевые риски покупателя</li><li>Вести переговоры по логике сделки</li></ul></div></div></div>
+      </div>
+    </section>
+
+    <section class="section dark" id="method">
+      <div class="container">
+        <div class="section-head section-head--dark"><p class="section-label">Метод A&A Asset Team</p><h2>Актив → Покупатель → Риск → Документы → Упаковка → Переговоры → Сделка</h2><p>Метод нужен, чтобы собственник не отдавал объект в хаотичный рынок, где всё заканчивается вопросом «какая минимальная цена?».</p></div>
+        <ol class="timeline">
+          <li><span>01</span><h3>Диагностика актива</h3><p>Разбираем объект, ограничения, сильные стороны, документы и возможные сценарии использования.</p></li>
+          <li><span>02</span><h3>Карта покупателей</h3><p>Определяем, кому актив может быть нужен: профильному бизнесу, инвестору, соседнему собственнику или оператору.</p></li>
+          <li><span>03</span><h3>Цена и риск</h3><p>Смотрим, где цена объяснима, а где покупатель будет закладывать риск и торг.</p></li>
+          <li><span>04</span><h3>Документы и материалы</h3><p>Понимаем, что нужно подготовить до продвижения, чтобы не ломать переговоры на втором шаге.</p></li>
+          <li><span>05</span><h3>Упаковка объекта</h3><p>Формируем понятное предложение: описание, фото, характеристики, преимущества и честные ограничения.</p></li>
+          <li><span>06</span><h3>Вывод на спрос</h3><p>Работаем не только с площадками, но и с сегментами, которым актив может решить задачу.</p></li>
+        </ol>
+        <div class="page-links"><a class="page-link" href="method.html">Подробнее о методе</a><a class="page-link" href="#request">Запросить разбор</a></div>
       </div>
     </section>
 
     <section class="section" id="assets">
       <div class="container">
-        <div class="section-head"><p class="section-label">Активы</p><h2>Отдельная логика под каждый тип имущества</h2><p>Собственник базы, склада и оборудования приходит с разными вопросами. Поэтому сайт разделён на экспертные страницы, а не пытается продать всё одним универсальным блоком.</p></div>
-        <div class="asset-nav">
-          <a href="bases.html"><span>01</span><h3>Производственные базы</h3><p>Земля, строения, коммуникации, документы, сценарии покупателей.</p></a>
-          <a href="sklady.html"><span>02</span><h3>Склады и ангары</h3><p>Площадь, высота, ворота, подъезд, состояние, ликвидность.</p></a>
-          <a href="commercial.html"><span>03</span><h3>Коммерческая недвижимость</h3><p>Помещения, офисы, ПСН, объекты под инвестора или пользователя.</p></a>
-          <a href="equipment.html"><span>04</span><h3>Оборудование и спецтехника</h3><p>Состояние, комплектность, документы, демонтаж, логистика.</p></a>
-          <a href="illiquid-stock.html"><span>05</span><h3>Неликвидные ТМЦ</h3><p>Складские остатки, партии, запчасти, материалы, перечни позиций.</p></a>
-          <a href="asset-review.html"><span>06</span><h3>Первичный разбор</h3><p>Быстрый вход: понять, есть ли маршрут реализации.</p></a>
+        <div class="section-head"><p class="section-label">Активы</p><h2>Работаем с имуществом, где нужна не массовая реклама, а разбор сделки</h2><p>Каждый тип актива требует своей логики покупателя, документов, упаковки и переговоров.</p></div>
+        <div class="asset-grid">
+          <article><span>01</span><h3>Производственные базы</h3><p>Земля, строения, коммуникации, подъезд, документы и сценарии использования. Покупатель должен понимать, какую задачу решит объект.</p></article>
+          <article><span>02</span><h3>Склады и ангары</h3><p>Площадь, высота, ворота, полы, отопление, подъезд фур, состояние, документы и ликвидность локации.</p></article>
+          <article><span>03</span><h3>Коммерческая недвижимость</h3><p>Назначение, локация, состояние, документы, ограничения, цена и сценарий для пользователя или инвестора.</p></article>
+          <article><span>04</span><h3>Оборудование</h3><p>Марка, модель, состояние, комплектность, фото, видео работы, документы, демонтаж и логистика.</p></article>
+          <article><span>05</span><h3>Спецтехника</h3><p>Год, наработка, состояние, регистрация, техническая готовность, условия осмотра и перевозки.</p></article>
+          <article><span>06</span><h3>Складские остатки</h3><p>Перечень позиций, объём, состояние, цена, минимальная партия и целевой сегмент покупателей.</p></article>
+          <article><span>07</span><h3>Неликвидные ТМЦ</h3><p>Материалы, запчасти, комплектующие и товарные партии, которые занимают склад и не работают в бизнесе.</p></article>
+          <article><span>08</span><h3>Имущество после закрытия направлений</h3><p>Активы, которые остались после оптимизации бизнеса и требуют аккуратного вывода в деньги.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="section dark" id="diagnostic"><div class="container"><div class="section-head section-head--dark"><p class="section-label">Почему актив зависает</p><h2>Проблема часто не только в цене</h2><p>Покупатель покупает не объект как набор стен, земли или техники. Он покупает понятный сценарий использования и управляемый риск.</p></div><div class="reason-list"><div><span>01</span>Цена не объяснена рынку</div><div><span>02</span>Непонятен целевой покупатель</div><div><span>03</span>Слабые фото и описание</div><div><span>04</span>Нет технического пакета</div><div><span>05</span>Документы не собраны</div><div><span>06</span>Объект размещен не там</div><div><span>07</span>Нет прямого поиска покупателей</div><div><span>08</span>Переговоры ломаются на торге</div></div><div class="quote">Мы не начинаем с фразы «давайте просто снизим цену». Сначала разбираем, что именно мешает покупателю принять решение.</div></div></section>
+    <section class="section section--cream" id="trust">
+      <div class="container">
+        <div class="section-head"><p class="section-label">Доверие</p><h2>Сложный актив требует аккуратной работы с информацией, а не громких обещаний</h2><p>Собственник раскрывает цену, документы, ограничения, переговорную позицию и внутреннюю ситуацию по объекту. Поэтому доверие строится на правилах, а не на красивых лозунгах.</p></div>
+        <div class="cards cards--4"><article class="card"><span>01</span><h3>Конфиденциальность</h3><p>Информация об объекте, цене, документах и переговорах не используется публично без согласования.</p></article><article class="card"><span>02</span><h3>Документы без хаоса</h3><p>Не рассылаем материалы всем подряд. Сначала понимаем, что можно показывать сразу, а что — после квалификации.</p></article><article class="card"><span>03</span><h3>Честная диагностика</h3><p>Если объект не готов к рынку, сначала показываем слабые места, а не обещаем быстрый результат.</p></article><article class="card"><span>04</span><h3>Защита позиции</h3><p>Не сводим переговоры к фразе «дайте минимальную цену». Работаем с риском, условиями и следующим шагом.</p></article></div>
+      </div>
+    </section>
 
-    <section class="section process"><div class="container"><div class="section-head"><p class="section-label">Метод</p><h2>Как превращаем объект в коммерческое предложение</h2></div><ol class="timeline"><li><span>01</span><h3>Диагностика</h3><p>Что продаётся, какие ограничения, документы, слабые места и сценарии использования.</p></li><li><span>02</span><h3>Карта покупателя</h3><p>Кому актив может быть нужен: производственнику, соседу, инвестору, оператору, конкуренту.</p></li><li><span>03</span><h3>Упаковка</h3><p>Фото, описание, технические параметры, документы, преимущества и ограничения.</p></li><li><span>04</span><h3>Цена и торг</h3><p>Стартовая цена, допустимый торг, аргументы и сценарии переговоров.</p></li><li><span>05</span><h3>Вывод на спрос</h3><p>Релевантные площадки, прямой поиск покупателей и работа с сегментами.</p></li><li><span>06</span><h3>Переговоры</h3><p>Снятие рисков покупателя и движение к понятному следующему шагу.</p></li></ol></div></section>
+    <section class="section dark" id="no-promises">
+      <div class="container"><div class="section-head section-head--dark"><p class="section-label">Что мы не обещаем</p><h2>Взрослая позиция повышает доверие сильнее, чем красивые гарантии</h2><p>Сложный актив нельзя честно продать обещанием “быстро и дорого”. Сначала нужен разбор.</p></div><div class="reason-list"><div><span>01</span>Не гарантируем продажу за фиксированный срок</div><div><span>02</span>Не называем точную цену без анализа</div><div><span>03</span>Не обещаем покупателя за несколько дней</div><div><span>04</span>Не даём юридическое заключение без документов</div><div><span>05</span>Не предлагаем просто снижать цену без диагностики</div><div><span>06</span>Не берём объект вслепую без данных и полномочий</div></div></div>
+    </section>
 
-    <section class="section section--cream" id="trust"><div class="container split"><div><p class="section-label">Доверие</p><h2>Без громких обещаний и выдуманных кейсов</h2></div><div class="rich-text"><p>Для сложных активов доверие строится не на лозунгах, а на прозрачной логике работы. Мы честно разделяем первичный разбор, подготовку объекта, поиск покупателя и сопровождение переговоров.</p><p>Мы не гарантируем продажу, не называем точную рыночную стоимость без анализа и не обещаем покупателя за несколько дней. Сначала нужно понять актив, документы, цену, риски и целевой спрос.</p><p><a href="trust.html">Подробнее о принципах доверия →</a></p></div></div></section>
+    <section class="section section--cream" id="result">
+      <div class="container">
+        <div class="section-head"><p class="section-label">Что получает собственник</p><h2>После первичного разбора появляется не обещание, а понятный следующий шаг</h2></div>
+        <div class="cards cards--5"><article class="card"><span>01</span><h3>Причины зависания</h3><p>Что мешает продаже: цена, упаковка, документы, спрос, риски или переговоры.</p></article><article class="card"><span>02</span><h3>Слабые места</h3><p>Что нужно исправить в описании, фото, техническом пакете и аргументации.</p></article><article class="card"><span>03</span><h3>Карта покупателей</h3><p>Кому актив может быть нужен и где искать не случайный, а целевой спрос.</p></article><article class="card"><span>04</span><h3>Материалы</h3><p>Каких документов, фото, ссылок и характеристик не хватает для уверенного разговора.</p></article><article class="card"><span>05</span><h3>Формат работы</h3><p>Есть ли смысл брать актив в работу и какой маршрут реализации выглядит разумным.</p></article></div>
+      </div>
+    </section>
 
-    <section class="section dark request" id="request"><div class="container request__grid"><div><p class="section-label">Заявка</p><h2>Есть актив, который завис и не продаётся?</h2><p class="request__lead">Отправьте краткое описание объекта. Мы посмотрим, почему он может не продаваться, кому он может быть интересен и какие шаги нужны для выхода на сделку.</p><ul class="request__points"><li>Можно описать объект коротко.</li><li>Если актив подходит, уточним детали сами.</li><li>Первичный разбор не обязывает передавать объект в работу.</li></ul><div class="contacts"><a href="tel:+79027690090">+7 902 769-00-90</a><a href="mailto:bss10@bk.ru">bss10@bk.ru</a></div></div><form class="form" id="asset-form" name="asset-request" method="POST" action="/api/lead"><p class="hidden"><label>Не заполняйте это поле: <input name="bot-field"></label></p><div class="form__row form__row--two"><label>Имя*<input name="name" autocomplete="name" required placeholder="Андрей"></label><label>Телефон или Telegram*<input name="phone" autocomplete="tel" required placeholder="+7 ___ ___-__-__ или @username"></label></div><div class="form__row form__row--two"><label>Тип актива*<select name="asset_type" required><option value="">Выберите</option><option>Производственная база</option><option>Склад / ангар</option><option>Коммерческая недвижимость</option><option>Земельный участок</option><option>Оборудование</option><option>Спецтехника</option><option>Складские остатки / ТМЦ</option><option>Другое</option></select></label><label>Город / регион*<input name="region" required placeholder="Москва / МО / регион РФ"></label></div><div class="form__row form__row--two optional"><label>Ориентировочная стоимость<input name="value" placeholder="Например, 30 млн ₽"></label><label>Сколько продаётся<input name="sale_period" placeholder="Например, 8 месяцев"></label></div><label>Краткое описание объекта*<textarea name="description" required rows="5" placeholder="Что за актив, где находится, что уже пробовали для продажи"></textarea></label><label>Email<input name="email" type="email" autocomplete="email" placeholder="mail@example.com"></label><label class="consent"><input type="checkbox" name="personal_data_consent" required value="Согласен"><span>Я даю согласие ИП Римш Андрей Александрович на обработку персональных данных для связи по заявке и первичного разбора актива. С <a href="privacy.html" target="_blank" rel="noopener">Политикой обработки персональных данных</a> ознакомлен.</span></label><button class="btn btn--accent" type="submit">Отправить на первичный разбор</button><p class="form__note">Банковские реквизиты и документы запрашиваются только при переходе к договору или счету.</p></form></div></section>
+    <section class="section dark request" id="request">
+      <div class="container request__grid">
+        <div><p class="section-label">Первичный разбор</p><h2>Есть актив, который завис и не продаётся?</h2><p class="request__lead">Опишите объект коротко. Если актив подходит под профиль, уточним детали и покажем, какой следующий шаг нужен для реализации.</p><ul class="request__points"><li>Можно начать без полного пакета документов.</li><li>Если объект подходит, уточним недостающие данные.</li><li>Разбор не обязывает передавать актив в работу.</li></ul><div class="contacts"><a href="tel:+79027690090">+7 902 769-00-90</a><a href="mailto:bss10@bk.ru">bss10@bk.ru</a><a href="/api/contact-telegram" target="_blank" rel="noopener">Написать в Telegram</a></div></div>
+        <form class="form" id="asset-form" name="asset-request" method="POST" action="/api/lead"><p class="hidden"><label>Не заполняйте это поле: <input name="bot-field"></label></p><div class="form__row form__row--two"><label>Имя*<input name="name" autocomplete="name" required placeholder="Ваше имя"></label><label>Телефон или Telegram*<input name="phone" autocomplete="tel" required placeholder="+7 ___ ___-__-__ или @username"></label></div><div class="form__row form__row--two"><label>Тип актива*<select name="asset_type" required><option value="">Выберите</option><option>Производственная база</option><option>Склад / ангар</option><option>Коммерческая недвижимость</option><option>Земельный участок</option><option>Оборудование</option><option>Спецтехника</option><option>Складские остатки / ТМЦ</option><option>Другое</option></select></label><label>Город / регион*<input name="region" required placeholder="Москва / МО / регион РФ"></label></div><div class="form__row form__row--two optional"><label>Ориентировочная стоимость<input name="value" placeholder="Например, 30 млн ₽"></label><label>Сколько продаётся<input name="sale_period" placeholder="Например, 8 месяцев"></label></div><label>Краткое описание объекта*<textarea name="description" required rows="5" placeholder="Что за актив, где находится, что уже пробовали для продажи, есть ли документы/фото/ссылка"></textarea></label><label>Email<input name="email" type="email" autocomplete="email" placeholder="mail@example.com"></label><label class="consent"><input type="checkbox" name="personal_data_consent" required value="Согласен"><span>Я даю согласие ИП Римш Андрей Александрович на обработку персональных данных для связи по заявке и первичного разбора актива. С <a href="privacy.html" target="_blank" rel="noopener">Политикой обработки персональных данных</a> ознакомлен.</span></label><button class="btn btn--accent" type="submit">Отправить на первичный разбор</button><p class="form__note">Банковские реквизиты и дополнительные документы запрашиваются только при переходе к договору или счету.</p></form>
+      </div>
+    </section>
   </main>
 
   <footer class="footer"><div class="container footer__grid"><div><strong>A&A Asset Team</strong><p>Реализация зависшего, непрофильного и сложного имущества бизнеса.</p></div><div><span>Разделы</span><a href="method.html">Метод работы</a><a href="trust.html">Доверие</a><a href="asset-review.html">Первичный разбор</a></div><div><span>Контакты</span><a href="tel:+79027690090">+7 902 769-00-90</a><a href="mailto:bss10@bk.ru">bss10@bk.ru</a><p>ИП Римш Андрей Александрович · ИНН 380119910292</p><a href="privacy.html">Политика обработки персональных данных</a><p>© <span id="year">2026</span></p></div></div></footer>
