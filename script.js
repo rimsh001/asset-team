@@ -67,44 +67,29 @@
     const style = document.createElement('style');
     style.id = 'messenger-buttons-style';
     style.textContent = `
-      .messenger-cta{margin-top:18px;display:grid;gap:12px;max-width:690px}
-      .messenger-cta__title{font-size:14px;color:rgba(255,255,255,.68)}
-      .messenger-cta__buttons{display:flex;flex-wrap:wrap;gap:12px}
-      .messenger-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border-radius:999px;padding:13px 18px;font-weight:800;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#fff;transition:.2s ease}
-      .messenger-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.11)}
-      .messenger-btn--telegram{background:rgba(42,171,238,.16);border-color:rgba(42,171,238,.34)}
-      .messenger-btn--max{background:rgba(201,149,75,.16);border-color:rgba(201,149,75,.38)}
-      .request-messengers{margin-top:26px;padding:22px;border:1px solid rgba(255,255,255,.12);border-radius:22px;background:rgba(255,255,255,.045)}
-      .request-messengers h3{font-size:24px;margin:0 0 8px;color:#fff}
-      .request-messengers p{color:rgba(255,255,255,.68);margin:0 0 16px}
-      @media(max-width:680px){.messenger-cta__buttons{display:grid}.messenger-btn{width:100%}}
+      .header__messengers{display:flex;align-items:center;gap:8px;margin-left:auto}
+      .header-messenger-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:999px;padding:10px 13px;font-size:13px;font-weight:800;line-height:1;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;transition:.2s ease;white-space:nowrap}
+      .header-messenger-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.11)}
+      .header-messenger-btn svg{width:16px;height:16px;display:block;flex:0 0 16px}
+      .header-messenger-btn--telegram{background:rgba(42,171,238,.15);border-color:rgba(42,171,238,.32)}
+      .header-messenger-btn--max{background:rgba(201,149,75,.14);border-color:rgba(201,149,75,.35)}
+      @media(max-width:1020px){.header__messengers{display:none}}
     `;
     document.head.appendChild(style);
   }
 
-  const messengerButtons = `
-    <div class="messenger-cta__buttons">
-      <a class="messenger-btn messenger-btn--telegram" href="/api/contact-telegram" target="_blank" rel="noopener">Написать в Telegram</a>
-      <a class="messenger-btn messenger-btn--max" href="/api/contact-max" target="_blank" rel="noopener">Написать в MAX</a>
-    </div>`;
-
-  const heroActions = $('.hero__actions');
-  if (heroActions && !$('.hero .messenger-cta')) {
-    heroActions.insertAdjacentHTML('afterend', `
-      <div class="messenger-cta">
-        <div class="messenger-cta__title">Хотите без формы — перейдите в мессенджер и ответьте на вопросы AI-агента.</div>
-        ${messengerButtons}
-      </div>
-    `);
-  }
-
-  const contacts = $('.request .contacts');
-  if (contacts && !$('.request-messengers')) {
-    contacts.insertAdjacentHTML('afterend', `
-      <div class="request-messengers">
-        <h3>Написать напрямую</h3>
-        <p>Если удобнее не заполнять форму, перейдите в мессенджер. AI-агент задаст вопросы по активу и соберёт заявку.</p>
-        ${messengerButtons}
+  const headerButton = $('.header__button');
+  if (headerButton && !$('.header__messengers')) {
+    headerButton.insertAdjacentHTML('beforebegin', `
+      <div class="header__messengers" aria-label="Написать в мессенджер">
+        <a class="header-messenger-btn header-messenger-btn--telegram" href="/api/contact-telegram" target="_blank" rel="noopener" aria-label="Написать в Telegram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.7 3.3c.3-.1.6.1.5.5l-3 16.7c-.1.7-.7.9-1.3.5l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.2 9.4-8.5c.4-.4-.1-.6-.6-.3L7.1 13.4 2.1 11.8c-.7-.2-.7-.7.2-1L21.7 3.3Z"/></svg>
+          Telegram
+        </a>
+        <a class="header-messenger-btn header-messenger-btn--max" href="/api/contact-max" target="_blank" rel="noopener" aria-label="Написать в MAX">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5.2C4 4.5 4.5 4 5.2 4h13.6c.7 0 1.2.5 1.2 1.2v13.6c0 .7-.5 1.2-1.2 1.2H5.2C4.5 20 4 19.5 4 18.8V5.2Zm3.2 10.9h2.1V9.8l2.2 3.7h1l2.2-3.7v6.3h2.1V7.9h-2.3L12 12.2 9.5 7.9H7.2v8.2Z"/></svg>
+          MAX
+        </a>
       </div>
     `);
   }
