@@ -46,23 +46,6 @@
     });
   });
 
-  const replaceText = (selector, text) => {
-    const el = $(selector);
-    if (el) el.textContent = text;
-  };
-
-  replaceText('.hero__lead', 'Помогаем собственникам продавать базы, склады, коммерческую недвижимость, оборудование, спецтехнику, складские остатки и неликвидные ТМЦ, которые долго не находят покупателя.');
-  replaceText('#approach .rich-text p:first-child', 'A&A Asset Team работает с активами, которые сложно продать стандартным способом. Мы определяем покупателя, причины зависания, нужные документы, каналы спроса и переговорную стратегию.');
-  replaceText('#approach .rich-text p:last-child', 'Подход строится вокруг сделки: актив, покупатель, риск, цена, документы и маршрут до решения.');
-  replaceText('#owner .rich-text p:first-child', 'Проект ведёт Андрей Римш. Фокус — сложные активы бизнеса: базы, коммерческая недвижимость, оборудование, спецтехника, складские остатки и непрофильное имущество.');
-  replaceText('#owner .rich-text p:nth-child(2)', 'Первичный разбор показывает маршрут сделки: кто может купить, что мешает покупке, какие документы нужны и где возникает риск.');
-
-  $$('p').forEach((p) => {
-    if (p.textContent.includes('Шмитовский проезд, 39, корпус 8, кв. 152')) {
-      p.textContent = p.textContent.replace(', кв. 152', '');
-    }
-  });
-
   if (!$('#messenger-buttons-style')) {
     const style = document.createElement('style');
     style.id = 'messenger-buttons-style';
@@ -74,7 +57,12 @@
       .header-messenger-btn__icon{object-fit:contain;border-radius:4px}
       .header-messenger-btn--telegram{background:rgba(42,171,238,.15);border-color:rgba(42,171,238,.32)}
       .header-messenger-btn--max{background:rgba(83,62,238,.16);border-color:rgba(83,62,238,.38)}
-      @media(max-width:1020px){.header__messengers{display:none}}
+      .service-price{margin:0 0 14px;color:var(--gold)!important;font-weight:800;font-size:18px}
+      .pricing-note{margin-top:18px;color:var(--muted)}
+      .page-hero{background:radial-gradient(circle at 75% 20%,rgba(201,149,75,.18),transparent 32%),linear-gradient(135deg,#101216 0%,#191d25 55%,#0f1116 100%);color:#fff;padding:82px 0 92px;position:relative;overflow:hidden}
+      .page-hero h1{font-size:clamp(42px,6vw,72px);max-width:920px;margin:18px 0 24px}.page-hero p{font-size:20px;color:rgba(255,255,255,.76);max-width:820px}.page-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}.page-link{display:inline-flex;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:11px 15px;color:#fff;background:rgba(255,255,255,.05);font-weight:700}.asset-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.asset-nav a{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px}.asset-nav span{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:700}.asset-nav h3{font-size:23px;margin:12px 0 8px}.asset-nav p{color:var(--muted)}
+      @media(max-width:1020px){.header__messengers{display:none}.asset-nav{grid-template-columns:1fr 1fr}}
+      @media(max-width:680px){.asset-nav{grid-template-columns:1fr}}
     `;
     document.head.appendChild(style);
   }
@@ -113,30 +101,6 @@
     note.className = 'pricing-note';
     note.textContent = 'Итоговая стоимость зависит от типа актива, объёма материалов и глубины сопровождения.';
     pricing.insertAdjacentElement('afterend', note);
-  }
-
-  if (!$('#case-example')) {
-    const formats = $('#formats');
-    const section = document.createElement('section');
-    section.className = 'section case-section';
-    section.id = 'case-example';
-    section.innerHTML = `
-      <div class="container">
-        <div class="case-card">
-          <div>
-            <p class="section-label">Пример разбора</p>
-            <h2>Как смотрим зависший актив</h2>
-            <p>Это не обещание результата, а пример логики первичной диагностики: почему объект не продаётся и что нужно собрать, чтобы вывести его на целевой спрос.</p>
-          </div>
-          <div class="case-grid">
-            <div><span>Актив</span><b>Производственная база / склад</b></div>
-            <div><span>Ситуация</span><b>Долго нет целевых покупателей</b></div>
-            <div><span>Что мешает</span><b>Слабая упаковка, неясный покупатель, документы разрознены</b></div>
-            <div><span>Что делаем</span><b>Карта покупателей, пакет материалов, стратегия цены и переговоров</b></div>
-          </div>
-        </div>
-      </div>`;
-    if (formats) formats.before(section);
   }
 
   const form = $('#asset-form');
