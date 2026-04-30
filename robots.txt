@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://asset-team.pages.dev/sitemap.xml
