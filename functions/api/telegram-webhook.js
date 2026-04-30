@@ -1,6 +1,7 @@
 const ASSET_TYPES = [
   'производственная база',
   'склад',
+  'ангар',
   'промышленный участок',
   'коммерческая недвижимость',
   'оборудование',
@@ -11,113 +12,6 @@ const ASSET_TYPES = [
   'проблемный актив бизнеса'
 ];
 
-const RESPONSE_SCHEMA = {
-  name: 'telegram_asset_lead_agent_response',
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: [
-      'is_lead',
-      'status',
-      'client_reply',
-      'should_send_client_reply',
-      'should_create_card',
-      'manager_summary',
-      'lead_card'
-    ],
-    properties: {
-      is_lead: { type: 'boolean' },
-      status: {
-        type: 'string',
-        enum: ['новая', 'требуется уточнение', 'целевая', 'нецелевая', 'передана Андрею', 'закрыта']
-      },
-      should_send_client_reply: { type: 'boolean' },
-      client_reply: { type: 'string' },
-      should_create_card: { type: 'boolean' },
-      manager_summary: { type: 'string' },
-      lead_card: {
-        type: 'object',
-        additionalProperties: false,
-        required: [
-          'asset_type',
-          'location',
-          'contact_role',
-          'task_description',
-          'selling_period',
-          'current_price',
-          'documents_status',
-          'photos_status',
-          'listing_url',
-          'main_problem',
-          'ai_assessment',
-          'recommended_next_step'
-        ],
-        properties: {
-          asset_type: { type: 'string' },
-          location: { type: 'string' },
-          contact_role: { type: 'string' },
-          task_description: { type: 'string' },
-          selling_period: { type: 'string' },
-          current_price: { type: 'string' },
-          documents_status: { type: 'string' },
-          photos_status: { type: 'string' },
-          listing_url: { type: 'string' },
-          main_problem: { type: 'string' },
-          ai_assessment: { type: 'string' },
-          recommended_next_step: { type: 'string' }
-        }
-      }
-    }
-  },
-  strict: true
-};
-
-function systemPrompt(managerName) {
-  return `
-Ты — профессиональный AI-оператор по разбору активов компании A&A Asset Team.
-Компания помогает собственникам бизнеса реализовывать зависшее, непрофильное и сложное имущество.
-
-Твоя роль шире, чем просто сбор заявки. Ты работаешь как сильный первичный менеджер: квалифицируешь клиента, выявляешь актив, фиксируешь проблему, переводишь разговор к следующему коммерческому шагу и готовишь почву для созвона, передачи документов, обсуждения формата работы и последующего договора.
-
-Компания работает с активами:
-${ASSET_TYPES.map((item) => `- ${item};`).join('\n')}
-
-Твоя задача в диалоге:
-1. понять, что клиент хочет реализовать;
-2. уточнить локацию, цену, срок продажи, документы, фото, ссылку на объявление;
-3. понять роль клиента: собственник, представитель, сотрудник, посредник;
-4. выявить боль: нет звонков, есть торг, нет покупателей, слабая упаковка, документы, срочность, зависшие деньги;
-5. если данных мало — задать 3–6 точных вопросов;
-6. если данных достаточно — подтвердить прием информации, обозначить следующий шаг и передать заявку ${managerName || 'Андрею'};
-7. мягко вести клиента к коммерческому маршруту: первичный разбор → уточнение документов/материалов → созвон → определение формата работы → договор.
-
-Стиль общения с клиентом:
-- коротко;
-- делово;
-- уверенно;
-- без канцелярита;
-- без длинных текстов;
-- без давления;
-- не более 5–7 вопросов за один ответ.
-
-Запрещено:
-- обещать продажу;
-- гарантировать цену;
-- давать юридические заключения;
-- называть точную рыночную стоимость без анализа;
-- спорить с клиентом;
-- раскрывать внутреннюю логику компании;
-- навязывать договор до первичной диагностики.
-
-Правильный коммерческий тон:
-- не «мы вам точно продадим», а «сначала посмотрим актив, спрос, документы и маршрут сделки»;
-- не «скиньте всё подряд», а «для первичного вывода нужны фото, документы или ссылка на объявление»;
-- не «ждите звонка», а «передаю информацию на разбор; следующий шаг — уточнение материалов и формата работы».
-
-Ответ всегда возвращай строго в JSON без markdown.
-`;
-}
-
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -125,12 +19,12 @@ function jsonResponse(data, status = 200) {
   });
 }
 
-function getText(update) {
-  return update?.message?.text || update?.edited_message?.text || '';
-}
-
 function getMessage(update) {
   return update?.message || update?.edited_message || null;
+}
+
+function getText(update) {
+  return update?.message?.text || update?.edited_message?.text || '';
 }
 
 function getUser(from = {}) {
@@ -142,62 +36,112 @@ function getUser(from = {}) {
   };
 }
 
+function normalizeText(text) {
+  return String(text || '').toLowerCase().replace(/ё/g, 'е');
+}
+
 function detectAssetType(text) {
-  const value = text.toLowerCase();
+  const value = normalizeText(text);
   if (value.includes('база')) return 'производственная база';
   if (value.includes('склад') || value.includes('ангар')) return 'склад / ангар';
   if (value.includes('участ')) return 'земельный участок';
   if (value.includes('оборуд')) return 'оборудование';
-  if (value.includes('техник') || value.includes('погруз') || value.includes('кран')) return 'спецтехника';
-  if (value.includes('тмц') || value.includes('остат')) return 'складские остатки / ТМЦ';
-  if (value.includes('недвиж')) return 'коммерческая недвижимость';
+  if (value.includes('техник') || value.includes('погруз') || value.includes('кран') || value.includes('экскават')) return 'спецтехника';
+  if (value.includes('тмц') || value.includes('остат') || value.includes('неликвид')) return 'складские остатки / ТМЦ';
+  if (value.includes('недвиж') || value.includes('офис') || value.includes('помещ')) return 'коммерческая недвижимость';
   return 'не определено';
 }
 
-function fallbackLeadCard(text) {
+function isLikelyLead(text) {
+  const value = normalizeText(text);
+  const assetWords = ['база', 'склад', 'ангар', 'участ', 'оборуд', 'техник', 'погруз', 'кран', 'тмц', 'остат', 'неликвид', 'недвиж', 'офис', 'помещ', 'земля'];
+  const saleWords = ['прод', 'реализ', 'покупател', 'не прода', 'завис', 'цена', 'млн', 'руб', '₽'];
+  return assetWords.some((word) => value.includes(word)) && saleWords.some((word) => value.includes(word));
+}
+
+function isGeneralQuestion(text) {
+  const value = normalizeText(text);
+  return value.includes('?') || [
+    'как вы работаете',
+    'как работаете',
+    'когда позвонят',
+    'когда свяжутся',
+    'сколько стоит',
+    'какая комиссия',
+    'что дальше',
+    'что нужно',
+    'какие документы',
+    'как продать',
+    'что делаете',
+    'какие условия',
+    'договор'
+  ].some((phrase) => value.includes(phrase));
+}
+
+function leadCardFromText({ text, user, chatId }) {
   return {
     asset_type: detectAssetType(text),
     location: text.match(/(?:в|во|г\.?|город)\s+([А-Яа-яA-Za-z\-\s]{3,40})/)?.[1]?.trim() || 'требуется уточнить',
-    contact_role: 'требуется уточнить: собственник / представитель',
+    contact_role: 'требуется уточнить: собственник / представитель / посредник',
     task_description: text,
     selling_period: text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода)/i)?.[0] || 'требуется уточнить',
     current_price: text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0] || 'требуется уточнить',
-    documents_status: text.toLowerCase().includes('документ') ? 'упомянуты в сообщении' : 'требуется уточнить',
-    photos_status: text.toLowerCase().includes('фото') ? 'фото есть / упомянуты' : 'требуется уточнить',
+    documents_status: normalizeText(text).includes('документ') ? 'упомянуты в сообщении' : 'требуется уточнить',
+    photos_status: normalizeText(text).includes('фото') ? 'фото есть / упомянуты' : 'требуется уточнить',
     listing_url: text.match(/https?:\/\/\S+/)?.[0] || 'не указано',
-    main_problem: text.toLowerCase().includes('прода') ? 'актив продаётся, требуется диагностика спроса и упаковки' : 'требуется уточнить',
-    ai_assessment: 'Предварительно заявка подходит для первичного разбора. Нужно уточнить параметры имущества, документы, роль заявителя и формат дальнейшей работы.',
-    recommended_next_step: 'Передать Андрею. Следующий шаг: запросить фото/документы/ссылку на объявление, провести короткий созвон и определить формат работы до договора.'
+    main_problem: normalizeText(text).includes('не прода') || normalizeText(text).includes('2 года') ? 'актив завис в продаже, требуется диагностика спроса, цены, упаковки и документов' : 'требуется уточнить причину обращения',
+    ai_assessment: 'Заявка из Telegram-бота. Нужно уточнить параметры имущества, роль клиента, документы, фото/ссылку и реальную причину зависания продажи.',
+    recommended_next_step: 'Связаться с клиентом, запросить материалы по объекту, провести первичный разбор и при наличии потенциала обсудить формат работы и договор.',
+    telegram_user: `${user.fullName || ''} ${user.username || ''}`.trim(),
+    chat_id: String(chatId)
   };
 }
 
-function fallbackClientReply() {
-  return [
-    'Спасибо, информацию принял.',
-    '',
-    'По описанию можно перейти к первичному разбору имущества: нужно понять состояние объекта, документы, цену и причину, почему продажа затянулась.',
-    '',
-    'Передаю данные специалисту. Чтобы ускорить следующий шаг, пришлите, пожалуйста, ссылку на объявление, фото или основные документы по объекту, если они есть.'
-  ].join('\n');
+function systemPrompt(managerName) {
+  return `
+Ты — профессиональный AI-оператор по разбору активов для A&A Asset Team.
+
+Позиционирование компании:
+«Превращаем зависшие активы бизнеса в деньги».
+Компания помогает собственникам продавать базы, склады, коммерческую недвижимость, оборудование, спецтехнику, складские остатки и неликвидные ТМЦ, которые долго не находят покупателя.
+
+Твоя роль — не автоответчик и не простая форма заявки. Ты работаешь как сильный первичный менеджер уровня топ-менеджера: квалифицируешь клиента, понимаешь задачу, выявляешь деньги и риск, объясняешь логику работы, снимаешь базовые возражения и ведешь клиента к следующему шагу: материалы → первичный разбор → созвон → формат работы → договор.
+
+Что ты знаешь и используешь в ответах:
+- сложные активы редко не продаются только из-за цены;
+- часто проблема в целевом покупателе, упаковке, фото, техническом описании, документах, площадках, переговорах и рисках покупателя;
+- покупатель торгуется не только за скидку, а за снятие неопределенности и рисков;
+- по производственным базам важны: земля, строения, коммуникации, отопление, электричество, подъезд, арендаторы, документы, назначение земли, ограничения;
+- по складам важны: площадь, высота, ворота, отопление, полы, подъезд, локация, арендаторы, документы;
+- по оборудованию важны: марка, модель, год, состояние, комплектность, фото/видео работы, документы, демонтаж/логистика;
+- по неликвидам и ТМЦ важны: список позиций, объем, состояние, возможность продажи партиями, цена по балансу и целевая цена;
+- до обещаний и договора сначала нужен первичный разбор.
+
+Стиль:
+- отвечай как живой деловой менеджер;
+- коротко, уверенно, без канцелярита;
+- не повторяй один и тот же шаблон;
+- отвечай именно на вопрос клиента;
+- если клиент дал данные — признай конкретику из его сообщения;
+- если данных мало — задай 2–5 точных вопросов;
+- если клиент спрашивает «когда позвонят» — объясни следующий шаг и попроси удобное время/контакт;
+- если спрашивает «как работаете» — кратко опиши этапы;
+- если спрашивает про договор — объясни, что договор обсуждается после первичного разбора и определения формата работы;
+- если спрашивает цену/комиссию — скажи, что формат зависит от объекта и объема работы, точнее после разборa.
+
+Ограничения:
+- не обещай продажу;
+- не гарантируй цену;
+- не давай юридическое заключение;
+- не называй точную рыночную стоимость без данных;
+- не дави на клиента;
+- не пиши, что ты искусственный интеллект, без необходимости.
+
+В конце ответа всегда мягко веди к следующему шагу: прислать материалы, назначить удобное время для связи, уточнить роль клиента или передать заявку ${managerName || 'Андрею'}.
+`;
 }
 
-function normalizeAiResult(aiResult, text) {
-  const leadCard = aiResult?.lead_card || fallbackLeadCard(text);
-  return {
-    is_lead: aiResult?.is_lead ?? true,
-    status: aiResult?.status || 'передана Андрею',
-    client_reply: aiResult?.client_reply || fallbackClientReply(),
-    should_send_client_reply: true,
-    should_create_card: true,
-    manager_summary: aiResult?.manager_summary || 'Заявка из Telegram-бота. Требуется первичный разбор, контакт с клиентом, уточнение материалов и перевод к формату работы/договору.',
-    lead_card: {
-      ...fallbackLeadCard(text),
-      ...leadCard
-    }
-  };
-}
-
-async function callOpenAI(env, payload) {
+async function callOpenAIText(env, { text, user, chat }) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
@@ -208,15 +152,18 @@ async function callOpenAI(env, payload) {
       model: env.OPENAI_MODEL || 'gpt-4.1-mini',
       input: [
         { role: 'system', content: systemPrompt(env.COMPANY_MANAGER_NAME || 'Андрей') },
-        { role: 'user', content: JSON.stringify(payload, null, 2) }
-      ],
-      temperature: 0.2,
-      text: {
-        format: {
-          type: 'json_schema',
-          ...RESPONSE_SCHEMA
+        {
+          role: 'user',
+          content: JSON.stringify({
+            message_from_client: text,
+            telegram_user: user,
+            telegram_chat: chat,
+            instruction: 'Ответь клиенту в Telegram как живой профессиональный первичный менеджер. Не используй markdown. Не пиши длинно.'
+          }, null, 2)
         }
-      }
+      ],
+      temperature: 0.45,
+      max_output_tokens: 650
     })
   });
 
@@ -225,9 +172,33 @@ async function callOpenAI(env, payload) {
   }
 
   const data = await response.json();
-  const raw = data.output_text || data.output?.flatMap((item) => item.content || []).find((item) => item.type === 'output_text')?.text;
-  if (!raw) throw new Error('OpenAI response has no output_text');
-  return JSON.parse(raw);
+  return data.output_text || data.output?.flatMap((item) => item.content || []).find((item) => item.type === 'output_text')?.text || '';
+}
+
+function fallbackReply(text) {
+  const value = normalizeText(text);
+
+  if (value.includes('когда позвон')) {
+    return 'Передам заявку на первичный разбор. Чтобы специалист связался без лишних уточнений, напишите, пожалуйста, удобное время для звонка и подтвердите номер телефона.';
+  }
+
+  if (value.includes('как работает')) {
+    return 'Работа обычно идет так: сначала смотрим имущество и материалы, затем определяем, почему продажа зависла, кому актив может быть нужен, какие документы и упаковка нужны покупателю. После первичного разбора обсуждаем формат работы и условия договора.';
+  }
+
+  if (value.includes('договор')) {
+    return 'Договор обсуждается после первичного разбора: нужно понять тип имущества, объем работы, документы, цену, сроки и вашу роль в продаже. После этого можно выбрать формат сопровождения и зафиксировать условия.';
+  }
+
+  if (value.includes('сколько') || value.includes('комисс')) {
+    return 'Стоимость зависит от типа имущества и объема работы: разовый разбор, упаковка, поиск покупателя или полное сопровождение. Сначала нужно посмотреть объект и понять маршрут сделки, потом можно назвать формат и условия.';
+  }
+
+  if (isLikelyLead(text)) {
+    return 'Принял информацию. По вашему имуществу уже можно делать первичный разбор: нужно понять состояние объекта, документы, цену, срок продажи и почему покупатель до сих пор не найден. Пришлите, пожалуйста, ссылку на объявление, фото или основные документы, если они есть.';
+  }
+
+  return 'Понял вас. Чтобы дать полезный следующий шаг, напишите, пожалуйста, что именно нужно реализовать, где находится имущество, какая ориентировочная цена и сколько времени оно уже продается.';
 }
 
 async function sendTelegramMessage(env, chatId, text, replyToMessageId) {
@@ -247,9 +218,9 @@ async function sendTelegramMessage(env, chatId, text, replyToMessageId) {
   }
 }
 
-function formatManagerCard({ user, status, leadCard, managerSummary, sourceText }) {
+function formatManagerCard({ user, status, leadCard, sourceText }) {
   return [
-    '📌 НОВАЯ ЗАЯВКА ИЗ TELEGRAM',
+    '📌 НОВАЯ ЗАЯВКА ИЗ TELEGRAM-БОТА',
     '',
     `Статус: ${status}`,
     `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
@@ -265,10 +236,8 @@ function formatManagerCard({ user, status, leadCard, managerSummary, sourceText 
     `Ссылка: ${leadCard.listing_url || 'не указано'}`,
     '',
     `Проблема: ${leadCard.main_problem || 'не указано'}`,
-    `Оценка AI: ${leadCard.ai_assessment || 'не указано'}`,
+    `Оценка: ${leadCard.ai_assessment || 'не указано'}`,
     `Следующий шаг: ${leadCard.recommended_next_step || 'не указано'}`,
-    '',
-    managerSummary ? `Комментарий AI: ${managerSummary}` : '',
     '',
     sourceText ? `Исходное сообщение: ${sourceText}` : ''
   ].filter(Boolean).join('\n');
@@ -308,9 +277,7 @@ async function getGoogleAccessToken(env) {
     })
   });
 
-  if (!tokenResponse.ok) {
-    throw new Error(`Google token error: ${tokenResponse.status} ${await tokenResponse.text()}`);
-  }
+  if (!tokenResponse.ok) throw new Error(`Google token error: ${tokenResponse.status} ${await tokenResponse.text()}`);
 
   const tokenData = await tokenResponse.json();
   return tokenData.access_token;
@@ -352,9 +319,7 @@ async function appendToGoogleSheets(env, row) {
     body: JSON.stringify({ values: [row] })
   });
 
-  if (!response.ok) {
-    throw new Error(`Google Sheets append error: ${response.status} ${await response.text()}`);
-  }
+  if (!response.ok) throw new Error(`Google Sheets append error: ${response.status} ${await response.text()}`);
 }
 
 function buildSheetRow({ date, user, chatId, status, leadCard, text }) {
@@ -402,65 +367,44 @@ async function handleStart(env, message) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!env.TELEGRAM_BOT_TOKEN || !env.OPENAI_API_KEY) {
-    return jsonResponse({ ok: false, error: 'Missing TELEGRAM_BOT_TOKEN or OPENAI_API_KEY' }, 200);
+  if (!env.TELEGRAM_BOT_TOKEN) {
+    return jsonResponse({ ok: false, error: 'Missing TELEGRAM_BOT_TOKEN' }, 200);
   }
 
   const update = await request.json();
   const message = getMessage(update);
   const text = getText(update).trim();
 
-  if (!message || !text) {
-    return jsonResponse({ ok: true, skipped: true, reason: 'empty message' });
-  }
-
-  if (message.from?.is_bot) {
-    return jsonResponse({ ok: true, skipped: true, reason: 'bot message ignored' });
-  }
-
-  if (text.startsWith('/start')) {
-    return handleStart(env, message);
-  }
-
-  if (text.startsWith('/')) {
-    return jsonResponse({ ok: true, skipped: true, reason: 'command ignored' });
-  }
+  if (!message || !text) return jsonResponse({ ok: true, skipped: true, reason: 'empty message' });
+  if (message.from?.is_bot) return jsonResponse({ ok: true, skipped: true, reason: 'bot message ignored' });
+  if (text.startsWith('/start')) return handleStart(env, message);
+  if (text.startsWith('/')) return jsonResponse({ ok: true, skipped: true, reason: 'command ignored' });
 
   const user = getUser(message.from);
   const chatId = message.chat.id;
   const date = new Date().toISOString();
+  const chat = { id: chatId, title: message.chat.title || '', type: message.chat.type };
 
   try {
-    let aiResult;
-    try {
-      aiResult = await callOpenAI(env, {
-        instruction: 'Проанализируй сообщение клиента. Работай как AI-оператор и первичный менеджер: квалифицируй заявку, задай вопросы при нехватке данных или подтверди прием, если данных достаточно. Подготовь карточку для Андрея и следующий коммерческий шаг к созвону/материалам/формату работы/договору.',
-        new_message: text,
-        telegram_user: user,
-        telegram_chat: {
-          id: chatId,
-          title: message.chat.title || '',
-          type: message.chat.type
-        },
-        manager_name: env.COMPANY_MANAGER_NAME || 'Андрей'
-      });
-    } catch (aiError) {
-      console.error('OpenAI fallback used:', aiError.message);
-      aiResult = null;
+    let clientReply = '';
+
+    if (env.OPENAI_API_KEY) {
+      try {
+        clientReply = await callOpenAIText(env, { text, user, chat });
+      } catch (aiError) {
+        console.error('OpenAI fallback used:', aiError.message);
+      }
     }
 
-    const result = normalizeAiResult(aiResult, text);
+    if (!clientReply) clientReply = fallbackReply(text);
+    await sendTelegramMessage(env, chatId, clientReply.trim(), message.message_id);
 
-    if (result.should_send_client_reply && result.client_reply) {
-      await sendTelegramMessage(env, chatId, result.client_reply, message.message_id);
-    }
-
-    if (result.should_create_card) {
+    if (isLikelyLead(text)) {
+      const leadCard = leadCardFromText({ text, user, chatId });
       const managerCard = formatManagerCard({
         user,
-        status: result.status,
-        leadCard: result.lead_card,
-        managerSummary: result.manager_summary,
+        status: 'новая / требуется квалификация',
+        leadCard,
         sourceText: text
       });
 
@@ -469,8 +413,8 @@ export async function onRequestPost({ request, env }) {
         date,
         user,
         chatId,
-        status: result.status,
-        leadCard: result.lead_card,
+        status: 'новая / требуется квалификация',
+        leadCard,
         text
       }));
     }
@@ -483,5 +427,5 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestGet() {
-  return jsonResponse({ ok: true, service: 'telegram-ai-operator-cloudflare-pages' });
+  return jsonResponse({ ok: true, service: 'telegram-ai-operator-cloudflare-pages', mode: 'live-manager-dialog' });
 }
