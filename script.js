@@ -63,6 +63,26 @@
     }
   });
 
+  const pricingCards = $$('#formats .pricing article');
+  const prices = ['от 30 000 ₽', 'от 90 000 ₽', '3–5% от сделки, но не менее 150 000 ₽'];
+  pricingCards.forEach((card, index) => {
+    if (card.querySelector('.service-price')) return;
+    const title = card.querySelector('h3');
+    if (!title || !prices[index]) return;
+    const price = document.createElement('p');
+    price.className = 'service-price';
+    price.textContent = prices[index];
+    title.insertAdjacentElement('afterend', price);
+  });
+
+  const pricing = $('#formats .pricing');
+  if (pricing && !$('#formats .pricing-note')) {
+    const note = document.createElement('p');
+    note.className = 'pricing-note';
+    note.textContent = 'Итоговая стоимость зависит от типа актива, объёма материалов и глубины сопровождения.';
+    pricing.insertAdjacentElement('afterend', note);
+  }
+
   if (!$('#case-example')) {
     const formats = $('#formats');
     const section = document.createElement('section');
