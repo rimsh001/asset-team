@@ -70,9 +70,10 @@
       .header__messengers{display:flex;align-items:center;gap:8px;margin-left:auto}
       .header-messenger-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:999px;padding:10px 13px;font-size:13px;font-weight:800;line-height:1;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;transition:.2s ease;white-space:nowrap}
       .header-messenger-btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.11)}
-      .header-messenger-btn svg{width:16px;height:16px;display:block;flex:0 0 16px}
+      .header-messenger-btn svg,.header-messenger-btn__icon{width:16px;height:16px;display:block;flex:0 0 16px}
+      .header-messenger-btn__icon{object-fit:contain;border-radius:4px}
       .header-messenger-btn--telegram{background:rgba(42,171,238,.15);border-color:rgba(42,171,238,.32)}
-      .header-messenger-btn--max{background:rgba(201,149,75,.14);border-color:rgba(201,149,75,.35)}
+      .header-messenger-btn--max{background:rgba(83,62,238,.16);border-color:rgba(83,62,238,.38)}
       @media(max-width:1020px){.header__messengers{display:none}}
     `;
     document.head.appendChild(style);
@@ -87,7 +88,7 @@
           Telegram
         </a>
         <a class="header-messenger-btn header-messenger-btn--max" href="/api/contact-max" target="_blank" rel="noopener" aria-label="Написать в MAX">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 5.2C4 4.5 4.5 4 5.2 4h13.6c.7 0 1.2.5 1.2 1.2v13.6c0 .7-.5 1.2-1.2 1.2H5.2C4.5 20 4 19.5 4 18.8V5.2Zm3.2 10.9h2.1V9.8l2.2 3.7h1l2.2-3.7v6.3h2.1V7.9h-2.3L12 12.2 9.5 7.9H7.2v8.2Z"/></svg>
+          <img class="header-messenger-btn__icon" src="/icons/max.svg" alt="" aria-hidden="true">
           MAX
         </a>
       </div>
