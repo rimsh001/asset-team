@@ -1,2 +1,16 @@
 /opyt /opyt.html 301
 /opyt/ /opyt.html 301
+/product/* / 301
+/collection/* / 301
+/page/about-us /contacts.html 301
+/page/contacts /contacts.html 301
+/page/terms-of-use /privacy.html 301
+/page/realizaciya-imushchestva-biznesa.html /realizaciya-imushchestva-biznesa.html 301
+/page/prodazha-neprofilnyh-aktivov.html /prodazha-neprofilnyh-aktivov.html 301
+/page/prodazha-oborudovaniya.html /prodazha-oborudovaniya.html 301
+/page/prodazha-spectehniki.html /prodazha-spectehniki.html 301
+/page/prodazha-skladov-angarov.html /prodazha-skladov-angarov.html 301
+/page/prodazha-proizvodstvennyh-baz.html /prodazha-proizvodstvennyh-baz.html 301
+/page/prodazha-kommercheskoy-nedvizhimosti.html /prodazha-kommercheskoy-nedvizhimosti.html 301
+/page/prodazha-skladskih-ostatkov.html /prodazha-skladskih-ostatkov.html 301
+/page/realizaciya-nelikvidnyh-tmc.html /realizaciya-nelikvidnyh-tmc.html 301
