@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="210" y1="120" x2="1380" y2="780" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11161F"/>
+      <stop offset="1" stop-color="#070A10"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1230 170) rotate(132.668) scale(460 540)">
+      <stop stop-color="#C9954B" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#C9954B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="330" y1="210" x2="1280" y2="650" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F2D8A7"/>
+      <stop offset="0.45" stop-color="#C9954B"/>
+      <stop offset="1" stop-color="#8E6430"/>
+    </linearGradient>
+    <filter id="blur" x="0" y="0" width="1600" height="900" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="50"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" rx="40" fill="url(#bg)"/>
+  <rect x="48" y="48" width="1504" height="804" rx="28" stroke="rgba(255,255,255,0.08)" stroke-opacity="0.08"/>
+  <g filter="url(#blur)"><circle cx="1220" cy="190" r="190" fill="url(#glow)"/></g>
+  <path d="M110 745H1490" stroke="#1E2531" stroke-width="2"/>
+  <g opacity="0.3" stroke="#1A2130" stroke-width="1">
+    <path d="M150 180H1450"/><path d="M150 260H1450"/><path d="M150 340H1450"/><path d="M150 420H1450"/><path d="M150 500H1450"/><path d="M150 580H1450"/><path d="M150 660H1450"/>
+  </g>
+  <g opacity="0.18">
+    <circle cx="138" cy="120" r="3" fill="#C9954B"/><circle cx="152" cy="120" r="3" fill="#C9954B"/><circle cx="166" cy="120" r="3" fill="#C9954B"/>
+  </g>
+  <rect x="130" y="114" width="210" height="42" rx="21" fill="#111826" stroke="#2A3444"/>
+  <text x="160" y="141" fill="#F2D8A7" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">ПРОИЗВОДСТВЕННАЯ БАЗА</text>
+  <text x="130" y="785" fill="#F4F5F7" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="700">Премиальная упаковка актива</text>
+  <text x="130" y="830" fill="#8E98A8" font-family="Inter, Arial, sans-serif" font-size="26">Земля, строения, мощности, подъезд и сценарии использования</text>
+  <g stroke="url(#gold)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M360 660V450L580 335L785 432V660"/>
+    <path d="M580 335L580 660"/>
+    <path d="M785 432L785 660"/>
+    <path d="M360 450L580 525L785 432"/>
+    <path d="M480 590H535"/>
+    <path d="M630 580H735"/>
+    <path d="M630 615H735"/>
+    <path d="M880 660V390L1085 300L1240 385V660"/>
+    <path d="M1085 300V660"/>
+    <path d="M880 390L1085 470L1240 385"/>
+    <path d="M940 545H1010"/>
+    <path d="M1140 520H1180"/>
+    <path d="M1140 560H1180"/>
+    <path d="M310 700H1280"/>
+    <path d="M300 700L255 740"/>
+    <path d="M1280 700L1325 740"/>
+    <path d="M225 742H1355" opacity="0.5"/>
+  </g>
+</svg>

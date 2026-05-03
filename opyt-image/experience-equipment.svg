@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="180" y1="120" x2="1410" y2="790" gradientUnits="userSpaceOnUse"><stop stop-color="#11161F"/><stop offset="1" stop-color="#070A10"/></linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1210 180) rotate(140.315) scale(430 530)"><stop stop-color="#C9954B" stop-opacity="0.28"/><stop offset="1" stop-color="#C9954B" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gold" x1="260" y1="240" x2="1300" y2="680" gradientUnits="userSpaceOnUse"><stop stop-color="#F2D8A7"/><stop offset="0.42" stop-color="#C9954B"/><stop offset="1" stop-color="#8E6430"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" rx="40" fill="url(#bg)"/>
+  <rect x="48" y="48" width="1504" height="804" rx="28" stroke="rgba(255,255,255,0.08)" stroke-opacity="0.08"/>
+  <circle cx="1210" cy="180" r="220" fill="url(#glow)"/>
+  <g opacity="0.3" stroke="#1A2130" stroke-width="1"><path d="M150 190H1450"/><path d="M150 280H1450"/><path d="M150 370H1450"/><path d="M150 460H1450"/><path d="M150 550H1450"/><path d="M150 640H1450"/></g>
+  <rect x="130" y="114" width="300" height="42" rx="21" fill="#111826" stroke="#2A3444"/>
+  <text x="160" y="141" fill="#F2D8A7" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">ПРОИЗВОДСТВЕННОЕ ОБОРУДОВАНИЕ</text>
+  <text x="130" y="785" fill="#F4F5F7" font-family="Inter, Arial, sans-serif" font-size="54" font-weight="700">Премиальная упаковка актива</text>
+  <text x="130" y="830" fill="#8E98A8" font-family="Inter, Arial, sans-serif" font-size="26">Состояние, комплектность, демонтаж и маршрут передачи</text>
+  <g stroke="url(#gold)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="310" y="470" width="230" height="170" rx="26"/>
+    <rect x="585" y="420" width="220" height="220" rx="26"/>
+    <rect x="860" y="350" width="270" height="290" rx="30"/>
+    <path d="M425 470V385H650V420"/>
+    <path d="M695 420V340H995V350"/>
+    <path d="M420 555H495"/><path d="M650 500H740"/><path d="M650 565H740"/><path d="M930 440H1060"/><path d="M930 520H1060"/>
+    <circle cx="425" cy="682" r="22"/><circle cx="695" cy="682" r="22"/><circle cx="995" cy="682" r="22"/>
+    <path d="M270 704H1180"/>
+    <path d="M250 704L215 734" opacity="0.5"/><path d="M1180 704L1215 734" opacity="0.5"/><path d="M195 734H1235" opacity="0.5"/>
+  </g>
+</svg>
