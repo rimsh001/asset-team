@@ -1,48 +1,284 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101216">
-  <title>Опыт и разборы активов — A&A Asset Team</title>
-  <meta name="description" content="Опыт и типовые разборы сложных активов: производственные базы, склады, коммерческая недвижимость, оборудование, спецтехника, складские остатки и ТМЦ.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Опыт и разборы активов — до / после упаковки | A&A Asset Team</title>
+  <meta name="description" content="Примеры до и после упаковки активов: производственная база, склад, коммерческая недвижимость, оборудование, спецтехника, складские остатки и ТМЦ.">
   <link rel="canonical" href="https://aateam.ru/opyt.html">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="ru_RU">
-  <meta property="og:title" content="Опыт и разборы активов — A&A Asset Team">
-  <meta property="og:description" content="Показываем типовые ситуации, где актив не продаётся, и как выстраивается его реализация.">
-  <meta property="og:site_name" content="A&A Asset Team">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="visual.css">
-  <link rel="stylesheet" href="seo.css">
   <style>
-    .experience-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.experience-card{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 20px 60px rgba(16,18,22,.07)}.experience-card span{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.08em}.experience-card h3{font-size:26px;margin:14px 0}.experience-card p{color:var(--muted);margin-top:10px}.experience-card b{color:var(--ink)}.experience-principles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.experience-principles article{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:24px}.experience-principles h3{color:#fff;font-size:22px;margin:14px 0 8px}.experience-principles p{color:rgba(255,255,255,.68)}@media(max-width:1020px){.experience-grid{grid-template-columns:1fr 1fr}.experience-principles{grid-template-columns:1fr 1fr}}@media(max-width:680px){.experience-grid,.experience-principles{grid-template-columns:1fr}.experience-card h3{font-size:23px}}
+    :root{
+      --xp-bg:#0b0d12;
+      --xp-paper:#10141c;
+      --xp-paper-2:#131924;
+      --xp-border:rgba(255,255,255,.09);
+      --xp-soft:rgba(255,255,255,.06);
+      --xp-text:#f3f4f6;
+      --xp-muted:#a3adba;
+      --xp-gold:#c9954b;
+      --xp-gold-soft:rgba(201,149,75,.14);
+      --xp-red:#ff8d84;
+      --xp-red-soft:rgba(255,141,132,.12);
+      --xp-green:#77d6aa;
+      --xp-green-soft:rgba(119,214,170,.12);
+    }
+    body.page-experience{background:var(--xp-bg);color:var(--xp-text)}
+    .experience-page{padding-top:88px}
+    .xp-shell{width:min(1240px,calc(100% - 40px));margin:0 auto}
+    .xp-hero{position:relative;padding:72px 0 48px;background:
+      radial-gradient(circle at 82% 16%,rgba(201,149,75,.18),transparent 28%),
+      radial-gradient(circle at 8% 10%,rgba(255,255,255,.06),transparent 20%),
+      linear-gradient(180deg,#0b0d12 0%,#0e1219 100%)}
+    .xp-hero::after{content:"";position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,149,75,.32),transparent)}
+    .xp-breadcrumbs{display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:#8c95a4;margin-bottom:24px}
+    .xp-breadcrumbs a{color:#aeb6c2}
+    .xp-hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:end}
+    .xp-eyebrow{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;border:1px solid var(--xp-border);background:rgba(255,255,255,.04);font:700 12px/1 var(--mono,Inter,Arial,sans-serif);letter-spacing:.08em;text-transform:uppercase;color:#f0d7a2}
+    .xp-eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--xp-gold);box-shadow:0 0 18px rgba(201,149,75,.55)}
+    .xp-hero h1{margin:20px 0 18px;font-size:clamp(42px,6vw,74px);line-height:.96;letter-spacing:-.05em;max-width:900px}
+    .xp-hero p{margin:0;max-width:770px;font-size:20px;line-height:1.55;color:var(--xp-muted)}
+    .xp-hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+    .xp-btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 22px;border-radius:999px;border:1px solid var(--xp-border);font-weight:800;line-height:1;transition:.2s ease}
+    .xp-btn--primary{background:linear-gradient(135deg,#d8b06a,#c9954b 55%,#a97434);color:#111216;border:none;box-shadow:0 10px 30px rgba(201,149,75,.22)}
+    .xp-btn--secondary{background:rgba(255,255,255,.05);color:#fff}
+    .xp-btn:hover{transform:translateY(-1px)}
+    .xp-hero-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .xp-stat{padding:20px;border-radius:24px;background:rgba(255,255,255,.04);border:1px solid var(--xp-border);backdrop-filter:blur(10px)}
+    .xp-stat strong{display:block;font-size:30px;line-height:1;margin-bottom:10px;color:#fff}
+    .xp-stat span{display:block;font-size:13px;line-height:1.5;color:var(--xp-muted)}
+    .xp-main{padding:40px 0 88px;background:linear-gradient(180deg,#0e1219 0%,#0b0d12 100%)}
+    .xp-section-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:22px}
+    .xp-section-head h2{margin:0;font-size:clamp(28px,4vw,40px);letter-spacing:-.03em}
+    .xp-section-head p{margin:0;max-width:560px;color:var(--xp-muted);line-height:1.6}
+    .xp-case-list{display:grid;gap:24px}
+    .xp-case{display:grid;grid-template-columns:420px 1fr;gap:0;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.02));border:1px solid var(--xp-border);border-radius:30px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+    .xp-case-cover{position:relative;min-height:100%;background:#0e1219}
+    .xp-case-cover img{display:block;width:100%;height:100%;object-fit:cover}
+    .xp-case-cover::after{content:"";position:absolute;inset:auto 0 0;height:38%;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(7,10,16,.58))}
+    .xp-case-cover-label{position:absolute;left:18px;top:18px;z-index:2;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(17,24,38,.82);border:1px solid rgba(255,255,255,.1);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#f0d7a2}
+    .xp-case-content{padding:28px}
+    .xp-case-top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:12px}
+    .xp-badge{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:var(--xp-soft);border:1px solid var(--xp-border);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#d9dfe7}
+    .xp-badge--gold{background:var(--xp-gold-soft);border-color:rgba(201,149,75,.28);color:#f0d7a2}
+    .xp-case h3{margin:0 0 8px;font-size:34px;line-height:1.05;letter-spacing:-.04em}
+    .xp-case-intro{margin:0 0 22px;color:var(--xp-muted);font-size:16px;line-height:1.6}
+    .xp-columns{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .xp-panel{padding:18px;border-radius:22px;border:1px solid var(--xp-border);background:rgba(255,255,255,.03)}
+    .xp-panel h4{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:14px;letter-spacing:.07em;text-transform:uppercase}
+    .xp-panel h4::before{content:"";width:10px;height:10px;border-radius:50%}
+    .xp-panel--before{background:linear-gradient(180deg,var(--xp-red-soft),rgba(255,255,255,.03));border-color:rgba(255,141,132,.18)}
+    .xp-panel--before h4{color:#ffd0cb}.xp-panel--before h4::before{background:var(--xp-red)}
+    .xp-panel--after{background:linear-gradient(180deg,var(--xp-green-soft),rgba(255,255,255,.03));border-color:rgba(119,214,170,.18)}
+    .xp-panel--after h4{color:#d7ffed}.xp-panel--after h4::before{background:var(--xp-green)}
+    .xp-panel--change{background:linear-gradient(180deg,var(--xp-gold-soft),rgba(255,255,255,.03));border-color:rgba(201,149,75,.22)}
+    .xp-panel--change h4{color:#f3dfb7}.xp-panel--change h4::before{background:var(--xp-gold)}
+    .xp-panel ul{margin:0;padding-left:18px;color:#edf1f4}
+    .xp-panel li{margin:0 0 10px;line-height:1.45;font-size:15px}
+    .xp-panel li:last-child{margin-bottom:0}
+    .xp-result{display:flex;align-items:center;gap:12px;margin-top:16px;padding:14px 16px;border-radius:18px;background:rgba(201,149,75,.08);border:1px solid rgba(201,149,75,.18);color:#f4ead4}
+    .xp-result strong{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:#f0d7a2}
+    .xp-cta{margin-top:34px;padding:34px;border-radius:30px;background:radial-gradient(circle at 84% 18%,rgba(201,149,75,.2),transparent 30%),linear-gradient(135deg,#11161f 0%,#0b0d12 100%);border:1px solid var(--xp-border);display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+    .xp-cta h2{margin:0 0 10px;font-size:clamp(28px,4vw,42px);line-height:1.02;letter-spacing:-.04em}
+    .xp-cta p{margin:0;max-width:680px;color:var(--xp-muted);line-height:1.65}
+    .xp-cta-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
+    .xp-footer{padding:28px 0 42px;color:#7e8795;font-size:14px}
+    .xp-footer a{color:#b5bdc9}
+    @media (max-width: 1180px){
+      .xp-hero-grid{grid-template-columns:1fr}
+      .xp-hero-meta{grid-template-columns:repeat(3,1fr)}
+      .xp-case{grid-template-columns:1fr}
+      .xp-case-cover{height:320px}
+      .xp-cta{grid-template-columns:1fr}
+      .xp-cta-actions{justify-content:flex-start}
+    }
+    @media (max-width: 820px){
+      .xp-hero{padding:56px 0 34px}.experience-page{padding-top:74px}
+      .xp-hero p{font-size:18px}
+      .xp-section-head{display:block}.xp-section-head p{margin-top:12px}
+      .xp-columns,.xp-hero-meta{grid-template-columns:1fr}
+      .xp-case-content{padding:22px}
+      .xp-case h3{font-size:30px}
+      .xp-cta{padding:28px}
+    }
   </style>
 </head>
-<body>
-  <header class="header" id="header"><div class="container header__inner"><a class="brand" href="index.html" aria-label="A&A Asset Team"><span class="brand__sign">A&A</span><span class="brand__text">Asset Team</span></a><nav class="nav" id="nav" aria-label="Навигация"><a href="index.html#problem">Проблема</a><a href="method.html">Метод</a><a href="opyt.html">Опыт</a><a href="index.html#assets">Активы</a><a href="index.html#formats">Стоимость</a><a href="index.html#request">Заявка</a></nav><a class="btn btn--small btn--accent header__button" href="asset-review.html">Получить разбор</a><button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span></button></div></header>
-  <main>
-    <section class="page-hero"><div class="container"><p class="kicker">Практика работы</p><h1>Опыт и разборы активов</h1><p>Показываем типовые ситуации, где актив не продаётся из-за слабой упаковки, непонятного покупателя, документов, цены или рисков сделки.</p><div class="page-links"><a class="page-link" href="#cases">Смотреть разборы</a><a class="page-link" href="asset-review.html">Передать актив на разбор</a></div></div></section>
+<body class="page-experience">
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a class="brand" href="/"></a>
+      <button class="burger" id="burger" aria-expanded="false" aria-controls="nav" aria-label="Открыть меню"><span></span><span></span><span></span></button>
+      <nav class="nav" id="nav" aria-label="Навигация">
+        <a href="/#assets">Активы</a>
+        <a href="method.html">Метод</a>
+        <a href="opyt.html" aria-current="page">Опыт</a>
+        <a href="trust.html">Доверие</a>
+        <a href="asset-review.html">Первичный разбор</a>
+        <a href="/#request">Заявка</a>
+        <a href="/#formats">Стоимость</a>
+      </nav>
+      <a class="header__button btn btn--gold" href="/#request">Получить разбор</a>
+    </div>
+  </header>
 
-    <section class="section"><div class="container split"><div><p class="section-label">Зачем этот раздел</p><h2>Сложный актив требует не витрины объявлений, а понятной логики сделки</h2></div><div class="rich-text"><p>Мы не раскрываем конфиденциальные данные клиентов, суммы и документы без согласования. Поэтому ниже — обезличенные форматы разборов: какие ситуации встречаются, что обычно мешает продаже и какой маршрут помогает подготовить актив к рынку.</p><p>Такой формат показывает опыт без риска раскрыть собственника, цену, переговорную позицию или внутренние обстоятельства сделки.</p></div></div></section>
+  <main class="experience-page">
+    <section class="xp-hero">
+      <div class="xp-shell">
+        <div class="xp-breadcrumbs"><a href="/">Главная</a><span>/</span><span>Опыт и разборы активов</span></div>
+        <div class="xp-hero-grid">
+          <div>
+            <span class="xp-eyebrow">До / после упаковки</span>
+            <h1>Опыт и разборы активов</h1>
+            <p>Только практические примеры: как меняется подача актива после упаковки. Без лишней теории — только до, после и что именно изменили.</p>
+            <div class="xp-hero-actions">
+              <a class="xp-btn xp-btn--primary" href="#cases">Смотреть примеры</a>
+              <a class="xp-btn xp-btn--secondary" href="/#request">Передать актив на разбор</a>
+            </div>
+          </div>
+          <div class="xp-hero-meta">
+            <div class="xp-stat"><strong>6</strong><span>примеров в едином формате: до / после / что изменили</span></div>
+            <div class="xp-stat"><strong>0</strong><span>воды и лишних объяснений — только суть и упаковка</span></div>
+            <div class="xp-stat"><strong>1</strong><span>цель страницы: показать, как актив становится понятным рынку</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <section class="section section--cream" id="cases"><div class="container"><div class="section-head"><p class="section-label">6 типовых разборов</p><h2>С какими активами и ситуациями работаем</h2><p>Для главной страницы достаточно короткого переходного блока, а подробные разборы вынесены сюда, чтобы не перегружать лендинг.</p></div><div class="experience-grid">
-      <article class="experience-card"><span>01 · Недвижимость</span><h3>Производственная база</h3><p><b>Ситуация:</b> объект долго находится в продаже, но обращения случайные — покупатели не понимают, для какого сценария база подходит.</p><p><b>Что мешает:</b> не раскрыты коммуникации, подъезд, состояние строений, ограничения, состав имущества и варианты использования.</p><p><b>Вывод:</b> для базы важна не массовая реклама, а понятный сценарий: кому объект нужен и какой риск покупатель видит первым.</p></article>
-      <article class="experience-card"><span>02 · Склад</span><h3>Склад или ангар</h3><p><b>Ситуация:</b> склад размещён на площадках, но покупатель не видит полной картины по эксплуатации и затратам.</p><p><b>Что мешает:</b> нет ясности по высоте, воротам, полу, отоплению, подъезду фур, охране, состоянию и ограничениям использования.</p><p><b>Вывод:</b> склад продаётся быстрее, когда описан как рабочий инструмент для бизнеса, а не как набор квадратных метров.</p></article>
-      <article class="experience-card"><span>03 · Коммерция</span><h3>Коммерческая недвижимость</h3><p><b>Ситуация:</b> объект имеет потенциал, но рынок видит только цену и не понимает сценарий окупаемости.</p><p><b>Что мешает:</b> слабое описание назначения, трафика, состояния, документов, ограничений, ремонта и возможного покупателя.</p><p><b>Вывод:</b> коммерческий объект нужно показывать через пользу для бизнеса или инвестора, иначе переговоры быстро уходят в скидку.</p></article>
-      <article class="experience-card"><span>04 · Оборудование</span><h3>Производственное оборудование</h3><p><b>Ситуация:</b> оборудование стоит без работы, занимает площадь и теряет ценность, но покупатель сомневается в состоянии и комплектности.</p><p><b>Что мешает:</b> не хватает фото, паспортов, маркировок, информации о демонтаже, погрузке и логистике.</p><p><b>Вывод:</b> оборудование лучше продаётся, когда покупатель заранее понимает не только цену, но и путь вывоза и запуска.</p></article>
-      <article class="experience-card"><span>05 · Техника</span><h3>Спецтехника</h3><p><b>Ситуация:</b> техника есть в наличии, но покупатель опасается скрытых вложений, юридических вопросов и затрат на перевозку.</p><p><b>Что мешает:</b> не раскрыты год, наработка, регистрация, обслуживание, техническое состояние, возможность осмотра и маршрут передачи.</p><p><b>Вывод:</b> для спецтехники критичны доверие к состоянию, ясность документов и понятная организация осмотра.</p></article>
-      <article class="experience-card"><span>06 · ТМЦ</span><h3>Складские остатки и ТМЦ</h3><p><b>Ситуация:</b> остатки занимают склад, замораживают деньги и не продаются через обычные каналы из-за объёма или узкой специфики.</p><p><b>Что мешает:</b> нет структурированного перечня, понятной минимальной партии, состояния, фотографий, цены и целевых групп покупателей.</p><p><b>Вывод:</b> ТМЦ нужно продавать не как хаотичный список, а как понятные партии для конкретных покупателей.</p></article>
-    </div></div></section>
+    <section class="xp-main" id="cases">
+      <div class="xp-shell">
+        <div class="xp-section-head">
+          <h2>Примеры “до / после упаковки”</h2>
+          <p>Каждый актив ниже показан в одном и том же формате, чтобы было видно главное: как меняется восприятие объекта после правильной подачи.</p>
+        </div>
 
-    <section class="section dark"><div class="container"><div class="section-head section-head--dark"><p class="section-label">Что объединяет разборы</p><h2>В каждом случае ищем не просто покупателя, а причину, почему решение не принимается</h2><p>Зависание редко связано только с ценой. Чаще есть несколько узких мест, которые нужно закрыть до активного продвижения.</p></div><div class="experience-principles"><article><span class="section-label">01</span><h3>Сценарий</h3><p>Кому актив реально нужен и какую задачу он решает.</p></article><article><span class="section-label">02</span><h3>Риск</h3><p>Что остановит покупателя до просмотра, на просмотре или в переговорах.</p></article><article><span class="section-label">03</span><h3>Материалы</h3><p>Какие фото, документы и характеристики нужны до первого серьёзного разговора.</p></article><article><span class="section-label">04</span><h3>Маршрут</h3><p>Что делать дальше: доупаковка, поиск спроса, переговоры или корректировка цены.</p></article></div></div></section>
+        <div class="xp-case-list">
+          <article class="xp-case">
+            <div class="xp-case-cover">
+              <span class="xp-case-cover-label">Кейс 01</span>
+              <img src="experience-base.svg" alt="Производственная база — обложка кейса">
+            </div>
+            <div class="xp-case-content">
+              <div class="xp-case-top"><span class="xp-badge xp-badge--gold">Производственная база</span><span class="xp-badge">До / После упаковки</span></div>
+              <h3>Производственная база</h3>
+              <p class="xp-case-intro">Большой актив, который часто выглядит “сложным” для рынка, пока не собраны все ключевые параметры в одно предложение.</p>
+              <div class="xp-columns">
+                <section class="xp-panel xp-panel--before"><h4>До</h4><ul><li>Разрозненные фото и короткое описание.</li><li>Не раскрыты земля, строения, мощности и подъезд.</li><li>Покупатель видит сложный и неочевидный объект.</li></ul></section>
+                <section class="xp-panel xp-panel--after"><h4>После</h4><ul><li>Собран единый профиль актива.</li><li>Показаны состав имущества и инфраструктура.</li><li>Появились понятные сценарии использования.</li></ul></section>
+                <section class="xp-panel xp-panel--change"><h4>Что изменили</h4><ul><li>Структуру подачи объекта.</li><li>Описание и состав характеристик.</li><li>Акценты для целевого покупателя.</li></ul></section>
+              </div>
+              <div class="xp-result"><strong>Как стал восприниматься</strong><span>Не как сложный актив, а как готовая база с понятным применением для бизнеса.</span></div>
+            </div>
+          </article>
 
-    <section class="section section--cream"><div class="container split"><div><p class="section-label">Следующий шаг</p><h2>Хотите понять, почему ваш актив не продаётся?</h2></div><div class="rich-text"><p>Опишите объект коротко: тип актива, регион, цена, состояние, что уже пробовали и какие есть материалы. По первичным данным можно понять, есть ли смысл брать актив в работу и что нужно подготовить сначала.</p><p><a href="asset-review.html">Получить первичный разбор →</a></p></div></div></section>
+          <article class="xp-case">
+            <div class="xp-case-cover">
+              <span class="xp-case-cover-label">Кейс 02</span>
+              <img src="experience-warehouse.svg" alt="Склад или ангар — обложка кейса" loading="lazy">
+            </div>
+            <div class="xp-case-content">
+              <div class="xp-case-top"><span class="xp-badge xp-badge--gold">Склад / ангар</span><span class="xp-badge">До / После упаковки</span></div>
+              <h3>Склад / ангар</h3>
+              <p class="xp-case-intro">Складские объекты покупают через параметры эксплуатации и логистики, а не через общую формулировку “помещение такой-то площади”.</p>
+              <div class="xp-columns">
+                <section class="xp-panel xp-panel--before"><h4>До</h4><ul><li>Объект описан только по площади.</li><li>Неясны высота, ворота, пол, отопление.</li><li>Покупатель не понимает применимость для логистики.</li></ul></section>
+                <section class="xp-panel xp-panel--after"><h4>После</h4><ul><li>Появилась логистическая упаковка объекта.</li><li>Выделены ключевые параметры эксплуатации.</li><li>Быстрее считывается применимость под задачу бизнеса.</li></ul></section>
+                <section class="xp-panel xp-panel--change"><h4>Что изменили</h4><ul><li>Техническое описание.</li><li>Структуру параметров.</li><li>Логику презентации под эксплуатацию.</li></ul></section>
+              </div>
+              <div class="xp-result"><strong>Как стал восприниматься</strong><span>Не просто “склад”, а функциональный логистический объект с понятными параметрами.</span></div>
+            </div>
+          </article>
+
+          <article class="xp-case">
+            <div class="xp-case-cover">
+              <span class="xp-case-cover-label">Кейс 03</span>
+              <img src="experience-commercial.svg" alt="Коммерческая недвижимость — обложка кейса" loading="lazy">
+            </div>
+            <div class="xp-case-content">
+              <div class="xp-case-top"><span class="xp-badge xp-badge--gold">Коммерческая недвижимость</span><span class="xp-badge">До / После упаковки</span></div>
+              <h3>Коммерческая недвижимость</h3>
+              <p class="xp-case-intro">Для коммерческого объекта важно показать не только площадь и адрес, но и понятный сценарий использования или инвестиционную логику.</p>
+              <div class="xp-columns">
+                <section class="xp-panel xp-panel--before"><h4>До</h4><ul><li>Акцент только на площади и цене.</li><li>Не раскрыт сценарий для собственника или инвестора.</li><li>Диалог с покупателем сразу уходит в торг.</li></ul></section>
+                <section class="xp-panel xp-panel--after"><h4>После</h4><ul><li>Объект подан через назначение и полезность.</li><li>Появился более понятный сценарий использования.</li><li>Усилилась аргументация цены и формата сделки.</li></ul></section>
+                <section class="xp-panel xp-panel--change"><h4>Что изменили</h4><ul><li>Позиционирование объекта.</li><li>Структуру предложения.</li><li>Приоритеты в описании и подаче.</li></ul></section>
+              </div>
+              <div class="xp-result"><strong>Как стал восприниматься</strong><span>Не как “метры по цене”, а как актив с понятным назначением и деловой логикой.</span></div>
+            </div>
+          </article>
+
+          <article class="xp-case">
+            <div class="xp-case-cover">
+              <span class="xp-case-cover-label">Кейс 04</span>
+              <img src="experience-equipment.svg" alt="Оборудование — обложка кейса" loading="lazy">
+            </div>
+            <div class="xp-case-content">
+              <div class="xp-case-top"><span class="xp-badge xp-badge--gold">Оборудование</span><span class="xp-badge">До / После упаковки</span></div>
+              <h3>Оборудование</h3>
+              <p class="xp-case-intro">Оборудование часто “теряется” в списках, если не раскрыты состояние, комплектность и организационные условия передачи.</p>
+              <div class="xp-columns">
+                <section class="xp-panel xp-panel--before"><h4>До</h4><ul><li>Несистемный список без структуры.</li><li>Не хватает фото, состояния и комплектности.</li><li>Покупатель опасается скрытых рисков.</li></ul></section>
+                <section class="xp-panel xp-panel--after"><h4>После</h4><ul><li>Собрана понятная карточка актива.</li><li>Показаны модель, состояние и комплектность.</li><li>Снижается барьер первого контакта и осмотра.</li></ul></section>
+                <section class="xp-panel xp-panel--change"><h4>Что изменили</h4><ul><li>Фото и визуальную подачу.</li><li>Технический блок.</li><li>Порядок раскрытия информации.</li></ul></section>
+              </div>
+              <div class="xp-result"><strong>Как стал восприниматься</strong><span>Не как набор позиций, а как понятный актив с прозрачным состоянием и составом.</span></div>
+            </div>
+          </article>
+
+          <article class="xp-case">
+            <div class="xp-case-cover">
+              <span class="xp-case-cover-label">Кейс 05</span>
+              <img src="experience-machinery.svg" alt="Спецтехника — обложка кейса" loading="lazy">
+            </div>
+            <div class="xp-case-content">
+              <div class="xp-case-top"><span class="xp-badge xp-badge--gold">Спецтехника</span><span class="xp-badge">До / После упаковки</span></div>
+              <h3>Спецтехника</h3>
+              <p class="xp-case-intro">По спецтехнике важнее всего быстро показать состояние, наработку и готовность к осмотру — без этих данных доверие теряется сразу.</p>
+              <div class="xp-columns">
+                <section class="xp-panel xp-panel--before"><h4>До</h4><ul><li>Поверхностное описание техники.</li><li>Нет ясной информации о наработке и состоянии.</li><li>Покупатель не понимает объём риска.</li></ul></section>
+                <section class="xp-panel xp-panel--after"><h4>После</h4><ul><li>Поданы ключевые технические параметры.</li><li>Показана готовность к осмотру и передаче.</li><li>Объект вызывает больше доверия на входе.</li></ul></section>
+                <section class="xp-panel xp-panel--change"><h4>Что изменили</h4><ul><li>Структуру характеристик.</li><li>Фото и визуальные акценты.</li><li>Подачу под целевого покупателя техники.</li></ul></section>
+              </div>
+              <div class="xp-result"><strong>Как стал восприниматься</strong><span>Не как рискованный лот, а как проверяемая техника с понятными входными данными.</span></div>
+            </div>
+          </article>
+
+          <article class="xp-case">
+            <div class="xp-case-cover">
+              <span class="xp-case-cover-label">Кейс 06</span>
+              <img src="experience-stock.svg" alt="Складские остатки и ТМЦ — обложка кейса" loading="lazy">
+            </div>
+            <div class="xp-case-content">
+              <div class="xp-case-top"><span class="xp-badge xp-badge--gold">Складские остатки / ТМЦ</span><span class="xp-badge">До / После упаковки</span></div>
+              <h3>Складские остатки и ТМЦ</h3>
+              <p class="xp-case-intro">Неликвиды и складские остатки плохо воспринимаются рынком, если они поданы как хаотичный перечень без группировки и структуры.</p>
+              <div class="xp-columns">
+                <section class="xp-panel xp-panel--before"><h4>До</h4><ul><li>Хаотичный перечень позиций.</li><li>Не выделены партии и сегменты спроса.</li><li>Остатки не воспринимаются как товарное предложение.</li></ul></section>
+                <section class="xp-panel xp-panel--after"><h4>После</h4><ul><li>Остатки разбиты на логичные группы.</li><li>Появились партии и понятная структура.</li><li>Поиск спроса стал точнее и быстрее.</li></ul></section>
+                <section class="xp-panel xp-panel--change"><h4>Что изменили</h4><ul><li>Группировку номенклатуры.</li><li>Структуру списка и предложения.</li><li>Формат подачи для рынка.</li></ul></section>
+              </div>
+              <div class="xp-result"><strong>Как стал восприниматься</strong><span>Не как беспорядочный склад, а как структурированное предложение для понятного сегмента спроса.</span></div>
+            </div>
+          </article>
+        </div>
+
+        <section class="xp-cta">
+          <div>
+            <h2>Нужно так же упаковать ваш актив?</h2>
+            <p>По первичным данным можно быстро определить, что мешает продаже, и перестроить подачу так, чтобы актив стал понятен целевому покупателю.</p>
+          </div>
+          <div class="xp-cta-actions">
+            <a class="xp-btn xp-btn--primary" href="/#request">Получить первичный разбор</a>
+            <a class="xp-btn xp-btn--secondary" href="/api/contact-telegram" target="_blank" rel="noopener">Написать в Telegram</a>
+          </div>
+        </section>
+      </div>
+    </section>
   </main>
-  <footer class="footer"><div class="container footer__grid"><div><strong>A&A Asset Team</strong><p>Реализация сложного имущества бизнеса.</p></div><div><span>Разделы</span><a href="index.html">Главная</a><a href="method.html">Метод</a><a href="opyt.html">Опыт</a><a href="asset-review.html">Первичный разбор</a></div><div><span>Контакты</span><a href="tel:+79027690090">+7 902 769-00-90</a><a href="mailto:bss10@bk.ru">bss10@bk.ru</a><p>© <span id="year">2026</span></p></div></div></footer>
+
+  <footer class="xp-footer">
+    <div class="xp-shell">© <span id="year"></span> A&amp;A Asset Team. Разбор и упаковка активов бизнеса.</div>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
