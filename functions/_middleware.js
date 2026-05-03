@@ -16,6 +16,11 @@ const applyHtmlFixes = (html) => HTML_REPLACEMENTS.reduce(
 );
 
 export async function onRequest(context) {
+  const url = new URL(context.request.url);
+  if (url.hostname === "www.aateam.ru") {
+    return Response.redirect(`${SITE_DOMAIN}${url.pathname}${url.search}`, 301);
+  }
+
   const response = await context.next();
   const contentType = response.headers.get("content-type") || "";
 
