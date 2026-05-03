@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://asset-team.pages.dev/sitemap.xml
+Sitemap: https://aateam.ru/sitemap.xml
