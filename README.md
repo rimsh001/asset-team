@@ -1,2 +1,10 @@
-# asset-team
-Сайт проекта по реализации зависшего и непрофильного имущества бизнеса
+# AATeam Website
+
+## Description
+Website for asset sales and deal structuring.
+
+## Deployment
+GitHub Pages
+
+## Domain
+https://aateam.ru
