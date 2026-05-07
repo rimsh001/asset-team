@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /forms.html
+Disallow: /thanks.html
+
 Sitemap: https://aateam.ru/sitemap.xml
