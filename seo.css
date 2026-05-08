@@ -20,16 +20,24 @@
 
 
 /* Contrast hardening for light/cream sections */
-.page-hero,.section,.section--cream,.card,.seo-service-card,.seo-faq details,.seo-plain-list li{color:var(--ink)}
-.page-hero h1,.page-hero h2,.page-hero h3,.section:not(.dark) h1,.section:not(.dark) h2,.section:not(.dark) h3,.card h3,.seo-service-card h3,.seo-faq summary{color:var(--ink)}
-.page-hero p,.page-hero li,.section:not(.dark) p,.section:not(.dark) li,.card p,.seo-service-card p,.seo-faq p,.seo-plain-list li{color:#424953}
-.page-hero .kicker,.section:not(.dark) .section-label{color:var(--gold2)}
+.page-hero:not(.dark),.section:not(.dark),.section--cream,.section:not(.dark) .card,.section--cream .card,.seo-service-card,.seo-faq details,.seo-plain-list li{color:var(--ink)}
+.page-hero:not(.dark) h1,.page-hero:not(.dark) h2,.page-hero:not(.dark) h3,.section:not(.dark) h1,.section:not(.dark) h2,.section:not(.dark) h3,.section:not(.dark) .card h3,.section--cream .card h3,.seo-service-card h3,.seo-faq summary{color:var(--ink)}
+.page-hero:not(.dark) p,.page-hero:not(.dark) li,.section:not(.dark) p,.section:not(.dark) li,.section:not(.dark) .card p,.section--cream .card p,.seo-service-card p,.seo-faq p,.seo-plain-list li{color:#424953}
+.page-hero:not(.dark) .kicker,.section:not(.dark) .section-label{color:var(--gold2)}
 .breadcrumb{color:#5e6570}
 .breadcrumb a{color:inherit}
-.page-links .page-link{color:var(--ink);border-color:rgba(21,23,28,.24);background:rgba(255,255,255,.55)}
-.page-links .page-link:hover{background:rgba(255,255,255,.82)}
+.page-hero:not(.dark) .page-links .page-link{color:var(--ink);border-color:rgba(21,23,28,.24);background:rgba(255,255,255,.55)}
+.page-hero:not(.dark) .page-links .page-link:hover{background:rgba(255,255,255,.82)}
 .section:not(.dark) a:not(.btn):not(.page-link){color:var(--gold2)}
 
 /* Preserve light text where background is intentionally dark */
+.dark h1,.dark h2,.dark h3{color:#f6f7fb}
+.dark p,.dark li{color:rgba(255,255,255,.82)}
+.dark .card{color:#f3f4fa}
+.dark .card h3{color:#f6f7fb}
+.dark .card p{color:rgba(255,255,255,.78)}
+.dark .page-link{color:#f6f7fb;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08)}
+.dark .page-link:hover{background:rgba(255,255,255,.16)}
+.dark details,.dark summary{color:#f6f7fb}
 .dark .breadcrumb,.dark .breadcrumb a{color:rgba(255,255,255,.72)}
 .dark .seo-list li{color:rgba(255,255,255,.86)}
