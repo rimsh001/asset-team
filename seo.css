@@ -17,3 +17,19 @@
 .seo-plain-list li{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;color:var(--muted)}
 @media(max-width:1020px){.seo-services{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:680px){.seo-services{grid-template-columns:1fr}.seo-service-card h3{font-size:22px}}
+
+
+/* Contrast hardening for light/cream sections */
+.page-hero,.section,.section--cream,.card,.seo-service-card,.seo-faq details,.seo-plain-list li{color:var(--ink)}
+.page-hero h1,.page-hero h2,.page-hero h3,.section:not(.dark) h1,.section:not(.dark) h2,.section:not(.dark) h3,.card h3,.seo-service-card h3,.seo-faq summary{color:var(--ink)}
+.page-hero p,.page-hero li,.section:not(.dark) p,.section:not(.dark) li,.card p,.seo-service-card p,.seo-faq p,.seo-plain-list li{color:#424953}
+.page-hero .kicker,.section:not(.dark) .section-label{color:var(--gold2)}
+.breadcrumb{color:#5e6570}
+.breadcrumb a{color:inherit}
+.page-links .page-link{color:var(--ink);border-color:rgba(21,23,28,.24);background:rgba(255,255,255,.55)}
+.page-links .page-link:hover{background:rgba(255,255,255,.82)}
+.section:not(.dark) a:not(.btn):not(.page-link){color:var(--gold2)}
+
+/* Preserve light text where background is intentionally dark */
+.dark .breadcrumb,.dark .breadcrumb a{color:rgba(255,255,255,.72)}
+.dark .seo-list li{color:rgba(255,255,255,.86)}
