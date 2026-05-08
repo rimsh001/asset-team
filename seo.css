@@ -55,3 +55,67 @@
 .section.dark .card p {
   color: var(--muted);
 }
+
+/* Mixed surface contrast fixes */
+.section.dark .timeline li {
+  color: var(--ink);
+}
+
+.section.dark .timeline li h3 {
+  color: var(--ink);
+}
+
+.section.dark .timeline li p {
+  color: var(--muted);
+}
+
+.pricing .featured,
+.section:not(.dark) .pricing .featured {
+  color: #f6f7fb;
+}
+
+.pricing .featured h3,
+.section:not(.dark) .pricing .featured h3 {
+  color: #f6f7fb;
+}
+
+.pricing .featured p,
+.pricing .featured li,
+.section:not(.dark) .pricing .featured p,
+.section:not(.dark) .pricing .featured li {
+  color: rgba(255,255,255,.72);
+}
+
+.pricing .featured a,
+.section:not(.dark) .pricing .featured a {
+  color: var(--gold);
+}
+
+#assets .asset-grid article,
+.section:not(.dark) #assets .asset-grid article {
+  color: #f6f7fb;
+}
+
+#assets .asset-grid article h3,
+.section:not(.dark) #assets .asset-grid article h3 {
+  color: #ffffff;
+}
+
+#assets .asset-grid article p,
+.section:not(.dark) #assets .asset-grid article p {
+  color: rgba(255,255,255,.78);
+}
+
+#assets .asset-grid article span,
+.section:not(.dark) #assets .asset-grid article span {
+  color: #e0b46d;
+}
+
+.compare__cols div:last-child,
+.compare__cols div:last-child h3 {
+  color: #f6f7fb;
+}
+
+.compare__cols div:last-child li {
+  color: rgba(255,255,255,.78);
+}
