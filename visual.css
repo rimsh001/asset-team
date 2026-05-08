@@ -2,3 +2,14 @@
 #problem>.container,#process>.container,#difference>.container,#method>.container,#assets>.container,#services>.container,#no-promises>.container,#result>.container,#formats>.container,#faq>.container,#request>.container{scroll-margin-top:92px}
 .section .section-head{margin-bottom:30px}
 .pricing article{min-height:500px}
+.home .hero{padding-top:62px;padding-bottom:72px}
+.home .hero__grid{gap:48px}
+.home .hero h1{font-size:clamp(38px,4.8vw,62px);margin-bottom:14px}
+.home .hero__lead{line-height:1.42}
+.home .hero__note{margin-top:14px;padding:14px 18px}
+.home .hero__actions{margin-top:20px}
+.home .audit-card{min-height:520px;padding-top:36px}
+.home .section{padding:84px 0}
+.home .section-head{margin-bottom:30px}
+@media(max-width:1020px){.home .hero{padding-top:60px;padding-bottom:70px}.home .hero__grid{gap:36px}.home .section{padding:76px 0}}
+@media(max-width:680px){.home .hero{padding-top:54px;padding-bottom:64px}.home .hero__lead{line-height:1.46}.home .hero__note{margin-top:16px;padding:16px 18px}.home .hero__actions{margin-top:22px}.home .section{padding:66px 0}.home .section-head{margin-bottom:28px}}
