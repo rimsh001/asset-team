@@ -25,6 +25,48 @@
     });
   }
 
+  function aaReachGoal(goalName, params) {
+    try {
+      if (typeof window.ym === 'function') {
+        window.ym(103335143, 'reachGoal', goalName, params || {});
+      }
+    } catch (error) {
+      console.warn('Yandex Metrica goal error:', goalName, error);
+    }
+  }
+
+  if (!window.__aaYmGoalsLoaded) {
+    window.__aaYmGoalsLoaded = true;
+
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/thanks.html') || currentPath.includes('/thanks')) {
+      aaReachGoal('lead_thanks_view');
+    }
+
+    document.addEventListener('submit', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLFormElement)) return;
+
+      const action = target.getAttribute('action') || '';
+      if (target.matches('#asset-form') || action === '/api/lead') {
+        aaReachGoal('lead_form_submit');
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+      if (!link) return;
+
+      const href = link.getAttribute('href') || '';
+
+      if (href.includes('/api/contact-telegram')) aaReachGoal('click_telegram');
+      if (href.includes('/api/contact-max')) aaReachGoal('click_max');
+      if (href.startsWith('tel:')) aaReachGoal('click_phone');
+      if (href.startsWith('mailto:')) aaReachGoal('click_email');
+      if (href.includes('#request')) aaReachGoal('click_request_cta');
+    });
+  }
+
   const header = $('#header');
   const burger = $('#burger');
   const nav = $('#nav');
