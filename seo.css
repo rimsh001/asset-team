@@ -41,3 +41,17 @@
 .dark details,.dark summary{color:#f6f7fb}
 .dark .breadcrumb,.dark .breadcrumb a{color:rgba(255,255,255,.72)}
 .dark .seo-list li{color:rgba(255,255,255,.86)}
+
+/* Light cards inside dark sections */
+
+.section.dark .card {
+  color: var(--ink);
+}
+
+.section.dark .card h3 {
+  color: var(--ink);
+}
+
+.section.dark .card p {
+  color: var(--muted);
+}
