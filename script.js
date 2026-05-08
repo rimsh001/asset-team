@@ -1,19 +1,82 @@
-(()=>{const $=(s,c=document)=>c.querySelector(s),$$=(s,c=document)=>[...c.querySelectorAll(s)],E=(t,a={},h='')=>{const e=document.createElement(t);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));e.innerHTML=h;return e};
-if(!window.__aaYmLoaded){window.__aaYmLoaded=true;(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(let j=0;j<e.scripts.length;j++){if(e.scripts[j].src===r)return}k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');window.ym&&ym(103335143,'init',{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});}
-if(!$('#aa-extra-style'))document.head.appendChild(E('style',{id:'aa-extra-style'},`.brand{min-width:210px}.brand__logo{display:block;width:205px;max-height:58px;object-fit:contain;filter:drop-shadow(0 2px 10px rgba(0,0,0,.45))}.brand__fallback{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.page-hero{background:radial-gradient(circle at 75% 20%,rgba(201,149,75,.18),transparent 32%),linear-gradient(135deg,#101216,#191d25 55%,#0f1116);color:#fff;padding:82px 0 92px;overflow:hidden}.page-hero h1{font-size:clamp(42px,6vw,72px);max-width:920px;margin:18px 0 24px}.page-hero p{font-size:20px;color:rgba(255,255,255,.76);max-width:820px}.page-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}.page-link{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:11px 15px;color:#fff;background:rgba(255,255,255,.05);font-weight:700}.asset-example-actions{margin-top:28px;display:flex;justify-content:center}.asset-example-actions a{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:14px 22px;background:linear-gradient(135deg,#d8b06a,#c9954b 55%,#a97434);color:#111216!important;font-weight:900;box-shadow:0 14px 34px rgba(201,149,75,.18)}.header__messengers{display:flex;gap:8px;margin-left:auto}.header-messenger-btn{border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:10px 13px;background:rgba(255,255,255,.06);color:#fff;font-size:13px;font-weight:800}.header-messenger-btn--telegram{background:rgba(42,171,238,.15)}.header-messenger-btn--max{background:rgba(83,62,238,.16)}.messenger-icon{width:16px;height:16px}.hero__actions .btn,.page-link,.header-messenger-btn,.contacts a{gap:8px}.contacts a[href*="contact-"]{display:inline-flex!important;align-items:center;width:max-content}.service-price{margin:0 0 14px!important;color:var(--gold2)!important;font-weight:800!important;font-size:24px!important;line-height:1.15!important}.pricing .featured .service-price{color:var(--gold)!important}.pricing-note{margin-top:22px;color:var(--muted);font-size:15px}.dark .timeline li,.dark .timeline h3{color:var(--ink)}.experience-teaser-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:38px;align-items:start}.experience-teaser-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.experience-teaser-cards article{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 18px 50px rgba(16,18,22,.06)}.experience-teaser-cards span{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:700}.experience-teaser-cards h3{font-size:22px;margin:14px 0 8px}.experience-teaser-cards p{color:var(--muted);font-size:15px;margin:0}.experience-teaser-actions{margin-top:24px}.experience-teaser-actions a{color:var(--gold2);font-weight:800;text-decoration:underline;text-underline-offset:3px}@media(max-width:1020px){.header__messengers{display:none}.experience-teaser-grid,.experience-teaser-cards{grid-template-columns:1fr 1fr}.brand{min-width:170px}.brand__logo{width:170px}}@media(max-width:680px){.experience-teaser-grid,.experience-teaser-cards{grid-template-columns:1fr}.brand{min-width:132px}.brand__logo{width:132px;max-height:42px}}`));
-$$('.kicker').forEach(k=>{const t=k.textContent.trim().toLowerCase();if(t==='seo-услуга'||t==='seo услуга'||t==='услуга')k.remove()});
-['icon','apple-touch-icon'].forEach((r,i)=>{if(!document.head.querySelector(`link[rel="${r}"]`))document.head.appendChild(E('link',{rel:r,type:i?'':'image/svg+xml',href:'/icons/aa-logo-mark.svg'}))});
-const b=$('.brand');if(b&&!b.querySelector('.brand__logo'))b.innerHTML='<img class="brand__logo" src="/icons/aa-logo.svg" alt="A&A Asset Team"><span class="brand__fallback">A&A Asset Team</span>';
-const nav=$('#nav');if(nav&&!nav.querySelector('a[href="opyt.html"]')){const l=E('a',{href:'opyt.html'},'Опыт'),m=nav.querySelector('a[href="#method"],a[href="method.html"]');m?m.after(l):nav.append(l)}
-if(nav&&!nav.querySelector('a[href="#formats"]')&&nav.querySelector('a[href^="#"]')){const p=E('a',{href:'#formats'},'Стоимость'),r=nav.querySelector('a[href="#request"]');r?r.before(p):nav.append(p)}
-const heroActions=$('.hero__actions');if(heroActions&&!heroActions.querySelector('a[href="opyt.html#cases"]')){const first=heroActions.querySelector('a');if(first)first.after(E('a',{class:'btn btn--line',href:'opyt.html#cases'},'Смотреть примеры упаковки'))}
-const assets=$('#assets');if(assets&&!assets.querySelector('.asset-example-actions')){const grid=$('.asset-grid',assets),actions=E('div',{class:'asset-example-actions'},'<a href="opyt.html#cases">Смотреть примеры</a>');grid?grid.after(actions):assets.append(actions)}
-if($('#method')&&!$('#experience-teaser')){const s=E('section',{class:'section section--cream',id:'experience-teaser'},'<div class="container experience-teaser-grid"><div><p class="section-label">Опыт</p><h2>Разборы активов вынесены на отдельную страницу</h2><p style="margin-top:16px;color:var(--muted);font-size:18px">Чтобы не перегружать главную, здесь оставили короткий переход. Подробно показываем типовые ситуации: база, склад, коммерческая недвижимость, оборудование, спецтехника и ТМЦ.</p><div class="experience-teaser-actions"><a href="opyt.html">Смотреть опыт и разборы активов →</a></div></div><div class="experience-teaser-cards"><article><span>01</span><h3>Недвижимость</h3><p>Производственные базы, склады, ангары и коммерческие объекты.</p></article><article><span>02</span><h3>Оборудование</h3><p>Состояние, комплектность, документы, демонтаж и логистика.</p></article><article><span>03</span><h3>ТМЦ</h3><p>Складские остатки, неликвидные позиции, партии и целевой спрос.</p></article></div></div>');$('#method').after(s)}
-const sv=$('#services');if(sv){let l=$('.section-label',sv),h=$('h2',sv),p=$('.section-head p:not(.section-label)',sv);if(l)l.textContent='Активы';if(h)h.textContent='С какими активами работаем';if(p)p.textContent='Каждый тип имущества требует своей логики продажи: покупателя, документов, упаковки, цены и переговоров.';$$('.seo-service-card a',sv).forEach(a=>a.textContent='Как продаём →')}
-const ic=(a,t)=>{if(a&&!a.querySelector('.messenger-icon'))a.prepend(E('img',{class:'messenger-icon',src:t==='max'?'/icons/max.svg':'/icons/telegram.svg',alt:'','aria-hidden':'true'}))};$$('a[href*="contact-telegram"]').forEach(a=>ic(a,'telegram'));$$('a[href*="contact-max"]').forEach(a=>ic(a,'max'));
-$$('.hero__actions').forEach(x=>{if(x.querySelector('a[href*="contact-max"]'))return;let tg=x.querySelector('a[href*="contact-telegram"]');if(tg)tg.after(E('a',{class:'btn btn--line',href:'/api/contact-max',target:'_blank',rel:'noopener'},'Написать в MAX'))});$$('.contacts').forEach(x=>{if(x.querySelector('a[href*="contact-max"]'))return;let tg=x.querySelector('a[href*="contact-telegram"]');if(tg)tg.after(E('a',{href:'/api/contact-max',target:'_blank',rel:'noopener'},'Написать в MAX'))});
-const method=$('#method');if(method)$$('a[href*="contact-max"]',method).forEach(a=>a.remove());
-const y=$('#year');if(y)y.textContent=new Date().getFullYear();const hd=$('#header'),bg=$('#burger');const sh=()=>hd&&hd.classList.toggle('is-scrolled',scrollY>8);sh();addEventListener('scroll',sh,{passive:true});if(bg&&nav)bg.onclick=()=>{let o=bg.getAttribute('aria-expanded')==='true';bg.setAttribute('aria-expanded',String(!o));nav.classList.toggle('is-open',!o)};$$('a[href^="#"]').forEach(a=>a.onclick=e=>{let id=a.getAttribute('href'),t=id&&id!=='#'?$(id):0;if(!t)return;e.preventDefault();scrollTo({top:t.getBoundingClientRect().top+scrollY-(hd?hd.offsetHeight:0)+1,behavior:'smooth'});history.replaceState(null,'',id);if(bg&&nav){bg.setAttribute('aria-expanded','false');nav.classList.remove('is-open')}});let hb=$('.header__button');if(hb&&!$('.header__messengers'))hb.before(E('div',{class:'header__messengers'},'<a class="header-messenger-btn header-messenger-btn--telegram" href="/api/contact-telegram" target="_blank" rel="noopener">Telegram</a><a class="header-messenger-btn header-messenger-btn--max" href="/api/contact-max" target="_blank" rel="noopener">MAX</a>'));
-const f=$('#asset-form');if(f){f.action='/api/lead';f.method='POST';f.removeAttribute('data-netlify');f.removeAttribute('netlify-honeypot')}
-if(window.matchMedia('(max-width: 680px)').matches&&!$('.mobile-sticky-cta')){const c=E('div',{class:'mobile-sticky-cta'},'<a class="btn btn--accent" href="/asset-review.html">Разбор</a><a class="btn btn--line" href="/api/contact-telegram" target="_blank" rel="noopener">Telegram</a>');document.body.appendChild(c)}
+(() => {
+  const $ = (selector, context = document) => context.querySelector(selector);
+  const $$ = (selector, context = document) => [...context.querySelectorAll(selector)];
+
+  if (!window.__aaYmLoaded) {
+    window.__aaYmLoaded = true;
+    (function(m, e, t, r, i, k, a) {
+      m[i] = m[i] || function() { (m[i].a = m[i].a || []).push(arguments); };
+      m[i].l = 1 * new Date();
+      for (let j = 0; j < e.scripts.length; j++) {
+        if (e.scripts[j].src === r) return;
+      }
+      k = e.createElement(t);
+      a = e.getElementsByTagName(t)[0];
+      k.async = 1;
+      k.src = r;
+      a.parentNode.insertBefore(k, a);
+    })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+
+    window.ym && ym(103335143, 'init', {
+      clickmap: true,
+      trackLinks: true,
+      accurateTrackBounce: true,
+      webvisor: true
+    });
+  }
+
+  const header = $('#header');
+  const burger = $('#burger');
+  const nav = $('#nav');
+  const year = $('#year');
+  const form = $('#asset-form');
+
+  if (year) year.textContent = new Date().getFullYear();
+
+  if (form) {
+    form.action = '/api/lead';
+    form.method = 'POST';
+    form.removeAttribute('data-netlify');
+    form.removeAttribute('netlify-honeypot');
+  }
+
+  const updateHeaderState = () => {
+    if (header) header.classList.toggle('is-scrolled', window.scrollY > 8);
+  };
+
+  updateHeaderState();
+  window.addEventListener('scroll', updateHeaderState, { passive: true });
+
+  if (burger && nav) {
+    burger.addEventListener('click', () => {
+      const isOpen = burger.getAttribute('aria-expanded') === 'true';
+      burger.setAttribute('aria-expanded', String(!isOpen));
+      nav.classList.toggle('is-open', !isOpen);
+    });
+  }
+
+  $$('a[href^="#"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      const href = link.getAttribute('href');
+      if (!href || href === '#') return;
+
+      const target = $(href);
+      if (!target) return;
+
+      event.preventDefault();
+
+      const offset = header ? header.offsetHeight : 0;
+      window.scrollTo({
+        top: target.getBoundingClientRect().top + window.scrollY - offset + 1,
+        behavior: 'smooth'
+      });
+
+      history.replaceState(null, '', href);
+
+      if (burger && nav) {
+        burger.setAttribute('aria-expanded', 'false');
+        nav.classList.remove('is-open');
+      }
+    });
+  });
 })();
