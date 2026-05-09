@@ -5,6 +5,7 @@
 .home #packaging{
   padding-top: 78px;
   padding-bottom: 78px;
+  scroll-margin-top: 110px;
 }
 
 .home #packaging .section-head{
