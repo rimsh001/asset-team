@@ -160,3 +160,83 @@
     width: 100%;
   }
 }
+
+/* Compact services grid + unified service-page section separation */
+.seo-service-card{
+  min-height: 188px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.seo-service-card h3{
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.18;
+}
+
+.seo-service-card h3 span{
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: rgba(167,121,55,.88);
+}
+
+.seo-service-card p{
+  margin: 0;
+  line-height: 1.4;
+  max-width: 36ch;
+}
+
+.seo-service-card a{
+  margin-top: 2px;
+  align-self: flex-start;
+  font-weight: 700;
+}
+
+.page-hero{
+  padding-bottom: 76px;
+}
+
+.page-hero + .section{
+  border-top: 1px solid var(--line);
+  background: #f9f4ea;
+}
+
+@media (max-width: 1020px){
+  .seo-service-card{
+    min-height: 172px;
+  }
+
+  .seo-service-card h3{
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 680px){
+  .seo-service-card{
+    min-height: auto;
+    padding: 16px 16px;
+    gap: 8px;
+  }
+
+  .seo-service-card h3{
+    font-size: 19px;
+    line-height: 1.2;
+    gap: 8px;
+  }
+
+  .seo-service-card p{
+    max-width: none;
+  }
+
+  .page-hero{
+    padding-bottom: 62px;
+  }
+}
