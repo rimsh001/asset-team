@@ -163,26 +163,28 @@
 
 /* Compact services grid + unified service-page section separation */
 .seo-service-card{
-  min-height: 188px;
-  padding: 18px 20px;
+  min-height: 170px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 
 .seo-service-card h3{
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  column-gap: 8px;
+  align-items: start;
   margin: 0;
   font-size: 21px;
   line-height: 1.18;
 }
 
 .seo-service-card h3 span{
-  flex: 0 0 auto;
   font-family: var(--mono);
   font-size: 11px;
+  line-height: 1.2;
+  margin-top: 3px;
   font-weight: 700;
   letter-spacing: .04em;
   color: rgba(167,121,55,.88);
@@ -206,7 +208,23 @@
 
 .page-hero + .section{
   border-top: 1px solid var(--line);
-  background: #f9f4ea;
+  background: #fffaf1;
+}
+
+.page-hero + .section .rich-text{
+  background: rgba(255,255,255,.55);
+  border: 1px solid rgba(222,214,198,.8);
+  border-radius: 22px;
+  padding: 28px;
+}
+
+#services{
+  padding-top: 72px;
+  padding-bottom: 72px;
+}
+
+#services .section-head{
+  margin-bottom: 28px;
 }
 
 @media (max-width: 1020px){
@@ -220,6 +238,15 @@
 }
 
 @media (max-width: 680px){
+  #services{
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  #services .section-head{
+    margin-bottom: 24px;
+  }
+
   .seo-service-card{
     min-height: auto;
     padding: 16px 16px;
@@ -229,11 +256,17 @@
   .seo-service-card h3{
     font-size: 19px;
     line-height: 1.2;
-    gap: 8px;
+    grid-template-columns: 24px 1fr;
+    column-gap: 8px;
   }
 
   .seo-service-card p{
     max-width: none;
+  }
+
+  .page-hero + .section .rich-text{
+    padding: 22px;
+    border-radius: 18px;
   }
 
   .page-hero{
