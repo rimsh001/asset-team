@@ -22,20 +22,19 @@
 }
 
 .home #packaging .packaging-grid .card h3{
-  display: grid;
-  grid-template-columns: 26px 1fr;
-  column-gap: 8px;
-  align-items: start;
+  display: block;
   margin: 0 0 8px;
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1.18;
 }
 
 .home #packaging .packaging-grid .card h3 span{
+  display: inline-block;
+  margin-right: 7px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.2;
-  margin-top: 3px;
+  transform: translateY(-1px);
   font-weight: 700;
   letter-spacing: .04em;
   color: rgba(167,121,55,.88);
@@ -63,9 +62,7 @@
   }
 
   .home #packaging .packaging-grid .card h3{
-    grid-template-columns: 24px 1fr;
-    column-gap: 8px;
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .home #packaging .packaging-grid .card p{
