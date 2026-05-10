@@ -27,6 +27,15 @@
   grid-column:1 / -1;
 }
 
+
+.audit-card h2{font-size:34px;line-height:1.05}
+.audit-card li b{font-size:15.5px;line-height:1.25}
+.audit-card li span{font-size:13.2px;line-height:1.32}
+.audit-card__stats strong{font-size:28px;line-height:1}
+.audit-card__stats span{font-size:12px;line-height:1.25}
+.audit-card li{min-height:66px}
+.audit-card__checks li:last-child{min-height:62px}
+
 @media (max-width: 1020px){.home #packaging .packaging-grid{grid-template-columns:1fr}}
 @media (max-width: 680px){
   .home #packaging{padding-top:70px;padding-bottom:70px}
