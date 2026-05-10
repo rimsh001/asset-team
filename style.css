@@ -8,124 +8,38 @@
   scroll-margin-top: 110px;
 }
 
-.home #packaging .section-head{
-  max-width: 980px;
-  margin-bottom: 34px;
-}
+.home #packaging .section-head{max-width:980px;margin-bottom:34px}
+.home #packaging .packaging-disclaimer{margin-top:14px;font-size:16px;line-height:1.55;color:#4f5560}
+.home #packaging .packaging-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.home #packaging .packaging-grid .card{display:flex;flex-direction:column;align-items:flex-start;padding:24px;min-height:320px;box-shadow:0 14px 34px rgba(16,18,22,.08);transition:transform .22s ease,box-shadow .22s ease}
+.home #packaging .packaging-grid .card:hover{transform:translateY(-2px);box-shadow:0 20px 42px rgba(16,18,22,.14)}
+.home #packaging .packaging-preview{position:relative;width:100%;min-height:108px;padding:14px 14px 12px;background:linear-gradient(180deg,#fffdf8,#f8f1e5);border:1px solid rgba(201,149,75,.26);border-radius:14px;box-shadow:inset 0 -1px 0 rgba(255,255,255,.9),0 8px 20px rgba(16,18,22,.06);overflow:hidden;margin-bottom:14px}
+.home #packaging .packaging-preview:after{content:"";position:absolute;left:14px;right:14px;bottom:11px;height:3px;border-radius:999px;background:linear-gradient(90deg,rgba(201,149,75,.88),rgba(201,149,75,.18))}
+.home #packaging .preview-badge{display:inline-flex;padding:3px 8px;border-radius:999px;background:#fff;border:1px solid rgba(21,23,28,.18);font-size:10px;font-family:var(--mono);letter-spacing:.08em;color:#1f242d}
+.home #packaging .packaging-preview strong{display:block;margin-top:8px;font-size:14px;line-height:1.25;color:#222732}
+.home #packaging .packaging-preview ul{margin-top:6px;display:grid;gap:2px}
+.home #packaging .packaging-preview li{font-size:12px;line-height:1.35;color:#555d67}
+.home #packaging .packaging-number{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.07em;color:rgba(167,121,55,.95);margin:0 0 6px}
+.home #packaging .packaging-grid .card h3{margin:0 0 10px;font-size:25px;line-height:1.14}
+.home #packaging .packaging-grid .card p{font-size:16px;line-height:1.46;color:var(--muted)}
+.home #packaging .packaging-meta{margin-top:12px;margin-bottom:16px;font-size:14px;line-height:1.45;color:#3e454f}
+.home #packaging .packaging-meta b{color:#252a33}
+.home #packaging .packaging-grid .card .page-link{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;padding:11px 17px;border-radius:999px;border:1px solid rgba(201,149,75,.45);background:linear-gradient(135deg,rgba(201,149,75,.19),rgba(255,250,241,.95));color:#2f2314;font-weight:700;box-shadow:0 10px 24px rgba(201,149,75,.15);transition:transform .2s ease,box-shadow .2s ease}
+.home #packaging .packaging-grid .card .page-link:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(201,149,75,.24)}
+.home #packaging .packaging-cta{margin-top:32px;padding:30px;border-radius:24px;background:linear-gradient(140deg,rgba(201,149,75,.26),rgba(255,250,241,.95));border:1px solid rgba(201,149,75,.34);box-shadow:0 14px 30px rgba(16,18,22,.08)}
+.home #packaging .packaging-cta__label{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#7f5f2e;margin-bottom:10px}
+.home #packaging .packaging-cta h3{font-size:clamp(28px,3.2vw,38px);line-height:1.12;margin:0 0 12px;color:#14181f}
+.home #packaging .packaging-cta p{margin:0;color:#2e343d;font-size:18px;line-height:1.5;max-width:960px}
+.home #packaging .packaging-cta .btn{margin-top:20px}
 
-.home #packaging .packaging-disclaimer{
-  margin-top: 14px;
-  font-size: 16px;
-  line-height: 1.55;
-  color: #4f5560;
-}
-
-.home #packaging .packaging-grid{
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.home #packaging .packaging-grid .card{
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 28px;
-  min-height: 236px;
-  box-shadow: 0 14px 34px rgba(16,18,22,.08);
-}
-
-.home #packaging .packaging-grid .card h3{
-  display: block;
-  margin: 0 0 14px;
-  font-size: 26px;
-  line-height: 1.15;
-}
-
-.home #packaging .packaging-grid .card h3 span{
-  display: inline-block;
-  margin-right: 8px;
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 1.2;
-  transform: translateY(-2px);
-  font-weight: 700;
-  letter-spacing: .05em;
-  color: rgba(167,121,55,.94);
-}
-
-.home #packaging .packaging-grid .card p{
-  font-size: 16.5px;
-  line-height: 1.48;
-  margin-bottom: 22px;
-}
-
-.home #packaging .packaging-grid .card .page-link{
-  margin-top: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 11px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(201,149,75,.34);
-  background: rgba(201,149,75,.1);
-  color: #3a2b13;
-  font-weight: 700;
-}
-
-.home #packaging .packaging-note{
-  margin-top: 30px;
-  padding: 32px;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-.home #packaging .packaging-note h3{
-  font-size: clamp(28px,3.2vw,38px);
-  line-height: 1.12;
-  margin: 0 0 14px;
-  color: #14181f;
-}
-
-.home #packaging .packaging-note p{
-  margin: 0;
-  color: #2e343d;
-}
-
-.home #packaging .packaging-note .btn{
-  margin-top: 22px;
-}
-
-@media (max-width: 1020px){
-  .home #packaging .packaging-grid{
-    grid-template-columns: 1fr;
-  }
-}
-
+@media (max-width: 1020px){.home #packaging .packaging-grid{grid-template-columns:1fr}}
 @media (max-width: 680px){
-  .home #packaging{
-    padding-top: 70px;
-    padding-bottom: 70px;
-  }
-
-  .home #packaging .packaging-grid .card{
-    padding: 24px;
-    min-height: 220px;
-  }
-
-  .home #packaging .packaging-grid .card h3{
-    font-size: 24px;
-  }
-
-  .home #packaging .packaging-grid .card p{
-    font-size: 16px;
-  }
-
-  .home #packaging .packaging-note{
-    margin-top: 24px;
-    padding: 24px;
-  }
-
-  .home #packaging .packaging-note h3{
-    font-size: 30px;
-  }
+  .home #packaging{padding-top:70px;padding-bottom:70px}
+  .home #packaging .packaging-grid .card{padding:20px;min-height:0}
+  .home #packaging .packaging-grid .card h3{font-size:23px}
+  .home #packaging .packaging-grid .card p{font-size:16px}
+  .home #packaging .packaging-preview{min-height:96px}
+  .home #packaging .packaging-cta{margin-top:24px;padding:24px}
+  .home #packaging .packaging-cta h3{font-size:30px}
+  .home #packaging .packaging-cta p{font-size:16px}
 }
