@@ -81,3 +81,22 @@
     margin-top: 18px;
   }
 }
+
+.home #packaging .packaging-disclaimer{margin:0 0 24px;padding:18px 20px;border-radius:16px;background:var(--paper);border:1px solid var(--line);color:#434a55}
+.home #packaging .packaging-examples-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.home #packaging .packaging-example-card{display:flex;flex-direction:column;min-height:250px;box-shadow:0 12px 28px rgba(16,18,22,.08)}
+.home #packaging .packaging-example-card h3{margin:0 0 10px;font-size:28px;line-height:1.12;color:var(--ink)}
+.home #packaging .packaging-example-card p{font-size:16px;line-height:1.45;color:#4d5460;margin-bottom:20px}
+.home #packaging .packaging-example-card .btn{margin-top:auto;width:fit-content}
+.home #packaging .packaging-cta{margin-top:24px;padding:28px;border-radius:22px;background:linear-gradient(135deg,rgba(201,149,75,.2),rgba(255,250,241,.98));border:1px solid rgba(201,149,75,.35);box-shadow:0 14px 32px rgba(16,18,22,.08)}
+.home #packaging .packaging-cta h3{font-size:32px;line-height:1.1;margin-bottom:12px}
+.home #packaging .packaging-cta p{font-size:18px;line-height:1.5;color:#343942;margin-bottom:18px}
+
+@media(max-width:680px){
+  .home #packaging .packaging-examples-grid{grid-template-columns:1fr}
+  .home #packaging .packaging-example-card h3{font-size:24px}
+  .home #packaging .packaging-example-card .btn{width:100%}
+  .home #packaging .packaging-cta{padding:20px}
+  .home #packaging .packaging-cta h3{font-size:27px}
+  .home #packaging .packaging-cta p{font-size:16px}
+}
