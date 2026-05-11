@@ -2,7 +2,10 @@
   const $ = (selector, context = document) => context.querySelector(selector);
   const $$ = (selector, context = document) => [...context.querySelectorAll(selector)];
 
-  if (!window.__aaYmLoaded) {
+  const COOKIE_CONSENT_KEY = 'cookie_consent';
+
+  function loadYandexMetrica() {
+    if (window.__aaYmLoaded) return;
     window.__aaYmLoaded = true;
     (function(m, e, t, r, i, k, a) {
       m[i] = m[i] || function() { (m[i].a = m[i].a || []).push(arguments); };
@@ -67,6 +70,28 @@
     });
   }
 
+
+  function setupCookieBanner() {
+    const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
+    if (saved === 'accepted') loadYandexMetrica();
+    if (saved) return;
+
+    const banner = document.createElement('div');
+    banner.className = 'cookie-banner';
+    banner.innerHTML = '<p>Мы используем cookie и сервисы аналитики, чтобы сайт работал корректно, анализировать посещаемость и улучшать материалы. Нажимая «Принять», вы соглашаетесь на обработку cookie в соответствии с <a href="/cookies.html">Политикой cookie</a>.</p><div class="cookie-banner__actions"><button type="button" class="btn btn--accent cookie-banner__accept">Принять</button><button type="button" class="btn btn--line cookie-banner__decline">Отклонить необязательные</button><a class="btn btn--line" href="/cookies.html">Подробнее</a></div>';
+    document.body.appendChild(banner);
+
+    const closeBanner = (value) => {
+      localStorage.setItem(COOKIE_CONSENT_KEY, value);
+      if (value === 'accepted') loadYandexMetrica();
+      banner.remove();
+    };
+
+    banner.querySelector('.cookie-banner__accept')?.addEventListener('click', () => closeBanner('accepted'));
+    banner.querySelector('.cookie-banner__decline')?.addEventListener('click', () => closeBanner('declined'));
+  }
+
+  setupCookieBanner();
   const header = $('#header');
   const burger = $('#burger');
   const nav = $('#nav');
