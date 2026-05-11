@@ -41,3 +41,5 @@
   .home #packaging .packaging-cta h3{font-size:30px}
   .home #packaging .packaging-cta p{font-size:16px}
 }
+
+.cookie-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:120;background:#101216;color:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}.cookie-banner p{margin:0;font-size:14px;line-height:1.45}.cookie-banner a{color:var(--gold);text-decoration:underline}.cookie-banner__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.cookie-banner__actions .btn{width:auto;padding:10px 14px;font-size:14px}@media(max-width:680px){.cookie-banner{left:12px;right:12px;bottom:12px}.cookie-banner__actions .btn{width:100%}}
