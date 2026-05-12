@@ -1,3 +1,4 @@
+import { HEALTHCHECK_MODE } from '../lib/lead-ai-engine.js';
 const KNOWLEDGE = `
 A&A Asset Team: «Превращаем зависшие активы бизнеса в деньги».
 Работаем с продажей сложного и зависшего имущества бизнеса: производственные базы, склады, ангары, промышленные участки, коммерческая недвижимость, оборудование, спецтехника, складские остатки и неликвидные ТМЦ.
@@ -280,5 +281,5 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestGet() {
-  return jsonResponse({ ok: true, mode: 'stateful-dialog-v7-short-category-answers-fixed', memory: 'requires Cloudflare KV binding CHAT_MEMORY' });
+  return jsonResponse({ ok: true, mode: HEALTHCHECK_MODE, memory: 'requires Cloudflare KV binding CHAT_MEMORY' });
 }
