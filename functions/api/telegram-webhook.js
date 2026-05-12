@@ -19,16 +19,33 @@ async function loadSession(env, chatId) { if (!env.CHAT_MEMORY) return emptySess
 async function saveSession(env, chatId, session) { if (env.CHAT_MEMORY) await env.CHAT_MEMORY.put(sessionKey(chatId), JSON.stringify(session), { expirationTtl: 60 * 60 * 24 * 14 }); }
 
 function detectAssetType(text) { const t = normalize(text); if (t.includes('производствен') || t.includes('база')) return 'производственная база'; if (t.includes('склад') || t.includes('ангар')) return 'склад / ангар'; if (t.includes('участ') || t.includes('земл')) return 'земельный участок'; if (t.includes('оборуд')) return 'оборудование'; if (t.includes('спецтех') || t.includes('техник') || t.includes('погруз') || t.includes('кран') || t.includes('экскават')) return 'спецтехника'; if ((t.includes('складск') && t.includes('остат')) || t.includes('остатки')) return 'складские остатки'; if (t.includes('неликвид') || t.includes('тмц')) return 'неликвидные ТМЦ'; if ((t.includes('имуществ') && t.includes('закрыт')) || t.includes('закрытие направления') || t.includes('активы после оптимизации')) return 'имущество после закрытия направления'; if (t.includes('помещ') || t.includes('офис') || t.includes('недвиж')) return 'коммерческая недвижимость'; return ''; }
-function extractPatch(text) { const t = normalize(text); const p = {}; const at = detectAssetType(text); if (at) p.asset_type = at; if (t.includes('прод')) p.goal = 'продажа'; if (t.includes('консульт')) p.goal = 'консультация по продаже / стратегии реализации'; if (t.includes('собственник')) p.role = 'собственник'; if (t.includes('представитель')) p.role = 'представитель'; if (t.includes('фото')) p.photos = 'есть / упомянуты'; if (t.includes('документ')) p.documents = 'документы упомянуты';
-  const area = text.match(/\d+[\d\s,.]*(?:м2|м²|кв\.?\s*м|сот|га)/i)?.[0]; if (area) p.area = area;
-  const price = text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0]; if (price) p.price = price;
-  const period = text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода)/i)?.[0]; if (period) p.selling_period = period;
+function extractPatch(text, session = {}) { const t = normalize(text); const p = {}; const lead = session?.lead || {}; const at = detectAssetType(text); if (at) p.asset_type = at; if (t.includes('прод')) p.goal = 'продажа'; if (t.includes('консульт')) p.goal = 'консультация по продаже / стратегии реализации';
+  if (/(^|\b)(я\s+)?собственник(\b|$)/.test(t)) p.role = 'собственник';
+  if (/(^|\b)(я\s+)?представитель(\b|$)/.test(t) || t.includes('работаю от собственника')) p.role = 'представитель';
+  if (t.includes('фото')) p.photos = 'есть / упомянуты'; if (t.includes('документ')) p.documents = 'документы упомянуты';
+  const locationRules = [
+    { re: /(^|\s)(москва|в москве|москве|мск)(\s|$)/, value: 'Москва' },
+    { re: /(московская область|(^|\s)мо(\s|$)|подмосковье|подмосков)/, value: 'Московская область' },
+    { re: /(^|\s)(спб|санкт[-\s]?петербург)(\s|$)/, value: 'Санкт-Петербург' },
+    { re: /(^|\s)ангарск(\s|$)/, value: 'Ангарск' },
+    { re: /(^|\s)иркутск(\s|$)/, value: 'Иркутск' }
+  ];
+  for (const rule of locationRules) { if (rule.re.test(t)) { p.location = rule.value; break; } }
+  const period = text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода|уже\s*год|год\s*продается)/i)?.[0]; if (period && !lead.selling_period) p.selling_period = period;
+  const areaWithUnits = text.match(/\d+[\d\s,.]*(?:м2|м²|кв\.?\s*м|сот|га)/i)?.[0];
+  const price = text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0] || text.match(/\b\d{1,3}(?:[\s,.]\d{3}){1,3}\b/)?.[0];
+  if (price && !lead.price) p.price = price.trim();
+  const numericTokens = [...text.matchAll(/\b\d{2,5}\b/g)].map((m) => m[0]);
+  if (areaWithUnits) p.area = areaWithUnits.trim();
+  if (!p.area && numericTokens.length && (lead.asset_type || p.asset_type) && (!lead.area || /площад|объем/.test(t))) {
+    const filtered = numericTokens.filter((n) => !(p.price || '').includes(n));
+    const areaNumber = filtered[0] || numericTokens[0];
+    if (areaNumber) p.area = `${areaNumber} м² / объем уточнить`;
+  }
   const url = text.match(/https?:\/\/\S+/)?.[0]; if (url) p.url = url;
   const phone = text.match(/(?:\+7|7|8)\D{0,3}\(?\d{3}\)?\D{0,3}\d{3}\D{0,3}\d{2}\D{0,3}\d{2}/)?.[0];
   const email = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
   if (phone || email) p.contact = [phone, email].filter(Boolean).join(', ');
-  if (/(^|\s)(москва|в москве|москве|мск)(\s|$)/.test(t)) p.location = 'Москва';
-  if (t.includes('московская область') || /(^|\s)мо(\s|$)/.test(t) || t.includes('подмосков')) p.location = 'Московская область';
   return p;
 }
 
@@ -62,7 +79,7 @@ ${KNOWLEDGE}
 
 async function askOpenAI(env, { text, session, user }) { const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { authorization: `Bearer ${env.OPENAI_API_KEY}`, 'content-type': 'application/json' }, body: JSON.stringify({ model: env.OPENAI_MODEL || 'gpt-4.1-mini', input: [{ role: 'system', content: systemPrompt() }, { role: 'user', content: JSON.stringify({ current_message: text, collected_data: session.lead, missing_fields: missingFields(session.lead), recent_history: session.messages.slice(-8), telegram_user: user }, null, 2) }], temperature: 0.45, max_output_tokens: 600 }) }); if (!r.ok) throw new Error(await r.text()); const d = await r.json(); return d.output_text || d.output?.flatMap((item) => item.content || []).find((item) => item.type === 'output_text')?.text || ''; }
 
-function fallbackReply(text, session) { const t = normalize(text); const missing = missingFields(session.lead || {}); if (t.includes('аренд') || t.includes('сдам') || t.includes('сдать')) return 'Арендой мы не занимаемся. Наш профиль — продажа и реализация сложных активов. Можем посмотреть объект с точки зрения продажи: насколько он ликвиден, что мешает покупателю, какие материалы нужны и какой маршрут реализации выбрать.'; if (hasCallIntent(text)) return session.lead.contact ? 'Принял контакт. Передаю информацию на разбор. Специалист свяжется с вами.' : 'Принял. Оставьте, пожалуйста, удобный телефон или другой контакт для связи — передам информацию специалисту.'; if (hasAssetContext(session.lead, text)) { if (!missing.length) return 'Данных достаточно для первичной фиксации. Передаю информацию на разбор. Следующий шаг — посмотреть материалы по объекту: фото, документы или ссылку на объявление, если сможете прислать.'; return `Принял, дополнил данные по объекту. Осталось уточнить:\n${missing.slice(0, 3).map((item, i) => `${i + 1}. ${item}?`).join('\n')}`; } return `Понял. Уточните, пожалуйста, к какой категории относится актив:\n\n1. Производственная база\n2. Склад или ангар\n3. Коммерческая недвижимость\n4. Оборудование\n5. Спецтехника\n6. Складские остатки\n7. Неликвидные ТМЦ\n8. Имущество после закрытия направления\n\nМожно ответить коротко: например, «склад», «оборудование», «база» или описать объект своими словами.`; }
+function buildClarifyingReply(session, text = '') { const t = normalize(text); const missing = missingFields(session.lead || {}); if (t.includes('аренд') || t.includes('сдам') || t.includes('сдать')) return 'Арендой мы не занимаемся. Наш профиль — продажа и реализация сложных активов. Можем посмотреть объект с точки зрения продажи: насколько он ликвиден, что мешает покупателю, какие материалы нужны и какой маршрут реализации выбрать.'; if (hasCallIntent(text) && session.lead.contact) return 'Принял. Передаю информацию на разбор. Специалист свяжется с вами по указанному контакту.'; if (session.lead.contact) return 'Принял контакт. Передаю информацию на разбор. Специалист свяжется с вами.'; if (hasCallIntent(text) && !session.lead.contact) return 'Принял. Оставьте, пожалуйста, удобный телефон или другой контакт для связи — передам информацию специалисту.'; if (hasAssetContext(session.lead, text)) { if (!missing.length) return 'Данных достаточно для первичной фиксации. Передаю информацию на разбор. Следующий шаг — посмотреть материалы по объекту: фото, документы или ссылку на объявление, если сможете прислать.'; return `Принял, дополнил данные по объекту. Осталось уточнить:\n${missing.slice(0, 3).map((item, i) => `${i + 1}. ${item}?`).join('\n')}`; } return `Понял. Уточните, пожалуйста, к какой категории относится актив:\n\n1. Производственная база\n2. Склад или ангар\n3. Коммерческая недвижимость\n4. Оборудование\n5. Спецтехника\n6. Складские остатки\n7. Неликвидные ТМЦ\n8. Имущество после закрытия направления\n\nМожно ответить коротко: например, «склад», «оборудование», «база» или описать объект своими словами.`; }
 
 async function sendTelegram(env, chatId, text, replyTo) { const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chatId, text, reply_to_message_id: replyTo || undefined, disable_web_page_preview: true }) }); if (!r.ok) throw new Error(`Telegram sendMessage failed ${r.status}: ${await r.text()}`); }
 async function sendManager(env, text) { if (!env.MANAGER_CHAT_ID) return; await sendTelegram(env, env.MANAGER_CHAT_ID, text); }
@@ -78,9 +95,11 @@ function detectSupplementFields(session, prev, next, text) { if (!session.fullMa
 export async function onRequestPost({ request, env }) { try { if (!env.TELEGRAM_BOT_TOKEN) return jsonResponse({ ok: false, error: 'Missing TELEGRAM_BOT_TOKEN' }, 200); const update = await request.json(); const message = getMessage(update); const text = getText(update).trim(); if (!message || !text) return jsonResponse({ ok: true, skipped: true }); if (message.from?.is_bot) return jsonResponse({ ok: true, skipped: true }); const chatId = message.chat.id; const user = getUser(message.from);
   if (text.startsWith('/start')) { await saveSession(env, chatId, emptySession()); await sendTelegram(env, chatId, startGreeting(), message.message_id); return jsonResponse({ ok: true, event: 'start' }); }
   if (text.startsWith('/')) return jsonResponse({ ok: true, skipped: true });
-  const session = await loadSession(env, chatId); const prev = { ...(session.lead || {}) }; session.lead = mergeLead(session.lead, extractPatch(text)); session.messages = [...(session.messages || []), { role: 'client', text, at: new Date().toISOString() }].slice(-20);
-  let reply = ''; if (env.OPENAI_API_KEY) { try { reply = await askOpenAI(env, { text, session, user }); } catch (e) { console.error('OpenAI fallback:', e.message); } }
-  if (!reply) reply = fallbackReply(text, session); if (hasCallIntent(text)) reply = session.lead.contact ? 'Принял контакт. Передаю информацию на разбор. Специалист свяжется с вами.' : 'Принял. Оставьте, пожалуйста, удобный телефон или другой контакт для связи — передам информацию специалисту.';
+  const session = await loadSession(env, chatId); const prevLead = { ...(session.lead || {}) }; const patch = extractPatch(text, session); session.lead = mergeLead(session.lead, patch); const missing = missingFields(session.lead); console.log('Telegram lead patch:', JSON.stringify({ text, patch, lead: session.lead, missing })); const prev = { ...prevLead }; session.messages = [...(session.messages || []), { role: 'client', text, at: new Date().toISOString() }].slice(-20);
+  const patchKeys = ['asset_type','location','area','price','selling_period','role','documents','photos','url','contact'];
+  const hasLeadPatch = patchKeys.some((k) => Boolean(patch[k]));
+  let reply = ''; if (!hasLeadPatch && env.OPENAI_API_KEY) { try { reply = await askOpenAI(env, { text, session, user }); } catch (e) { console.error('OpenAI fallback:', e.message); } }
+  if (!reply) reply = buildClarifyingReply(session, text);
   await sendTelegram(env, chatId, reply.trim(), message.message_id);
   if (isFullLeadReady(session.lead) && !session.fullManagerNotified) { await sendManager(env, buildFullLeadCard({ user, lead: session.lead, lastText: text, recentHistory: buildRecentClientHistory(session.messages) })); session.fullManagerNotified = true; session.earlyManagerNotified = true; }
   const sup = detectSupplementFields(session, prev, session.lead, text); if (sup.length) { const hash = sup.slice().sort().join('|') + '|' + (session.lead.contact || '') + '|' + (session.lead.url || ''); if (hash !== session.lastSupplementHash) { await sendManager(env, buildSupplementCard({ user, lead: session.lead, lastText: text, fields: sup })); session.lastSupplementHash = hash; session.notifiedFields = { ...(session.notifiedFields || {}) }; for (const x of sup) session.notifiedFields[x] = true; } }
