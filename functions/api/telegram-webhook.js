@@ -81,6 +81,27 @@ function detectAssetType(text) {
   return '';
 }
 
+
+
+const exactCategoryMap = {
+  'база': 'производственная база',
+  'склад': 'склад / ангар',
+  'ангар': 'склад / ангар',
+  'оборудование': 'оборудование',
+  'техника': 'спецтехника',
+  'спецтехника': 'спецтехника',
+  'тмц': 'неликвидные ТМЦ',
+  'неликвид': 'неликвидные ТМЦ',
+  'остатки': 'складские остатки',
+  'помещение': 'коммерческая недвижимость',
+  'офис': 'коммерческая недвижимость',
+  'коммерческая недвижимость': 'коммерческая недвижимость'
+};
+
+function detectExactCategory(text) {
+  return exactCategoryMap[normalize(text).trim()] || '';
+}
+
 function detectLocation(text) {
   const t = normalize(text);
   if (t.includes('московская область') || t.includes('подмосков') || t.split(/[^а-яa-z0-9]+/).includes('мо')) return 'Московская область';
@@ -94,7 +115,7 @@ function detectLocation(text) {
 function extractPatch(text, lead = {}) {
   const t = normalize(text);
   const patch = {};
-  const assetType = detectAssetType(text);
+  const assetType = detectExactCategory(text) || detectAssetType(text);
   if (assetType) patch.asset_type = assetType;
   if (t.includes('прод')) patch.goal = 'продажа';
   if (t.includes('консульт')) patch.goal = 'консультация по продаже / стратегии реализации';
@@ -163,7 +184,7 @@ function fallbackReply(text, session) {
   if (hasCallIntent(text)) return lead.contact ? 'Принял. Передаю информацию на разбор. Специалист свяжется с вами по указанному контакту.' : 'Принял. Оставьте, пожалуйста, удобный телефон или другой контакт для связи — передам информацию специалисту.';
   if (hasAssetContext(lead, text)) {
     if (!missing.length) return 'Данных достаточно для первичной фиксации. Передаю информацию на разбор. Следующий шаг — посмотреть материалы по объекту: фото, документы или ссылку на объявление, если сможете прислать.';
-    return `Принял, дополнил данные по объекту. Осталось уточнить:\n${missing.slice(0, 3).map((item, i) => `${i + 1}. ${item}?`).join('\n')}`;
+    return `Принял, это ${lead.asset_type || detectAssetType(text)}.\n\nОсталось уточнить:\n${missing.slice(0, 3).map((item, i) => `${i + 1}. ${item}?`).join('\n')}`;
   }
   return `Понял. Уточните, пожалуйста, к какой категории относится актив:\n\n1. Производственная база\n2. Склад или ангар\n3. Коммерческая недвижимость\n4. Оборудование\n5. Спецтехника\n6. Складские остатки\n7. Неликвидные ТМЦ\n8. Имущество после закрытия направления\n\nМожно ответить коротко: например, «склад», «оборудование», «база» или описать объект своими словами.`;
 }
@@ -238,10 +259,11 @@ export async function onRequestPost({ request, env }) {
     let reply = '';
     const patchKeys = ['asset_type', 'location', 'area', 'price', 'selling_period', 'sale_status', 'role', 'documents', 'photos', 'url', 'contact'];
     const hasLeadPatch = patchKeys.some((k) => Boolean(patch[k]));
+    console.log('Telegram category detection:', JSON.stringify({ text, assetType: session.lead.asset_type || '', patch, leadAfter: session.lead, missing: missingFields(session.lead) }));
     if (!hasLeadPatch && env.OPENAI_API_KEY) {
       // fallback via model only when message does not update lead
     }
-    reply = buildClarifyingReply(session, text);
+    reply = buildClarifyingReply(text, session);
 
     await sendTelegram(env, chatId, reply.trim(), message.message_id);
     session.messages = [...session.messages, { role: 'bot', text: reply, at: new Date().toISOString() }].slice(-20);
@@ -258,5 +280,5 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestGet() {
-  return jsonResponse({ ok: true, mode: 'stateful-dialog-v5-telegram-equals-max', memory: 'requires Cloudflare KV binding CHAT_MEMORY' });
+  return jsonResponse({ ok: true, mode: 'stateful-dialog-v7-short-category-answers-fixed', memory: 'requires Cloudflare KV binding CHAT_MEMORY' });
 }
