@@ -1,289 +1,47 @@
 const KNOWLEDGE = `
 A&A Asset Team: «Превращаем зависшие активы бизнеса в деньги».
 Работаем с продажей сложного и зависшего имущества бизнеса: производственные базы, склады, ангары, промышленные участки, коммерческая недвижимость, оборудование, спецтехника, складские остатки и неликвидные ТМЦ.
-
-Важно: мы не занимаемся арендой и подбором арендаторов. Если клиент спрашивает про аренду, корректно объясни, что наш профиль — продажа и реализация активов, но можно разобрать, имеет ли смысл готовить объект к продаже.
-
-Подход: не просто размещаем объявление, а разбираем актив как сделку: кто может купить, что мешает покупке, какие риски видит покупатель, какие документы нужны, как упаковать объект, где искать целевой спрос и как вести переговоры.
-
-Почему активы зависают: цена не объяснена рынку, непонятен целевой покупатель, слабые фото, нет технического описания, документы не собраны, объект размещен не на тех площадках, продавец ждет случайного звонка, нет прямого поиска покупателей, не сняты риски покупателя, переговоры сводятся к торгу.
-
-Производственная база: важны земля, строения, назначение земли, коммуникации, отопление, электричество, вода, канализация, подъезд, состояние зданий, документы, кадастровые номера, ограничения.
-Склад/ангар: важны площадь, высота, ворота, полы, отопление, подъезд фур, охрана, электричество, документы, состояние.
-Оборудование/спецтехника: марка, модель, год, состояние, комплектность, фото, видео работы, документы, демонтаж, погрузка, доставка.
-ТМЦ/неликвиды: список позиций, объем, состояние, цена по балансу, минимальная партия, возможность продажи частями.
-
-Маршрут работы: первичный разбор → сбор материалов → диагностика цены, упаковки и спроса → стратегия продажи → упаковка объекта → поиск покупателей → переговоры → договор.
 `;
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8' }
-  });
-}
+function jsonResponse(data, status = 200) { return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8' } }); }
+const normalize = (text) => String(text || '').toLowerCase().replace(/ё/g, 'е');
+const getMessage = (u) => u?.message || u?.edited_message || null;
+const getText = (u) => u?.message?.text || u?.edited_message?.text || '';
+const getUser = (f = {}) => ({ id: f.id || '', fullName: `${f.first_name || ''} ${f.last_name || ''}`.trim(), username: f.username ? `@${f.username}` : '' });
+const sessionKey = (chatId) => `telegram-lead:${chatId}`;
+const emptySession = () => ({ lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false, managerNotified: false, notifiedFields: {}, lastSupplementHash: '' });
 
-function getMessage(update) {
-  return update?.message || update?.edited_message || null;
-}
+async function loadSession(env, chatId) { if (!env.CHAT_MEMORY) return emptySession(); const raw = await env.CHAT_MEMORY.get(sessionKey(chatId)); if (!raw) return emptySession(); try { const p = JSON.parse(raw); return { ...emptySession(), ...p, earlyManagerNotified: Boolean(p.earlyManagerNotified || p.managerNotified), fullManagerNotified: Boolean(p.fullManagerNotified) }; } catch { return emptySession(); } }
+async function saveSession(env, chatId, session) { if (env.CHAT_MEMORY) await env.CHAT_MEMORY.put(sessionKey(chatId), JSON.stringify(session), { expirationTtl: 60 * 60 * 24 * 14 }); }
 
-function getText(update) {
-  return update?.message?.text || update?.edited_message?.text || '';
-}
+function detectAssetType(text){const t=normalize(text); if(t.includes('база'))return 'производственная база'; if(t.includes('склад')||t.includes('ангар'))return 'склад / ангар'; if(t.includes('участ')||t.includes('земл'))return 'земельный участок'; if(t.includes('оборуд'))return 'оборудование'; if(t.includes('спецтех'))return 'спецтехника'; if(t.includes('тмц')||t.includes('неликвид'))return 'ТМЦ / складские остатки'; if(t.includes('помещ')||t.includes('недвиж'))return 'коммерческая недвижимость'; return '';}
+function extractPatch(text){const t=normalize(text); const p={}; const at=detectAssetType(text); if(at)p.asset_type=at; if(t.includes('собственник'))p.role='собственник'; if(t.includes('представитель'))p.role='представитель'; if(t.includes('фото'))p.photos='есть / упомянуты'; if(t.includes('документ'))p.documents='документы упомянуты'; const a=text.match(/\d+[\d\s,.]*(?:м2|м²|кв\.?\s*м|сот|га)/i)?.[0]; if(a)p.area=a; const pr=text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0]; if(pr)p.price=pr; const per=text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода)/i)?.[0]; if(per)p.selling_period=per; const url=text.match(/https?:\/\/\S+/)?.[0]; if(url)p.url=url; const phone=text.match(/(?:\+7|7|8)\D{0,3}\(?\d{3}\)?\D{0,3}\d{3}\D{0,3}\d{2}\D{0,3}\d{2}/)?.[0]; const email=text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0]; if(phone||email)p.contact=[phone,email].filter(Boolean).join(', '); if(t.includes('москва'))p.location='Москва'; if(t.includes('московская область'))p.location='Московская область'; return p;}
 
-function getUser(from = {}) {
-  return {
-    id: from.id || '',
-    fullName: `${from.first_name || ''} ${from.last_name || ''}`.trim(),
-    username: from.username ? `@${from.username}` : ''
-  };
-}
+const mergeLead=(a,b)=>({...(a||{}),...(b||{})});
+const hasAssetContext=(lead,text)=>Boolean(lead.asset_type||detectAssetType(text));
+const isFullLeadReady=(lead)=>Boolean(lead.asset_type&&lead.location&&lead.area&&lead.price&&lead.selling_period&&lead.role);
+const shouldNotifyEarlyLead=(lead,text)=>Boolean(hasAssetContext(lead,text)&&lead.asset_type&&(lead.location||lead.price||lead.area||lead.url));
+const hasCallIntent=(text)=>['жду звонка','позвоните','готов обсудить','жду связи','можно звонить','свяжитесь','наберите'].some((w)=>normalize(text).includes(w));
 
-function normalize(text) {
-  return String(text || '').toLowerCase().replace(/ё/g, 'е');
-}
-
-function sessionKey(chatId) {
-  return `telegram-lead:${chatId}`;
-}
-
-async function loadSession(env, chatId) {
-  if (!env.CHAT_MEMORY) return { lead: {}, messages: [], managerNotified: false };
-  const raw = await env.CHAT_MEMORY.get(sessionKey(chatId));
-  if (!raw) return { lead: {}, messages: [], managerNotified: false };
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { lead: {}, messages: [], managerNotified: false };
-  }
-}
-
-async function saveSession(env, chatId, session) {
-  if (!env.CHAT_MEMORY) return;
-  await env.CHAT_MEMORY.put(sessionKey(chatId), JSON.stringify(session), { expirationTtl: 60 * 60 * 24 * 14 });
-}
-
-function detectAssetType(text) {
-  const t = normalize(text);
-  if (t.includes('база')) return 'производственная база';
-  if (t.includes('склад') || t.includes('ангар')) return 'склад / ангар';
-  if (t.includes('участ') || t.includes('земл')) return 'земельный участок';
-  if (t.includes('оборуд')) return 'оборудование';
-  if (t.includes('спецтех') || t.includes('погруз') || t.includes('кран') || t.includes('экскават')) return 'спецтехника';
-  if (t.includes('тмц') || t.includes('остат') || t.includes('неликвид')) return 'ТМЦ / складские остатки';
-  if (t.includes('помещ') || t.includes('офис') || t.includes('недвиж')) return 'коммерческая недвижимость';
-  return '';
-}
-
-function extractPatch(text) {
-  const t = normalize(text);
-  const patch = {};
-  const assetType = detectAssetType(text);
-  if (assetType) patch.asset_type = assetType;
-  if (t.includes('прод')) patch.goal = 'продажа';
-  if (t.includes('консульт')) patch.goal = 'консультация по продаже / стратегии реализации';
-  if (t.includes('собственник')) patch.role = 'собственник';
-  if (t.includes('представитель')) patch.role = 'представитель';
-  if (t.includes('фото')) patch.photos = 'есть / упомянуты';
-  if (t.includes('документ')) patch.documents = 'документы упомянуты';
-
-  const area = text.match(/\d+[\d\s,.]*(?:м2|м²|кв\.?\s*м|сот|га)/i)?.[0];
-  if (area) patch.area = area;
-
-  const price = text.match(/\d+[\d\s,.]*(?:млн|тыс|руб|₽)/i)?.[0];
-  if (price) patch.price = price;
-
-  const period = text.match(/(?:\d+\s*(?:год|года|лет|месяц|месяца|месяцев)|полгода)/i)?.[0];
-  if (period) patch.selling_period = period;
-
-  const url = text.match(/https?:\/\/\S+/)?.[0];
-  if (url) patch.url = url;
-
-  const locations = [
-    ['москва', 'Москва'],
-    ['московская область', 'Московская область'],
-    ['ангарск', 'Ангарск'],
-    ['иркутск', 'Иркутск'],
-    ['санкт-петербург', 'Санкт-Петербург'],
-    ['спб', 'Санкт-Петербург']
-  ];
-  for (const [needle, label] of locations) {
-    if (t.includes(needle)) patch.location = label;
-  }
-
-  return patch;
-}
-
-function mergeLead(lead, patch) {
-  return { ...(lead || {}), ...(patch || {}) };
-}
-
-function missingFields(lead = {}) {
-  const missing = [];
-  if (!lead.asset_type) missing.push('что именно продается');
-  if (!lead.location) missing.push('где находится объект');
-  if (!lead.area) missing.push('площадь / объем');
-  if (!lead.price) missing.push('ориентировочная цена');
-  if (!lead.selling_period) missing.push('сколько времени продается');
-  if (!lead.documents) missing.push('что с документами');
-  if (!lead.photos && !lead.url) missing.push('есть ли фото или ссылка на объявление');
-  if (!lead.role) missing.push('вы собственник или представитель');
-  return missing;
-}
-
-function hasAssetContext(lead = {}, text = '') {
-  return Boolean(lead.asset_type || detectAssetType(text));
-}
-
-function buildManagerCard({ user, lead, lastText }) {
-  return [
-    '📌 НОВАЯ ЗАЯВКА ИЗ TELEGRAM-БОТА',
-    '',
-    `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
-    `Тип актива: ${lead.asset_type || 'не указано'}`,
-    `Локация: ${lead.location || 'не указано'}`,
-    `Площадь / объем: ${lead.area || 'не указано'}`,
-    `Цена: ${lead.price || 'не указано'}`,
-    `Срок продажи: ${lead.selling_period || 'не указано'}`,
-    `Фото / ссылка: ${lead.photos || lead.url || 'не указано'}`,
-    `Документы: ${lead.documents || 'не указано'}`,
-    `Кто обратился: ${lead.role || 'не указано'}`,
-    '',
-    'Следующий шаг: связаться с клиентом, запросить материалы и провести первичный разбор.',
-    '',
-    `Последнее сообщение: ${lastText}`
-  ].join('\n');
-}
-
-function fallbackReply(text, session) {
-  const t = normalize(text);
-  const lead = session.lead || {};
-  const missing = missingFields(lead);
-
-  if (t.includes('аренд') || t.includes('сдам') || t.includes('сдать')) {
-    return 'Арендой мы не занимаемся. Наш профиль — продажа и реализация сложных активов. Можем посмотреть объект именно с точки зрения продажи: насколько он ликвиден, что мешает покупателю, какие материалы нужны и какой маршрут реализации выбрать.';
-  }
-
-  if (t.includes('как работает')) {
-    return 'Работаем так: сначала собираем вводные по объекту, затем смотрим цену, документы, упаковку, целевого покупателя и причины, почему актив завис. После первичного разбора можно понять формат: консультация, подготовка к продаже или сопровождение реализации.';
-  }
-
-  if (t.includes('договор')) {
-    return 'Договор обсуждается после первичного разбора. Сначала нужно понять объект, объем работы и формат сопровождения: разбор, упаковка, поиск покупателя или сопровождение реализации.';
-  }
-
-  if (t.includes('сколько') || t.includes('стоим') || t.includes('комисс')) {
-    return 'Стоимость зависит от объекта и формата работы. Сначала нужно понять тип имущества, цену, документы, срок продажи и сложность поиска покупателя. После этого можно предметно обсуждать условия.';
-  }
-
-  if (hasAssetContext(lead, text)) {
-    if (missing.length === 0) {
-      return 'Данных достаточно для первичной фиксации. Передаю информацию на разбор. Следующий шаг — посмотреть материалы по объекту: фото, документы или ссылку на объявление, если сможете прислать.';
-    }
-    return `Принял, дополнил данные по объекту. Осталось уточнить:\n${missing.slice(0, 3).map((item, i) => `${i + 1}. ${item}?`).join('\n')}`;
-  }
-
-  return 'Понял. Уточните, пожалуйста, что именно нужно реализовать: база, склад, помещение, оборудование, техника или ТМЦ?';
-}
-
-function systemPrompt(managerName) {
-  return `
-Ты — AI-оператор по разбору активов для A&A Asset Team.
-Общайся как живой первичный менеджер, а не как анкета.
-
+function systemPrompt(){return `Ты — AI-оператор A&A Asset Team по первичному разбору и диагностике активов бизнеса.
+Ты не просто собираешь анкету. Ты проводишь первичную диагностику актива: что продается, где находится, почему зависло, какие данные нужны для оценки ликвидности и подготовки маршрута реализации.
 ${KNOWLEDGE}
+Стиль: деловой, спокойный, профессиональный. Без гарантий цены и продажи. Без юридических заключений и агрессивных продаж. Не задавай 10 вопросов сразу: максимум 2-3 ключевых вопроса. Не спрашивай повторно известные данные. Если клиент дал контакт — подтверди передачу. Если клиент спросил про аренду, верни фокус к продаже/реализации активов.`;}
+async function askOpenAI(env,{text,session,user}){const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{authorization:`Bearer ${env.OPENAI_API_KEY}`,'content-type':'application/json'},body:JSON.stringify({model:env.OPENAI_MODEL||'gpt-4.1-mini',input:[{role:'system',content:systemPrompt()},{role:'user',content:JSON.stringify({current_message:text,collected_data:session.lead,recent_history:session.messages.slice(-8),telegram_user:user})}],temperature:0.45,max_output_tokens:600})}); if(!r.ok) throw new Error(await r.text()); const d=await r.json(); return d.output_text||'';}
+function fallbackReply(text,session){if(hasCallIntent(text)) return session.lead.contact?'Принял. Передаю информацию на разбор. Специалист свяжется с вами по указанному контакту.':'Принял. Оставьте, пожалуйста, удобный телефон или другой контакт для связи — передам информацию специалисту.'; return 'Принял. Зафиксировал. Уточните, пожалуйста: локацию, площадь/объем и ориентировочную цену актива.';}
+async function sendTelegram(env,chatId,text,replyTo){const r=await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:chatId,text,reply_to_message_id:replyTo||undefined,disable_web_page_preview:true})}); if(!r.ok) throw new Error(await r.text());}
+async function sendManager(env,text){if(!env.MANAGER_CHAT_ID) return; await sendTelegram(env,env.MANAGER_CHAT_ID,text);}
+const startGreeting=()=>"Здравствуйте. Я AI-оператор A&A Asset Team по первичному разбору активов бизнеса.\n\nПомогу собрать ключевые данные по объекту и понять следующий шаг для продажи или реализации.\n\nМы работаем с зависшими и сложными активами: производственные базы, склады, ангары, коммерческая недвижимость, оборудование, спецтехника, ТМЦ и неликвидные остатки.\n\nНапишите, что нужно реализовать: что за актив, где находится, примерная площадь или объем, цена и сколько времени уже продается.";
+function card(prefix,user,lead,last,newFields=[]){return [prefix,'',`Клиент: ${user.fullName||'не указано'} ${user.username||''}`.trim(),`user_id: ${user.id||'не указано'}`,newFields.length?`Новые данные: ${newFields.join(', ')}`:'',`Тип актива: ${lead.asset_type||'не указано'}`,`Локация: ${lead.location||'не указано'}`,`Площадь / объем: ${lead.area||'не указано'}`,`Цена: ${lead.price||'не указано'}`,`Срок продажи: ${lead.selling_period||'не указано'}`,`Контакт: ${lead.contact||'не указано'}`,`Фото / ссылка: ${lead.photos||lead.url||'не указано'}`,`Документы: ${lead.documents||'не указано'}`,`Кто обратился: ${lead.role||'не указано'}`,'',`Последнее сообщение: ${last}`].filter(Boolean).join('\n');}
+function detectSupplementFields(session,prev,next,text){if(!session.fullManagerNotified) return []; const n=session.notifiedFields||{}; const f=[]; if(!prev.contact&&next.contact&&!n.contact) f.push('contact'); if(!prev.url&&next.url&&!n.url) f.push('url'); if(!prev.documents&&next.documents&&!n.documents) f.push('documents'); if(!prev.photos&&next.photos&&!n.photos) f.push('photos'); if(hasCallIntent(text)&&!n.call_intent&&!n.contact) f.push('call_intent'); return f;}
 
-Учитывай уже собранные данные. Не задавай повторно вопрос, если клиент уже ответил. Если клиент пишет коротко — это продолжение диалога. Не предлагай аренду: компания ей не занимается. Веди к продаже/реализации, первичному разбору, материалам, созвону и договору. Ответ — обычный текст для Telegram, до 700 символов.
-`;
-}
+export async function onRequestPost({request,env}){ if(!env.TELEGRAM_BOT_TOKEN) return jsonResponse({ok:false,error:'Missing TELEGRAM_BOT_TOKEN'},200); const update=await request.json(); const message=getMessage(update); const text=getText(update).trim(); if(!message||!text) return jsonResponse({ok:true,skipped:true}); if(message.from?.is_bot) return jsonResponse({ok:true,skipped:true}); const chatId=message.chat.id; const user=getUser(message.from);
+ if(text.startsWith('/start')){ await saveSession(env,chatId,emptySession()); await sendTelegram(env,chatId,startGreeting(),message.message_id); return jsonResponse({ok:true,event:'start'});} if(text.startsWith('/')) return jsonResponse({ok:true,skipped:true});
+ const session=await loadSession(env,chatId); const prev={...(session.lead||{})}; session.lead=mergeLead(session.lead,extractPatch(text)); session.messages=[...(session.messages||[]),{role:'client',text,at:new Date().toISOString()}].slice(-20);
+ let reply=''; if(env.OPENAI_API_KEY){try{reply=await askOpenAI(env,{text,session,user});}catch(e){console.error('OpenAI fallback',e.message);}} if(!reply) reply=fallbackReply(text,session); if(hasCallIntent(text)) reply=fallbackReply(text,session); await sendTelegram(env,chatId,reply,message.message_id);
+ if(isFullLeadReady(session.lead)&&!session.fullManagerNotified){await sendManager(env,card('✅ ПОЛНАЯ ЗАЯВКА ИЗ TELEGRAM-БОТА',user,session.lead,text)); session.fullManagerNotified=true; session.earlyManagerNotified=true;}
+ else if(shouldNotifyEarlyLead(session.lead,text)&&!session.earlyManagerNotified){await sendManager(env,card('🟡 РАННИЙ ЛИД ИЗ TELEGRAM-БОТА',user,session.lead,text)); session.earlyManagerNotified=true;}
+ const sup=detectSupplementFields(session,prev,session.lead,text); if(sup.length){const hash=sup.sort().join('|')+'|'+(session.lead.contact||'')+'|'+(session.lead.url||''); if(hash!==session.lastSupplementHash){await sendManager(env,card('📎 ДОПОЛНЕНИЕ К ЗАЯВКЕ ИЗ TELEGRAM-БОТА',user,session.lead,text,sup)); session.lastSupplementHash=hash; session.notifiedFields={...(session.notifiedFields||{})}; for(const x of sup) session.notifiedFields[x]=true;}}
+ session.messages=[...session.messages,{role:'bot',text:reply,at:new Date().toISOString()}].slice(-20); await saveSession(env,chatId,session); return jsonResponse({ok:true}); }
 
-async function askOpenAI(env, { text, session, user }) {
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: { authorization: `Bearer ${env.OPENAI_API_KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      model: env.OPENAI_MODEL || 'gpt-4.1-mini',
-      input: [
-        { role: 'system', content: systemPrompt(env.COMPANY_MANAGER_NAME || 'Андрей') },
-        { role: 'user', content: JSON.stringify({ current_message: text, collected_data: session.lead, missing_fields: missingFields(session.lead), recent_history: session.messages.slice(-8), telegram_user: user }, null, 2) }
-      ],
-      temperature: 0.45,
-      max_output_tokens: 600
-    })
-  });
-  if (!response.ok) throw new Error(`OpenAI error ${response.status}: ${await response.text()}`);
-  const data = await response.json();
-  return data.output_text || data.output?.flatMap((item) => item.content || []).find((item) => item.type === 'output_text')?.text || '';
-}
-
-async function sendTelegram(env, chatId, text, replyToMessageId) {
-  const response = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, reply_to_message_id: replyToMessageId || undefined, disable_web_page_preview: true })
-  });
-  if (!response.ok) throw new Error(`Telegram error ${response.status}: ${await response.text()}`);
-}
-
-async function handleStart(env, message) {
-  const chatId = message.chat.id;
-  await saveSession(env, chatId, { lead: {}, messages: [], managerNotified: false });
-  const text = [
-    'Здравствуйте. Я AI-оператор по разбору активов.',
-    '',
-    'Помогу быстро собрать информацию по вашему имуществу и понять следующий шаг для продажи или реализации.',
-    '',
-    'Напишите коротко, что нужно реализовать: база, склад, помещение, оборудование, техника, ТМЦ или другой актив. Можно по частям — я буду вести диалог и не буду спрашивать одно и то же повторно.'
-  ].join('\n');
-  await sendTelegram(env, chatId, text, message.message_id);
-  return jsonResponse({ ok: true });
-}
-
-export async function onRequestPost({ request, env }) {
-  if (!env.TELEGRAM_BOT_TOKEN) return jsonResponse({ ok: false, error: 'Missing TELEGRAM_BOT_TOKEN' }, 200);
-
-  const update = await request.json();
-  const message = getMessage(update);
-  const text = getText(update).trim();
-  if (!message || !text) return jsonResponse({ ok: true, skipped: true });
-  if (message.from?.is_bot) return jsonResponse({ ok: true, skipped: true, reason: 'bot message' });
-  if (text.startsWith('/start')) return handleStart(env, message);
-  if (text.startsWith('/')) return jsonResponse({ ok: true, skipped: true, reason: 'command' });
-
-  const chatId = message.chat.id;
-  const user = getUser(message.from);
-
-  try {
-    const session = await loadSession(env, chatId);
-    session.lead = mergeLead(session.lead, extractPatch(text));
-    session.messages = [...(session.messages || []), { role: 'client', text, at: new Date().toISOString() }].slice(-20);
-
-    let reply = '';
-    if (env.OPENAI_API_KEY) {
-      try {
-        reply = await askOpenAI(env, { text, session, user });
-      } catch (error) {
-        console.error('OpenAI fallback:', error.message);
-      }
-    }
-    if (!reply) reply = fallbackReply(text, session);
-
-    await sendTelegram(env, chatId, reply.trim(), message.message_id);
-    session.messages = [...session.messages, { role: 'bot', text: reply, at: new Date().toISOString() }].slice(-20);
-
-    if (hasAssetContext(session.lead, text) && !session.managerNotified && (session.lead.asset_type || session.lead.location || session.lead.price)) {
-      await sendTelegram(env, env.MANAGER_CHAT_ID || chatId, buildManagerCard({ user, lead: session.lead, lastText: text }));
-      session.managerNotified = true;
-    }
-
-    await saveSession(env, chatId, session);
-    return jsonResponse({ ok: true, memory: Boolean(env.CHAT_MEMORY) });
-  } catch (error) {
-    console.error('Webhook error:', error.message);
-    return jsonResponse({ ok: false, error: error.message }, 200);
-  }
-}
-
-export async function onRequestGet() {
-  return jsonResponse({ ok: true, mode: 'stateful-dialog-v5', memory: 'requires Cloudflare KV binding CHAT_MEMORY' });
-}
+export async function onRequestGet(){ return jsonResponse({ ok:true, mode:'stateful-dialog-v3-professional-two-stage-leads', memory:'requires Cloudflare KV binding CHAT_MEMORY' }); }

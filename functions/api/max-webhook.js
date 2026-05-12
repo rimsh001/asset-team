@@ -57,9 +57,9 @@ function sessionKey(chatId, userId) {
 }
 
 async function loadSession(env, chatId, userId) {
-  if (!env.CHAT_MEMORY) return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false };
+  if (!env.CHAT_MEMORY) return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false, notifiedFields: {}, lastSupplementHash: '' };
   const raw = await env.CHAT_MEMORY.get(sessionKey(chatId, userId));
-  if (!raw) return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false };
+  if (!raw) return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false, notifiedFields: {}, lastSupplementHash: '' };
   try {
     const parsed = JSON.parse(raw);
     const legacyNotified = Boolean(parsed?.managerNotified);
@@ -67,10 +67,12 @@ async function loadSession(env, chatId, userId) {
       lead: parsed?.lead || {},
       messages: Array.isArray(parsed?.messages) ? parsed.messages : [],
       earlyManagerNotified: Boolean(parsed?.earlyManagerNotified) || legacyNotified,
-      fullManagerNotified: Boolean(parsed?.fullManagerNotified)
+      fullManagerNotified: Boolean(parsed?.fullManagerNotified),
+      notifiedFields: parsed?.notifiedFields || {},
+      lastSupplementHash: parsed?.lastSupplementHash || ''
     };
   } catch {
-    return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false };
+    return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false, notifiedFields: {}, lastSupplementHash: '' };
   }
 }
 
@@ -153,10 +155,27 @@ function hasAssetContext(lead = {}, text = '') {
   return Boolean(lead.asset_type || detectAssetType(text));
 }
 
+function startGreeting() {
+  return [
+    'Здравствуйте. Я AI-оператор A&A Asset Team по первичному разбору активов бизнеса.',
+    '',
+    'Помогу собрать ключевые данные по объекту и понять следующий шаг для продажи или реализации.',
+    '',
+    'Мы работаем с зависшими и сложными активами: производственные базы, склады, ангары, коммерческая недвижимость, оборудование, спецтехника, ТМЦ и неликвидные остатки.',
+    '',
+    'Напишите, что нужно реализовать: что за актив, где находится, примерная площадь или объем, цена и сколько времени уже продается.'
+  ].join('\n');
+}
+
+function hasCallIntent(text = '') {
+  const t = normalize(text);
+  return ['жду звонка','позвоните','готов обсудить','жду связи','можно звонить','свяжитесь','наберите'].some((w) => t.includes(w));
+}
+
 function systemPrompt() {
   return `
-Ты — AI-оператор по разбору активов для A&A Asset Team.
-Общайся как живой первичный менеджер, а не как анкета.
+Ты — AI-оператор A&A Asset Team по первичному разбору и диагностике активов бизнеса.
+Ты не просто собираешь анкету. Ты проводишь первичную диагностику актива: что продается, где находится, почему зависло, какие данные нужны для оценки ликвидности и подготовки маршрута реализации.
 
 ${KNOWLEDGE}
 
@@ -169,6 +188,8 @@ ${KNOWLEDGE}
 6. Не обещай продажу, не гарантируй цену, не давай юридическое заключение.
 7. Веди к следующему шагу: материалы, первичный разбор, созвон, формат работы, договор.
 8. Если уже понятны тип актива и город, не останавливайся: аккуратно добери площадь, цену, срок продажи, документы, роль клиента и удобный контакт.
+9. Не задавай более 2-3 вопросов за одно сообщение.
+10. Если клиент дал контакт, подтверди передачу специалисту.
 
 Ответ: обычный текст для MAX, до 700 символов.
 `;
@@ -337,7 +358,45 @@ function buildFullLeadCard({ user, lead, lastText, recentHistory }) {
   ].join('\n');
 }
 
-async function notifyManagerIfNeeded(env, { session, user, text }) {
+
+function buildSupplementCard({ user, lead, lastText, supplementLabel, fields }) {
+  return [
+    supplementLabel,
+    '',
+    `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
+    `MAX user_id: ${user.id || 'не указано'}`,
+    `Новые данные: ${fields.join(', ')}`,
+    fields.includes('contact') ? `Контакт: ${lead.contact || 'не указано'}` : '',
+    fields.includes('url') ? `URL: ${lead.url || 'не указано'}` : '',
+    fields.includes('documents') ? `Документы: ${lead.documents || 'не указано'}` : '',
+    fields.includes('photos') ? `Фото: ${lead.photos || 'не указано'}` : '',
+    fields.includes('call_intent') ? 'Клиент ожидает звонок/связь.' : '',
+    '',
+    'Текущая карточка лида:',
+    `Тип актива: ${lead.asset_type || 'не указано'}`,
+    `Локация: ${lead.location || 'не указано'}`,
+    `Площадь / объем: ${lead.area || 'не указано'}`,
+    `Цена: ${lead.price || 'не указано'}`,
+    `Срок продажи: ${lead.selling_period || 'не указано'}`,
+    `Кто обратился: ${lead.role || 'не указано'}`,
+    '',
+    `Последнее сообщение: ${lastText}`
+  ].filter(Boolean).join('\n');
+}
+
+function detectSupplementFields(session, prevLead, nextLead, text) {
+  if (!session.fullManagerNotified) return [];
+  const fields=[];
+  const notified = session.notifiedFields || {};
+  if (!prevLead.contact && nextLead.contact && !notified.contact) fields.push('contact');
+  if (!prevLead.url && nextLead.url && !notified.url) fields.push('url');
+  if (!prevLead.documents && nextLead.documents && !notified.documents) fields.push('documents');
+  if (!prevLead.photos && nextLead.photos && !notified.photos) fields.push('photos');
+  if (hasCallIntent(text) && !notified.call_intent && !notified.contact) fields.push('call_intent');
+  return fields;
+}
+
+async function notifyManagerIfNeeded(env, { session, user, text, supplementFields }) {
   if (isFullLeadReady(session.lead) && !session.fullManagerNotified) {
     await sendTelegramManager(env, buildFullLeadCard({
       user,
@@ -348,6 +407,16 @@ async function notifyManagerIfNeeded(env, { session, user, text }) {
     session.fullManagerNotified = true;
     session.earlyManagerNotified = true;
     return;
+  }
+
+  if (supplementFields.length) {
+    const hash = supplementFields.slice().sort().join('|') + '|' + (session.lead.contact || '') + '|' + (session.lead.url || '');
+    if (hash !== session.lastSupplementHash) {
+      await sendTelegramManager(env, buildSupplementCard({ user, lead: session.lead, lastText: text, supplementLabel: '📎 ДОПОЛНЕНИЕ К ЗАЯВКЕ ИЗ MAX-БОТА', fields: supplementFields }));
+      session.lastSupplementHash = hash;
+      session.notifiedFields = { ...(session.notifiedFields || {}) };
+      for (const f of supplementFields) session.notifiedFields[f] = true;
+    }
   }
 
   if (shouldNotifyEarlyLead(session.lead, text) && !session.earlyManagerNotified) {
@@ -362,15 +431,8 @@ async function notifyManagerIfNeeded(env, { session, user, text }) {
 }
 
 async function handleStart(env, update, chatId, userId) {
-  await saveSession(env, chatId, userId, { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false });
-  const text = [
-    'Здравствуйте. Я AI-оператор по разбору активов.',
-    '',
-    'Помогу быстро собрать информацию по вашему имуществу и понять следующий шаг для продажи или реализации.',
-    '',
-    'Напишите коротко, что нужно реализовать: база, склад, помещение, оборудование, техника, ТМЦ или другой актив. Можно по частям — я буду вести диалог и не буду спрашивать одно и то же повторно.'
-  ].join('\n');
-  await sendMax(env, { chatId, userId, text });
+  await saveSession(env, chatId, userId, { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false, managerNotified: false, supplementNotified: false, notifiedFields: {}, lastSupplementHash: '' });
+  await sendMax(env, { chatId, userId, text: startGreeting() });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -401,7 +463,13 @@ export async function onRequestPost({ request, env }) {
 
     if (message.sender?.is_bot) return jsonResponse({ ok: true, skipped: true, reason: 'bot message' });
 
+    if (text.startsWith('/start')) {
+      await handleStart(env, update, chatId, userId);
+      return jsonResponse({ ok: true, event: 'command_start' });
+    }
+
     const session = await loadSession(env, chatId, userId);
+    const prevLead = { ...(session.lead || {}) };
     session.lead = mergeLead(session.lead, extractPatch(text));
     session.messages = [...(session.messages || []), { role: 'client', text, at: new Date().toISOString() }].slice(-20);
 
@@ -411,11 +479,17 @@ export async function onRequestPost({ request, env }) {
       catch (error) { console.error('OpenAI fallback:', error.message); }
     }
     if (!reply) reply = fallbackReply(text, session);
+    if (hasCallIntent(text)) {
+      reply = session.lead.contact
+        ? 'Принял. Передаю информацию на разбор. Специалист свяжется с вами по указанному контакту.'
+        : 'Принял. Оставьте, пожалуйста, удобный телефон или другой контакт для связи — передам информацию специалисту.';
+    }
 
     await sendMax(env, { chatId, userId, text: reply.trim() });
     session.messages = [...session.messages, { role: 'bot', text: reply, at: new Date().toISOString() }].slice(-20);
 
-    await notifyManagerIfNeeded(env, { session, user, text });
+    const supplementFields = detectSupplementFields(session, prevLead, session.lead, text);
+    await notifyManagerIfNeeded(env, { session, user, text, supplementFields });
 
     await saveSession(env, chatId, userId, session);
     return jsonResponse({ ok: true, memory: Boolean(env.CHAT_MEMORY) });
@@ -426,5 +500,5 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestGet() {
-  return jsonResponse({ ok: true, service: 'max-ai-operator-cloudflare-pages', mode: 'stateful-dialog-v2-two-stage-leads' });
+  return jsonResponse({ ok: true, service: 'max-ai-operator-cloudflare-pages', mode: 'stateful-dialog-v3-professional-two-stage-leads' });
 }
