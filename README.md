@@ -51,3 +51,5 @@ python -m http.server 8080
 3. Проверить контентные страницы из `sitemap.xml`.
 4. Проверить отправку формы (`/api/lead`) на целевой платформе.
 5. Проверить `https://aateam.ru/robots.txt` и `https://aateam.ru/sitemap.xml`.
+
+<!-- Trigger Cloudflare Pages redeploy after PR103 -->
