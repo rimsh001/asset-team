@@ -57,10 +57,21 @@ function sessionKey(chatId, userId) {
 }
 
 async function loadSession(env, chatId, userId) {
-  if (!env.CHAT_MEMORY) return { lead: {}, messages: [], managerNotified: false };
+  if (!env.CHAT_MEMORY) return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false };
   const raw = await env.CHAT_MEMORY.get(sessionKey(chatId, userId));
-  if (!raw) return { lead: {}, messages: [], managerNotified: false };
-  try { return JSON.parse(raw); } catch { return { lead: {}, messages: [], managerNotified: false }; }
+  if (!raw) return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false };
+  try {
+    const parsed = JSON.parse(raw);
+    const legacyNotified = Boolean(parsed?.managerNotified);
+    return {
+      lead: parsed?.lead || {},
+      messages: Array.isArray(parsed?.messages) ? parsed.messages : [],
+      earlyManagerNotified: Boolean(parsed?.earlyManagerNotified) || legacyNotified,
+      fullManagerNotified: Boolean(parsed?.fullManagerNotified)
+    };
+  } catch {
+    return { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false };
+  }
 }
 
 async function saveSession(env, chatId, userId, session) {
@@ -103,6 +114,9 @@ function extractPatch(text) {
 
   const url = text.match(/https?:\/\/\S+/)?.[0];
   if (url) patch.url = url;
+  const phone = text.match(/(?:\+7|7|8)\D{0,3}\(?\d{3}\)?\D{0,3}\d{3}\D{0,3}\d{2}\D{0,3}\d{2}/)?.[0];
+  const email = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
+  if (phone || email) patch.contact = [phone, email].filter(Boolean).join(', ');
 
   const locations = [
     ['москва', 'Москва'],
@@ -131,6 +145,7 @@ function missingFields(lead = {}) {
   if (!lead.documents) missing.push('что с документами');
   if (!lead.photos && !lead.url) missing.push('есть ли фото или ссылка на объявление');
   if (!lead.role) missing.push('вы собственник или представитель');
+  if (!lead.contact) missing.push('удобный контакт для связи');
   return missing;
 }
 
@@ -153,6 +168,7 @@ ${KNOWLEDGE}
 5. Если клиент спрашивает про аренду, корректно верни фокус к продаже/реализации.
 6. Не обещай продажу, не гарантируй цену, не давай юридическое заключение.
 7. Веди к следующему шагу: материалы, первичный разбор, созвон, формат работы, договор.
+8. Если уже понятны тип актива и город, не останавливайся: аккуратно добери площадь, цену, срок продажи, документы, роль клиента и удобный контакт.
 
 Ответ: обычный текст для MAX, до 700 символов.
 `;
@@ -246,8 +262,107 @@ function buildManagerCard({ user, lead, lastText }) {
   ].join('\n');
 }
 
+function isFullLeadReady(lead = {}) {
+  return Boolean(lead.asset_type && lead.location && lead.area && lead.price && lead.selling_period && lead.role);
+}
+
+function shouldNotifyEarlyLead(lead = {}, text = '') {
+  if (!hasAssetContext(lead, text)) return false;
+  const hasStrongSignal = Boolean(lead.location || lead.price || lead.area || lead.url);
+  return Boolean(lead.asset_type && hasStrongSignal);
+}
+
+function buildMissingForFullLead(lead = {}) {
+  const missing = [];
+  if (!lead.asset_type) missing.push('тип актива');
+  if (!lead.location) missing.push('локация');
+  if (!lead.area) missing.push('площадь / объем');
+  if (!lead.price) missing.push('цена');
+  if (!lead.selling_period) missing.push('срок продажи');
+  if (!lead.role) missing.push('кто обратился');
+  return missing;
+}
+
+function buildRecentClientHistory(messages = []) {
+  const clientMessages = (messages || []).filter((item) => item.role === 'client').slice(-5);
+  if (!clientMessages.length) return 'не указано';
+  return clientMessages.map((item, index) => `${index + 1}) ${item.text}`).join('\n');
+}
+
+function buildEarlyLeadCard({ user, lead, lastText, missingFullFields }) {
+  return [
+    '🟡 РАННИЙ ЛИД ИЗ MAX-БОТА',
+    '',
+    'Клиент обозначил актив. Бот продолжает добирать данные. Полноценная заявка придет отдельным сообщением.',
+    '',
+    `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
+    `MAX user_id: ${user.id || 'не указано'}`,
+    `Тип актива: ${lead.asset_type || 'не указано'}`,
+    `Локация: ${lead.location || 'не указано'}`,
+    `Площадь / объем: ${lead.area || 'не указано'}`,
+    `Цена: ${lead.price || 'не указано'}`,
+    `Срок продажи: ${lead.selling_period || 'не указано'}`,
+    `Фото / ссылка: ${lead.photos || lead.url || 'не указано'}`,
+    `Документы: ${lead.documents || 'не указано'}`,
+    `Кто обратился: ${lead.role || 'не указано'}`,
+    `Контакт: ${lead.contact || 'не указано'}`,
+    '',
+    `Последнее сообщение: ${lastText}`,
+    `Не хватает до полной заявки: ${missingFullFields.length ? missingFullFields.join(', ') : 'ключевые поля собраны'}`
+  ].join('\n');
+}
+
+function buildFullLeadCard({ user, lead, lastText, recentHistory }) {
+  return [
+    '✅ ПОЛНАЯ ЗАЯВКА ИЗ MAX-БОТА',
+    '',
+    `Клиент: ${user.fullName || 'не указано'} ${user.username || ''}`.trim(),
+    `MAX user_id: ${user.id || 'не указано'}`,
+    `Тип актива: ${lead.asset_type || 'не указано'}`,
+    `Локация: ${lead.location || 'не указано'}`,
+    `Площадь / объем: ${lead.area || 'не указано'}`,
+    `Цена: ${lead.price || 'не указано'}`,
+    `Срок продажи: ${lead.selling_period || 'не указано'}`,
+    `Фото / ссылка: ${lead.photos || lead.url || 'не указано'}`,
+    `Документы: ${lead.documents || 'не указано'}`,
+    `Кто обратился: ${lead.role || 'не указано'}`,
+    `Контакт: ${lead.contact || 'не указано'}`,
+    '',
+    `Последнее сообщение: ${lastText}`,
+    '',
+    'Краткая история последних сообщений клиента:',
+    recentHistory,
+    '',
+    'Следующий шаг: связаться с клиентом, запросить материалы и провести первичный разбор.'
+  ].join('\n');
+}
+
+async function notifyManagerIfNeeded(env, { session, user, text }) {
+  if (isFullLeadReady(session.lead) && !session.fullManagerNotified) {
+    await sendTelegramManager(env, buildFullLeadCard({
+      user,
+      lead: session.lead,
+      lastText: text,
+      recentHistory: buildRecentClientHistory(session.messages)
+    }));
+    session.fullManagerNotified = true;
+    session.earlyManagerNotified = true;
+    return;
+  }
+
+  if (shouldNotifyEarlyLead(session.lead, text) && !session.earlyManagerNotified) {
+    await sendTelegramManager(env, buildEarlyLeadCard({
+      user,
+      lead: session.lead,
+      lastText: text,
+      missingFullFields: buildMissingForFullLead(session.lead)
+    }));
+    session.earlyManagerNotified = true;
+  }
+}
+
 async function handleStart(env, update, chatId, userId) {
-  await saveSession(env, chatId, userId, { lead: {}, messages: [], managerNotified: false });
+  await saveSession(env, chatId, userId, { lead: {}, messages: [], earlyManagerNotified: false, fullManagerNotified: false });
   const text = [
     'Здравствуйте. Я AI-оператор по разбору активов.',
     '',
@@ -300,10 +415,7 @@ export async function onRequestPost({ request, env }) {
     await sendMax(env, { chatId, userId, text: reply.trim() });
     session.messages = [...session.messages, { role: 'bot', text: reply, at: new Date().toISOString() }].slice(-20);
 
-    if (hasAssetContext(session.lead, text) && !session.managerNotified && (session.lead.asset_type || session.lead.location || session.lead.price)) {
-      await sendTelegramManager(env, buildManagerCard({ user, lead: session.lead, lastText: text }));
-      session.managerNotified = true;
-    }
+    await notifyManagerIfNeeded(env, { session, user, text });
 
     await saveSession(env, chatId, userId, session);
     return jsonResponse({ ok: true, memory: Boolean(env.CHAT_MEMORY) });
@@ -314,5 +426,5 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestGet() {
-  return jsonResponse({ ok: true, service: 'max-ai-operator-cloudflare-pages', mode: 'stateful-dialog-v1' });
+  return jsonResponse({ ok: true, service: 'max-ai-operator-cloudflare-pages', mode: 'stateful-dialog-v2-two-stage-leads' });
 }
