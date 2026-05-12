@@ -13,3 +13,15 @@
 .home .section-head{margin-bottom:30px}
 @media(max-width:1020px){.home .hero{padding-top:60px;padding-bottom:70px}.home .hero__grid{gap:36px}.home .section{padding:76px 0}}
 @media(max-width:680px){.home .hero{padding-top:54px;padding-bottom:64px}.home .hero__lead{line-height:1.46}.home .hero__note{margin-top:16px;padding:16px 18px}.home .hero__actions{margin-top:22px}.home .section{padding:66px 0}.home .section-head{margin-bottom:28px}}
+
+
+/* Mobile fallback backgrounds for section rendering stability */
+#difference{background-color:var(--bg)}
+#assets{background-color:#101216;background-image:linear-gradient(180deg,#131722 0%,#0f1219 100%)}
+#assets .section-head h2{color:#fff}
+#assets .section-head p:not(.section-label){color:rgba(255,255,255,.74)}
+
+@media(max-width:768px){
+  #difference{background-image:linear-gradient(180deg,#f5f0e6 0%,#eee6d6 100%)}
+  #assets{background-color:#101216;background-image:linear-gradient(180deg,#141923 0%,#0f1218 100%)}
+}
