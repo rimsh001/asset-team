@@ -43,3 +43,19 @@
 }
 
 .cookie-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:120;background:#101216;color:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}.cookie-banner p{margin:0;font-size:14px;line-height:1.45}.cookie-banner a{color:var(--gold);text-decoration:underline}.cookie-banner__actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.cookie-banner__actions .btn{width:auto;padding:10px 14px;font-size:14px}@media(max-width:680px){.cookie-banner{left:12px;right:12px;bottom:12px}.cookie-banner__actions .btn{width:100%}}
+
+.dashboard-layout{display:grid;grid-template-columns:240px minmax(0,1fr)}
+.side-nav{position:sticky;top:86px;height:calc(100vh - 96px);overflow:auto;background:#11141a;border-right:1px solid rgba(255,255,255,.07);padding:14px 10px}
+.side-nav a{display:block;color:rgba(255,255,255,.7);font-size:14px;padding:10px 12px;border-radius:10px;margin-bottom:4px}
+.side-nav a:hover{background:rgba(201,149,75,.15);color:#fff}
+.dashboard-main{min-width:0}
+.dashboard-top .header__inner{align-items:center;gap:12px}
+.top-meta{display:flex;gap:10px;flex-wrap:wrap}
+.top-meta span{font-size:12px;color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.18);padding:6px 10px;border-radius:999px}
+.top-actions{display:flex;gap:8px}
+.quick-assets{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:16px}
+.quick-assets a{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:12px 10px;text-align:center;font-size:13px}
+#services .section-label{content:"С какими активами работаем"}
+#method .section-head h2::before{content:"Мы не продаём объявление. Мы собираем сделку.";display:block;font-size:20px;color:var(--gold);margin-bottom:12px}
+@media(max-width:1180px){.top-meta{display:none}.dashboard-layout{grid-template-columns:1fr}.side-nav{display:none}.quick-assets{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:680px){.top-actions{display:none}.quick-assets{grid-template-columns:1fr 1fr}}
