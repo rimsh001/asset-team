@@ -67,10 +67,11 @@ jobs:
           FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD }}
           FTP_TARGET: ${{ secrets.REG_FTP_TARGET }}
         run: |
-          lftp -u "$FTP_USER","$FTP_PASSWORD" "sftp://$FTP_HOST" <<EOF
+          lftp <<EOF
           set sftp:auto-confirm yes
           set net:max-retries 2
           set net:timeout 30
+          open -u "$FTP_USER","$FTP_PASSWORD" "sftp://$FTP_HOST"
 
           mirror --reverse --verbose \
             --exclude-glob .git/ \
