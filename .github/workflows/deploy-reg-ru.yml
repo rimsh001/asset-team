@@ -1,0 +1,62 @@
+name: Deploy to REG.RU
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-reg-ru
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy static site to REG.RU
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+      - name: Validate deployment secrets
+        env:
+          FTP_HOST: ${{ secrets.REG_FTP_HOST }}
+          FTP_USER: ${{ secrets.REG_FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD }}
+          FTP_TARGET: ${{ secrets.REG_FTP_TARGET }}
+        run: |
+          if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ] || [ -z "$FTP_TARGET" ]; then
+            echo "Missing one or more REG.RU deployment secrets. Required: REG_FTP_HOST, REG_FTP_USER, REG_FTP_PASSWORD, REG_FTP_TARGET."
+            exit 1
+          fi
+          echo "Deployment secrets are present."
+
+      - name: Deploy via SFTP to REG.RU
+        env:
+          FTP_HOST: ${{ secrets.REG_FTP_HOST }}
+          FTP_USER: ${{ secrets.REG_FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD }}
+          FTP_TARGET: ${{ secrets.REG_FTP_TARGET }}
+        run: |
+          lftp -u "$FTP_USER","$FTP_PASSWORD" "sftp://$FTP_HOST" <<EOF
+          set sftp:auto-confirm yes
+          set net:max-retries 2
+          set net:timeout 30
+
+          mirror --reverse --verbose \
+            --exclude-glob .git/ \
+            --exclude-glob .github/ \
+            --exclude-glob node_modules/ \
+            --exclude-glob .DS_Store \
+            --exclude-glob README.md \
+            --exclude-glob "*.md" \
+            ./ "$FTP_TARGET"
+
+          bye
+          EOF
