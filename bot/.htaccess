@@ -1,0 +1,7 @@
+<Files "config.php">
+  Require all denied
+</Files>
+
+<FilesMatch "\.(log|jsonl)$">
+  Require all denied
+</FilesMatch>
