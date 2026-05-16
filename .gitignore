@@ -1,0 +1,6 @@
+# Local bot secrets. Do not commit real tokens.
+bot/config.php
+
+# OS/editor files
+.DS_Store
+*.log
