@@ -19,11 +19,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install lftp
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y lftp
-
       - name: Validate deployment secrets
         env:
           FTP_HOST: ${{ secrets.REG_FTP_HOST }}
@@ -60,27 +55,18 @@ jobs:
 
           echo "Deployment secrets are present."
 
-      - name: Deploy via SFTP to REG.RU
-        env:
-          FTP_HOST: ${{ secrets.REG_FTP_HOST }}
-          FTP_USER: ${{ secrets.REG_FTP_USER }}
-          FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD }}
-          FTP_TARGET: ${{ secrets.REG_FTP_TARGET }}
-        run: |
-          lftp <<EOF
-          set sftp:auto-confirm yes
-          set net:max-retries 2
-          set net:timeout 30
-          open -u "$FTP_USER","$FTP_PASSWORD" "sftp://$FTP_HOST"
-
-          mirror --reverse --verbose \
-            --exclude-glob .git/ \
-            --exclude-glob .github/ \
-            --exclude-glob node_modules/ \
-            --exclude-glob .DS_Store \
-            --exclude-glob README.md \
-            --exclude-glob "*.md" \
-            ./ "$FTP_TARGET"
-
-          bye
-          EOF
+      - name: Deploy via FTP to REG.RU
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.REG_FTP_HOST }}
+          username: ${{ secrets.REG_FTP_USER }}
+          password: ${{ secrets.REG_FTP_PASSWORD }}
+          server-dir: ${{ secrets.REG_FTP_TARGET }}
+          local-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            **/.DS_Store
+            **/*.md
