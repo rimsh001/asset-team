@@ -1,0 +1,33 @@
+<?php
+/**
+ * A&A Asset Team bot configuration example.
+ *
+ * IMPORTANT:
+ * 1. Copy this file on the REG.RU server to: bot/config.php
+ * 2. Put real tokens and IDs into bot/config.php only on the server.
+ * 3. Do NOT commit bot/config.php to GitHub.
+ */
+
+return [
+    'site_url' => 'https://aateam.ru',
+    'lead_email' => 'info@aateam.ru',
+
+    // Telegram
+    'telegram_bot_token' => 'PASTE_TELEGRAM_BOT_TOKEN_HERE',
+    'telegram_admin_chat_id' => 'PASTE_ADMIN_CHAT_ID_HERE',
+    // Optional. If set, use the same value when calling setWebhook with secret_token.
+    'telegram_webhook_secret' => '',
+
+    // MAX
+    'max_bot_token' => 'PASTE_MAX_BOT_TOKEN_HERE',
+    'max_admin_chat_id' => 'PASTE_MAX_ADMIN_CHAT_ID_HERE',
+    // Optional. Use if MAX bot settings support webhook secret headers.
+    'max_webhook_secret' => '',
+
+    /**
+     * MAX/TamTam-compatible API template.
+     * If MAX gives another endpoint in the bot cabinet, update this template in bot/config.php.
+     * Available placeholders: {token}, {chat_id}
+     */
+    'max_send_message_url_template' => 'https://botapi.tamtam.chat/messages?access_token={token}&chat_id={chat_id}',
+];
