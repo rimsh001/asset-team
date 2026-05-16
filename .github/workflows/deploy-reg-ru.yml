@@ -26,23 +26,25 @@ jobs:
 
       - name: Validate deployment secrets
         env:
-          FTP_HOST: ${{ secrets.REG_FTP_HOST }}
-          FTP_USER: ${{ secrets.REG_FTP_USER }}
-          FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD }}
-          FTP_TARGET: ${{ secrets.REG_FTP_TARGET }}
+          FTP_HOST: ${{ secrets.REG_FTP_HOST || secrets.REG_SFTP_HOST }}
+          FTP_USER: ${{ secrets.REG_FTP_USER || secrets.REG_SFTP_USER }}
+          FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD || secrets.REG_SFTP_PASSWORD }}
+          FTP_TARGET: ${{ secrets.REG_FTP_TARGET || secrets.REG_SFTP_TARGET }}
         run: |
           if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD" ] || [ -z "$FTP_TARGET" ]; then
-            echo "Missing one or more REG.RU deployment secrets. Required: REG_FTP_HOST, REG_FTP_USER, REG_FTP_PASSWORD, REG_FTP_TARGET."
+            echo "Missing one or more REG.RU deployment secrets."
+            echo "Required secret set: REG_FTP_HOST, REG_FTP_USER, REG_FTP_PASSWORD, REG_FTP_TARGET."
+            echo "Fallback secret set also supported: REG_SFTP_HOST, REG_SFTP_USER, REG_SFTP_PASSWORD, REG_SFTP_TARGET."
             exit 1
           fi
           echo "Deployment secrets are present."
 
       - name: Deploy via SFTP to REG.RU
         env:
-          FTP_HOST: ${{ secrets.REG_FTP_HOST }}
-          FTP_USER: ${{ secrets.REG_FTP_USER }}
-          FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD }}
-          FTP_TARGET: ${{ secrets.REG_FTP_TARGET }}
+          FTP_HOST: ${{ secrets.REG_FTP_HOST || secrets.REG_SFTP_HOST }}
+          FTP_USER: ${{ secrets.REG_FTP_USER || secrets.REG_SFTP_USER }}
+          FTP_PASSWORD: ${{ secrets.REG_FTP_PASSWORD || secrets.REG_SFTP_PASSWORD }}
+          FTP_TARGET: ${{ secrets.REG_FTP_TARGET || secrets.REG_SFTP_TARGET }}
         run: |
           lftp -u "$FTP_USER","$FTP_PASSWORD" "sftp://$FTP_HOST" <<EOF
           set sftp:auto-confirm yes
