@@ -109,7 +109,7 @@ function max_setup_http_request(string $method, string $url, string $token, ?arr
 if ($action === 'set') {
     $result = max_setup_http_request('POST', $subscriptionUrl, $token, array(
         'url' => $webhookUrl,
-        'update_types' => array('message_created'),
+        'update_types' => array('message_created', 'bot_started'),
     ));
     $safeResponse = max_setup_mask_secret($result['response'], $token);
 
@@ -125,6 +125,48 @@ if ($action === 'set') {
         'ok' => $result['status'] >= 200 && $result['status'] < 300,
         'action' => 'set',
         'webhook_url' => $webhookUrl,
+        'api_base' => $apiBase,
+        'api_status' => $result['status'],
+        'api_error' => $result['error'],
+        'api_response' => $safeResponse,
+    ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'delete') {
+    $deleteUrl = trim((string)($_GET['url'] ?? 'https://aateam.ru/api/max-webhook'));
+
+    $result = max_setup_http_request('DELETE', $subscriptionUrl, $token, array(
+        'url' => $deleteUrl,
+    ));
+
+    if ($result['status'] < 200 || $result['status'] >= 300) {
+        $fallbackUrl = $subscriptionUrl . '?url=' . rawurlencode($deleteUrl);
+        $fallbackResult = max_setup_http_request('DELETE', $fallbackUrl, $token);
+        $result = array(
+            'status' => $fallbackResult['status'],
+            'error' => $fallbackResult['error'],
+            'response' => array(
+                'primary_attempt' => $result['response'],
+                'fallback_attempt' => $fallbackResult['response'],
+            ),
+        );
+    }
+
+    $safeResponse = max_setup_mask_secret($result['response'], $token);
+
+    bot_log('max_webhook_setup_delete', array(
+        'status' => $result['status'],
+        'error' => $result['error'],
+        'response' => $safeResponse,
+        'deleted_url' => $deleteUrl,
+        'api_base' => $apiBase,
+    ));
+
+    echo json_encode(array(
+        'ok' => $result['status'] >= 200 && $result['status'] < 300,
+        'action' => 'delete',
+        'deleted_url' => $deleteUrl,
         'api_base' => $apiBase,
         'api_status' => $result['status'],
         'api_error' => $result['error'],
