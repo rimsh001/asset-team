@@ -92,14 +92,15 @@ function max_format_admin_notice(array $incoming, string $text, array $update): 
 
     if ($userId) {
         $lines[] = 'MAX user ID: ' . $userId;
-        $lines[] = 'Профиль по ID: https://max.ru/id' . $userId;
+        $lines[] = 'Открыть пользователя в приложении MAX: max://user/' . $userId;
     }
 
     if ($chatId) {
         $lines[] = 'MAX Chat ID: ' . $chatId;
-        $lines[] = 'Открыть чат MAX: https://max.ru/chat/' . $chatId;
+        $lines[] = 'Открыть чат в приложении MAX: max://chat/' . $chatId;
     }
 
+    $lines[] = 'Примечание: если ссылка max:// не открылась, используйте ID для поиска/проверки в MAX.';
     $lines[] = '';
     $lines[] = 'Текст:';
     $lines[] = $text !== '' ? $text : '[без текста]';
