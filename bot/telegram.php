@@ -40,14 +40,24 @@ if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedTe
     exit;
 }
 
-telegram_send_message($config, $chatId, bot_text_for_received());
+$hasEnoughData = (bool)preg_match('/база|склад|ангар|помещен|недвиж|земл|участ|оборуд|станок|техник|спецтех|тмц|остат|кран|погруз|авто|актив/u', $normalizedText)
+    && (bool)preg_match('/\d+\s*(млн|тыс|руб|₽|р\b)|цена|стоим/u', $normalizedText);
+
+if ($hasEnoughData) {
+    telegram_send_message($config, $chatId, "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\nЕсли есть фото, документы или ссылка на объявление — отправьте их следующим сообщением.");
+} else {
+    telegram_send_message($config, $chatId, "Принял. Чтобы передать заявку в работу, добавьте одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Желаемую цену\n4. Есть ли фото, документы или ссылка\n5. Удобный контакт для связи");
+}
 
 $adminNotice = bot_format_admin_notice('Telegram', $chatId, $userName, $text !== '' ? $text : '[без текста]', $update);
-bot_send_email($config, 'Новая заявка из Telegram — A&A Asset Team', $adminNotice);
 
-$adminChatId = trim((string)($config['telegram_admin_chat_id'] ?? ''));
-if ($adminChatId !== '' && !str_contains($adminChatId, 'PASTE_')) {
-    telegram_send_message($config, $adminChatId, $adminNotice);
+$telegramLeadsChatId = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+if ($telegramLeadsChatId === '') {
+    $telegramLeadsChatId = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+}
+
+if ($telegramLeadsChatId !== '' && !str_contains($telegramLeadsChatId, 'PASTE_')) {
+    telegram_send_message($config, $telegramLeadsChatId, $adminNotice);
 }
 
 bot_ok();
