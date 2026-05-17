@@ -55,7 +55,38 @@ if ($chatId === null || $chatId === '') {
     exit;
 }
 
-$normalizedText = mb_strtolower(trim($text));
+$trimmedText = trim($text);
+$normalizedText = mb_strtolower($trimmedText);
+
+if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', $trimmedText, $matches)) {
+    $maxChatId = trim($matches[1]);
+    $messageToClient = trim($matches[2]);
+
+    if ($messageToClient === '') {
+        telegram_reply_via_webhook($chatId, "Не вижу текст ответа. Формат:\n/max MAX_CHAT_ID текст сообщения клиенту");
+        exit;
+    }
+
+    telegram_reply_via_webhook($chatId, "Отправляю ответ клиенту в MAX…");
+
+    $sendResult = max_send_message($config, $maxChatId, $messageToClient);
+    $status = (int)($sendResult['status'] ?? 0);
+
+    if ($status >= 200 && $status < 300) {
+        telegram_send_message($config, $chatId, "Ответ отправлен в MAX чат {$maxChatId}.");
+    } else {
+        telegram_send_message($config, $chatId, "Не удалось отправить ответ в MAX чат {$maxChatId}. Статус: {$status}. Проверьте bot.log.");
+    }
+
+    bot_log('telegram_max_reply_command', [
+        'operator_chat_id' => $chatId,
+        'operator_user' => $userName,
+        'max_chat_id' => $maxChatId,
+        'status' => $status,
+    ]);
+
+    exit;
+}
 
 if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedText === '') {
     telegram_reply_via_webhook($chatId, bot_text_for_start());
