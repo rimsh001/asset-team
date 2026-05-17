@@ -58,6 +58,11 @@ function bot_log(string $name, array $payload): void
     }
 }
 
+function bot_mask_url(string $url): string
+{
+    return preg_replace('/access_token=[^&]+/', 'access_token=***', $url) ?? $url;
+}
+
 function bot_http_post_json(string $url, array $payload, array $headers = []): array
 {
     $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -85,44 +90,37 @@ function bot_http_post_json(string $url, array $payload, array $headers = []): a
     $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    $result = [
-        'status' => $status,
-        'error' => $error,
-        'response' => $response,
-    ];
-
     bot_log('http_post_json', [
-        'url' => preg_replace('/access_token=[^&]+/', 'access_token=***', $url),
+        'url' => bot_mask_url($url),
         'status' => $status,
         'error' => $error,
         'response' => $response,
     ]);
 
-    return $result;
+    return [
+        'status' => $status,
+        'error' => $error,
+        'response' => $response,
+    ];
 }
 
 function bot_text_for_start(): string
 {
     return "Здравствуйте. Вы обратились в A&A Asset Team.\n\n" .
         "Мы помогаем собственникам и компаниям реализовывать зависшие и непрофильные активы бизнеса: базы, склады, коммерческую недвижимость, оборудование, спецтехнику, складские остатки и ТМЦ.\n\n" .
-        "Напишите в ответ:\n" .
+        "Напишите одним сообщением:\n" .
         "1. Что нужно реализовать\n" .
         "2. Город / регион\n" .
         "3. Ориентировочную цену\n" .
-        "4. Есть ли ссылка на объявление, фото или документы\n\n" .
+        "4. Есть ли ссылка на объявление, фото или документы\n" .
+        "5. Удобный контакт для связи\n\n" .
         "После этого мы посмотрим ситуацию и подскажем следующий шаг.";
 }
 
 function bot_text_for_received(): string
 {
-    return "Спасибо, получили сообщение.\n\n" .
-        "Если это заявка на разбор актива, добавьте, пожалуйста:\n" .
-        "— тип актива;\n" .
-        "— регион;\n" .
-        "— цену;\n" .
-        "— ссылку на объявление / фото / документы;\n" .
-        "— удобный контакт для связи.\n\n" .
-        "Мы вернёмся с ответом после первичного просмотра.";
+    return "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\n" .
+        "Если есть дополнительные фото, документы или ссылка на объявление — отправьте их следующим сообщением.";
 }
 
 function bot_format_admin_notice(string $source, ?string $chatId, ?string $userName, string $text, array $raw): string
@@ -130,7 +128,7 @@ function bot_format_admin_notice(string $source, ?string $chatId, ?string $userN
     $userLine = $userName ? "Пользователь: {$userName}\n" : '';
     $chatLine = $chatId ? "Chat ID: {$chatId}\n" : '';
 
-    return "Новая заявка / сообщение из {$source}\n\n" .
+    return "Новая заявка из {$source}\n\n" .
         $userLine .
         $chatLine .
         "Текст:\n{$text}\n\n" .
@@ -139,6 +137,10 @@ function bot_format_admin_notice(string $source, ?string $chatId, ?string $userN
 
 function bot_send_email(array $config, string $subject, string $body): void
 {
+    if (!($config['send_email_notifications'] ?? false)) {
+        return;
+    }
+
     $to = trim((string)($config['lead_email'] ?? ''));
     if ($to === '') {
         return;
@@ -201,11 +203,8 @@ function max_send_message(array $config, string $chatId, string $text): array
         return ['status' => 0, 'error' => 'Missing MAX token', 'response' => null];
     }
 
-    $template = (string)($config['max_send_message_url_template'] ?? '');
-    if ($template === '') {
-        bot_log('max_missing_url_template', []);
-        return ['status' => 0, 'error' => 'Missing MAX send message URL template', 'response' => null];
-    }
+    $apiBase = rtrim((string)($config['max_api_base'] ?? 'https://platform-api.max.ru'), '/');
+    $template = (string)($config['max_send_message_url_template'] ?? $apiBase . '/messages?chat_id={chat_id}');
 
     $url = str_replace(
         ['{token}', '{chat_id}'],
@@ -213,7 +212,12 @@ function max_send_message(array $config, string $chatId, string $text): array
         $template
     );
 
-    return bot_http_post_json($url, ['text' => $text]);
+    $headers = [];
+    if (!str_contains($template, '{token}')) {
+        $headers[] = 'Authorization: ' . $token;
+    }
+
+    return bot_http_post_json($url, ['text' => $text], $headers);
 }
 
 function max_extract_message(array $update): array
@@ -239,6 +243,7 @@ function max_extract_message(array $update): array
     $chatId = $chatId ?: (isset($update['chat_id']) ? (string)$update['chat_id'] : null);
     $chatId = $chatId ?: (isset($update['chat']['id']) ? (string)$update['chat']['id'] : null);
     $chatId = $chatId ?: (isset($update['recipient']['chat_id']) ? (string)$update['recipient']['chat_id'] : null);
+    $chatId = $chatId ?: (isset($update['message']['chat']['chat_id']) ? (string)$update['message']['chat']['chat_id'] : null);
 
     return [
         'chat_id' => $chatId,
