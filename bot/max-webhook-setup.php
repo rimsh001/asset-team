@@ -3,9 +3,10 @@
 declare(strict_types=1);
 
 /**
- * MAX webhook setup helper.
+ * MAX webhook setup helper for the official MAX Platform API.
+ *
  * Do not put tokens into this file.
- * Put tokens and max_setup_key into bot/config.php on the REG.RU server only.
+ * Put max_bot_token and max_setup_key into bot/config.php on the REG.RU server only.
  */
 
 require __DIR__ . '/lib.php';
@@ -47,8 +48,8 @@ if ($token === '' || str_contains($token, 'PASTE_')) {
     exit;
 }
 
-$apiBase = rtrim((string)($config['max_api_base'] ?? 'https://botapi.tamtam.chat'), '/');
-$subscriptionUrl = $apiBase . '/subscriptions?access_token=' . rawurlencode($token);
+$apiBase = rtrim((string)($config['max_api_base'] ?? 'https://platform-api.max.ru'), '/');
+$subscriptionUrl = $apiBase . '/subscriptions';
 $webhookUrl = (string)($config['max_webhook_url'] ?? 'https://aateam.ru/bot/max.php');
 
 function max_setup_mask_secret($value, string $token)
@@ -68,10 +69,13 @@ function max_setup_mask_secret($value, string $token)
     return $value;
 }
 
-function max_setup_http_request(string $method, string $url, ?array $payload = null): array
+function max_setup_http_request(string $method, string $url, string $token, ?array $payload = null): array
 {
     $ch = curl_init($url);
-    $headers = array('Accept: application/json');
+    $headers = array(
+        'Accept: application/json',
+        'Authorization: ' . $token,
+    );
 
     $options = array(
         CURLOPT_RETURNTRANSFER => true,
@@ -103,7 +107,7 @@ function max_setup_http_request(string $method, string $url, ?array $payload = n
 }
 
 if ($action === 'set') {
-    $result = max_setup_http_request('POST', $subscriptionUrl, array(
+    $result = max_setup_http_request('POST', $subscriptionUrl, $token, array(
         'url' => $webhookUrl,
         'update_types' => array('message_created'),
     ));
@@ -114,12 +118,14 @@ if ($action === 'set') {
         'error' => $result['error'],
         'response' => $safeResponse,
         'webhook_url' => $webhookUrl,
+        'api_base' => $apiBase,
     ));
 
     echo json_encode(array(
         'ok' => $result['status'] >= 200 && $result['status'] < 300,
         'action' => 'set',
         'webhook_url' => $webhookUrl,
+        'api_base' => $apiBase,
         'api_status' => $result['status'],
         'api_error' => $result['error'],
         'api_response' => $safeResponse,
@@ -127,19 +133,21 @@ if ($action === 'set') {
     exit;
 }
 
-$result = max_setup_http_request('GET', $subscriptionUrl);
+$result = max_setup_http_request('GET', $subscriptionUrl, $token);
 $safeResponse = max_setup_mask_secret($result['response'], $token);
 
 bot_log('max_webhook_setup_status', array(
     'status' => $result['status'],
     'error' => $result['error'],
     'response' => $safeResponse,
+    'api_base' => $apiBase,
 ));
 
 echo json_encode(array(
     'ok' => $result['status'] >= 200 && $result['status'] < 300,
     'action' => 'status',
     'expected_webhook_url' => $webhookUrl,
+    'api_base' => $apiBase,
     'api_status' => $result['status'],
     'api_error' => $result['error'],
     'api_response' => $safeResponse,
