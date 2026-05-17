@@ -51,6 +51,23 @@ $apiBase = rtrim((string)($config['max_api_base'] ?? 'https://botapi.tamtam.chat
 $subscriptionUrl = $apiBase . '/subscriptions?access_token=' . rawurlencode($token);
 $webhookUrl = (string)($config['max_webhook_url'] ?? 'https://aateam.ru/bot/max.php');
 
+function max_setup_mask_secret($value, string $token)
+{
+    if (is_array($value)) {
+        $masked = array();
+        foreach ($value as $key => $item) {
+            $masked[$key] = max_setup_mask_secret($item, $token);
+        }
+        return $masked;
+    }
+
+    if (is_string($value) && $token !== '') {
+        return str_replace($token, '***', $value);
+    }
+
+    return $value;
+}
+
 function max_setup_http_request(string $method, string $url, ?array $payload = null): array
 {
     $ch = curl_init($url);
@@ -90,11 +107,12 @@ if ($action === 'set') {
         'url' => $webhookUrl,
         'update_types' => array('message_created'),
     ));
+    $safeResponse = max_setup_mask_secret($result['response'], $token);
 
     bot_log('max_webhook_setup_set', array(
         'status' => $result['status'],
         'error' => $result['error'],
-        'response' => $result['response'],
+        'response' => $safeResponse,
         'webhook_url' => $webhookUrl,
     ));
 
@@ -104,17 +122,18 @@ if ($action === 'set') {
         'webhook_url' => $webhookUrl,
         'api_status' => $result['status'],
         'api_error' => $result['error'],
-        'api_response' => $result['response'],
+        'api_response' => $safeResponse,
     ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
 $result = max_setup_http_request('GET', $subscriptionUrl);
+$safeResponse = max_setup_mask_secret($result['response'], $token);
 
 bot_log('max_webhook_setup_status', array(
     'status' => $result['status'],
     'error' => $result['error'],
-    'response' => $result['response'],
+    'response' => $safeResponse,
 ));
 
 echo json_encode(array(
@@ -123,5 +142,5 @@ echo json_encode(array(
     'expected_webhook_url' => $webhookUrl,
     'api_status' => $result['status'],
     'api_error' => $result['error'],
-    'api_response' => $result['response'],
+    'api_response' => $safeResponse,
 ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
