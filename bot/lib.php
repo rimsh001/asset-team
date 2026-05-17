@@ -195,6 +195,11 @@ function telegram_extract_message(array $update): array
     ];
 }
 
+function max_api_headers(string $token): array
+{
+    return ['Authorization: ' . $token];
+}
+
 function max_send_message(array $config, string $chatId, string $text): array
 {
     $token = trim((string)($config['max_bot_token'] ?? ''));
@@ -204,20 +209,62 @@ function max_send_message(array $config, string $chatId, string $text): array
     }
 
     $apiBase = rtrim((string)($config['max_api_base'] ?? 'https://platform-api.max.ru'), '/');
-    $template = (string)($config['max_send_message_url_template'] ?? $apiBase . '/messages?chat_id={chat_id}');
+    $template = (string)($config['max_send_message_url_template'] ?? '');
 
-    $url = str_replace(
-        ['{token}', '{chat_id}'],
-        [rawurlencode($token), rawurlencode($chatId)],
-        $template
-    );
+    $attempts = [];
 
-    $headers = [];
-    if (!str_contains($template, '{token}')) {
-        $headers[] = 'Authorization: ' . $token;
+    if ($template !== '') {
+        $url = str_replace(
+            ['{token}', '{chat_id}'],
+            [rawurlencode($token), rawurlencode($chatId)],
+            $template
+        );
+        $headers = str_contains($template, '{token}') ? [] : max_api_headers($token);
+        $attempts[] = [
+            'name' => 'configured_template',
+            'url' => $url,
+            'payload' => ['text' => $text],
+            'headers' => $headers,
+        ];
     }
 
-    return bot_http_post_json($url, ['text' => $text], $headers);
+    $attempts[] = [
+        'name' => 'platform_query_chat_id',
+        'url' => $apiBase . '/messages?chat_id=' . rawurlencode($chatId),
+        'payload' => ['text' => $text],
+        'headers' => max_api_headers($token),
+    ];
+
+    $attempts[] = [
+        'name' => 'platform_body_chat_id',
+        'url' => $apiBase . '/messages',
+        'payload' => [
+            'chat_id' => $chatId,
+            'text' => $text,
+        ],
+        'headers' => max_api_headers($token),
+    ];
+
+    $lastResult = ['status' => 0, 'error' => 'MAX send message attempts were not executed', 'response' => null];
+
+    foreach ($attempts as $attempt) {
+        $result = bot_http_post_json($attempt['url'], $attempt['payload'], $attempt['headers']);
+        $lastResult = $result;
+
+        bot_log('max_send_message_attempt', [
+            'attempt' => $attempt['name'],
+            'url' => bot_mask_url($attempt['url']),
+            'status' => $result['status'],
+            'error' => $result['error'],
+            'response' => $result['response'],
+        ]);
+
+        if ($result['status'] >= 200 && $result['status'] < 300) {
+            return $result;
+        }
+    }
+
+    return $lastResult;
 }
 
 function max_extract_message(array $update): array
