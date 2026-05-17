@@ -39,32 +39,41 @@ function max_find_first_value(array $data, array $keys): ?string
     return null;
 }
 
-function max_extract_phone(string $text, array $raw): ?string
+function max_extract_sender_user_id(array $update): ?string
 {
-    $search = $text . "\n" . json_encode($raw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if (!is_string($search)) {
-        $search = $text;
+    $paths = [
+        ['message', 'sender', 'user_id'],
+        ['message', 'sender', 'id'],
+        ['sender', 'user_id'],
+        ['sender', 'id'],
+        ['user', 'user_id'],
+        ['user', 'id'],
+    ];
+
+    foreach ($paths as $path) {
+        $value = $update;
+        foreach ($path as $key) {
+            if (!is_array($value) || !array_key_exists($key, $value)) {
+                $value = null;
+                break;
+            }
+            $value = $value[$key];
+        }
+
+        if (is_scalar($value) && trim((string)$value) !== '') {
+            return trim((string)$value);
+        }
     }
 
-    if (preg_match('/(?:\+7|8)[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-]*\d{2}[\s\-]*\d{2}/u', $search, $match)) {
-        return trim($match[0]);
-    }
-
-    if (preg_match('/\b\d{10,11}\b/u', $search, $match)) {
-        return trim($match[0]);
-    }
-
-    return null;
+    return max_find_first_value($update, ['user_id', 'sender_id', 'from_id']);
 }
 
-function max_format_admin_notice(array $incoming, string $text, array $update): array
+function max_format_admin_notice(array $incoming, string $text, array $update): string
 {
     $chatId = $incoming['chat_id'] ?? null;
     $userName = $incoming['user_name'] ?? null;
-
-    $userId = max_find_first_value($update, ['user_id', 'sender_id', 'from_id']);
+    $userId = max_extract_sender_user_id($update);
     $username = max_find_first_value($update, ['username', 'login', 'nick']);
-    $phone = max_extract_phone($text, $update);
 
     $lines = [
         'Новая заявка из MAX',
@@ -83,18 +92,12 @@ function max_format_admin_notice(array $incoming, string $text, array $update): 
 
     if ($userId) {
         $lines[] = 'MAX user ID: ' . $userId;
+        $lines[] = 'Профиль по ID: https://max.ru/id' . $userId;
     }
 
     if ($chatId) {
         $lines[] = 'MAX Chat ID: ' . $chatId;
-    }
-
-    if ($phone) {
-        $lines[] = 'Телефон: ' . $phone;
-        $hasContact = true;
-    } else {
-        $lines[] = 'Контакт: не указан. Бот попросил отправить телефон или ссылку для связи.';
-        $hasContact = false;
+        $lines[] = 'Открыть чат MAX: https://max.ru/chat/' . $chatId;
     }
 
     $lines[] = '';
@@ -103,10 +106,7 @@ function max_format_admin_notice(array $incoming, string $text, array $update): 
     $lines[] = '';
     $lines[] = 'Время: ' . date('d.m.Y H:i:s');
 
-    return [
-        'text' => implode("\n", $lines),
-        'has_contact' => $hasContact,
-    ];
+    return implode("\n", $lines);
 }
 
 $config = bot_load_config();
@@ -133,7 +133,6 @@ $incoming = max_extract_message($update);
 
 $chatId = $incoming['chat_id'];
 $text = $incoming['text'];
-$userName = $incoming['user_name'];
 
 if ($chatId === null || $chatId === '') {
     bot_log('max_missing_chat_id', [
@@ -155,15 +154,12 @@ if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedTe
 $hasEnoughData = (bool)preg_match('/база|склад|ангар|помещен|недвиж|земл|участ|оборуд|станок|техник|спецтех|тмц|остат|кран|погруз|авто|актив/u', $normalizedText)
     && (bool)preg_match('/\d+\s*(млн|тыс|руб|₽|р\b)|цена|стоим/u', $normalizedText);
 
-$noticeData = max_format_admin_notice($incoming, $text !== '' ? $text : '[без текста]', $update);
-$hasContact = (bool)$noticeData['has_contact'];
+$adminNotice = max_format_admin_notice($incoming, $text !== '' ? $text : '[без текста]', $update);
 
-if ($hasEnoughData && $hasContact) {
-    $replyText = "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\nЕсли есть фото, документы или ссылка на объявление — отправьте их следующим сообщением.";
-} elseif ($hasEnoughData) {
-    $replyText = "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\nЧтобы мы могли связаться с вами, отправьте следующим сообщением телефон, ссылку на профиль или другой удобный контакт.";
+if ($hasEnoughData) {
+    $replyText = "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\nДля связи мы используем ваш чат в MAX. Если есть фото, документы или ссылка на объявление — отправьте их следующим сообщением.";
 } else {
-    $replyText = "Принял. Чтобы передать заявку в работу, добавьте одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Желаемую цену\n4. Есть ли фото, документы или ссылка\n5. Телефон или другой контакт для связи";
+    $replyText = "Принял. Чтобы передать заявку в работу, добавьте одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Желаемую цену\n4. Есть ли фото, документы или ссылка\n\nДля связи достаточно этого чата в MAX.";
 }
 
 max_finish_webhook();
@@ -176,5 +172,5 @@ if ($telegramLeadsChatId === '') {
 }
 
 if ($telegramLeadsChatId !== '' && !str_contains($telegramLeadsChatId, 'PASTE_')) {
-    telegram_send_message($config, $telegramLeadsChatId, (string)$noticeData['text']);
+    telegram_send_message($config, $telegramLeadsChatId, $adminNotice);
 }
