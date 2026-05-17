@@ -78,7 +78,7 @@
 
     const banner = document.createElement('div');
     banner.className = 'cookie-banner';
-    banner.innerHTML = '<p>Мы используем cookie для корректной работы сайта, аналитики и улучшения материалов. Продолжая пользоваться сайтом или нажимая «Принять», вы соглашаетесь с <a href="/cookies.html">Политикой cookie</a>.</p><div class="cookie-banner__actions"><button type="button" class="btn btn--accent cookie-banner__accept">Принять</button><button type="button" class="btn btn--line cookie-banner__decline">Отклонить необязательные</button><a class="cookie-banner__link" href="/cookies.html">Политика cookie</a></div>';
+    banner.innerHTML = '<p>Мы используем cookie для корректной работы сайта, аналитики и улучшения материалов. Продолжая пользоваться сайтом или нажимая «Принять», вы соглашаетесь с <a href="/cookies.html">Политикой cookie</a>.</p><div class="cookie-banner__actions"><button type="button" class="btn btn--accent cookie-banner__accept">Принять</button></div>';
     document.body.appendChild(banner);
 
     const closeBanner = (value) => {
@@ -88,7 +88,6 @@
     };
 
     banner.querySelector('.cookie-banner__accept')?.addEventListener('click', () => closeBanner('accepted'));
-    banner.querySelector('.cookie-banner__decline')?.addEventListener('click', () => closeBanner('declined'));
   }
 
   setupCookieBanner();
