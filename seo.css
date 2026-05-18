@@ -1127,4 +1127,176 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 
 
 /* Special equipment SEO page */
-.special-equipment-page .special-equipment-hero__grid{display:grid;grid-template-columns:1.35fr .9fr;gap:24px;align-items:start}.special-equipment-page .special-equipment-hero-card{background:#fff;border:1px solid rgba(15,23,42,.1);border-radius:20px;padding:24px}.special-equipment-page .special-equipment-type-grid,.special-equipment-page .special-equipment-reason-grid,.special-equipment-page .special-equipment-check-grid,.special-equipment-page .special-equipment-buyer-grid,.special-equipment-page .special-equipment-related-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.special-equipment-page .special-equipment-need-section{}.special-equipment-page .special-equipment-process-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.special-equipment-page .special-equipment-final-cta{}.special-equipment-page .special-equipment-final-cta__actions{display:flex;gap:10px;flex-wrap:wrap}.special-equipment-page .hero__note{background:#eef4ff;border-radius:12px;padding:12px 14px}@media (max-width:900px){.special-equipment-page .special-equipment-hero__grid,.special-equipment-page .special-equipment-type-grid,.special-equipment-page .special-equipment-reason-grid,.special-equipment-page .special-equipment-check-grid,.special-equipment-page .special-equipment-buyer-grid,.special-equipment-page .special-equipment-process-grid,.special-equipment-page .special-equipment-related-grid{grid-template-columns:1fr}.special-equipment-page .special-equipment-final-cta__actions{flex-direction:column}}
+.special-equipment-page .special-equipment-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, .75fr);
+  gap: 54px;
+  align-items: center;
+}
+
+.special-equipment-page .special-equipment-hero__content { min-width: 0; }
+
+.special-equipment-page .page-hero {
+  padding-top: 72px;
+  padding-bottom: 64px;
+  background: radial-gradient(circle at 86% 18%, rgba(201,149,75,.13), transparent 34%), linear-gradient(180deg, #fffaf1 0%, #f5f0e6 100%);
+}
+
+.special-equipment-page .page-hero h1 {
+  max-width: 820px;
+  font-size: clamp(40px, 4.35vw, 60px);
+  line-height: 1.03;
+  letter-spacing: -0.055em;
+}
+
+.special-equipment-page .page-hero .special-equipment-hero__content > p:not(.kicker):not(.hero__note) {
+  max-width: 760px;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #343942;
+}
+
+.special-equipment-page .page-hero .hero__note {
+  max-width: 720px;
+  margin-top: 18px;
+  padding: 16px 20px;
+  color: #343942;
+  background: rgba(255, 255, 255, .58);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 16px 16px 0;
+  line-height: 1.5;
+}
+
+.special-equipment-page .page-hero .page-links { margin-top: 20px; }
+
+.special-equipment-page .special-equipment-hero-card {
+  max-width: 430px;
+  background: linear-gradient(180deg, rgba(16,18,22,.96), rgba(23,26,32,.94));
+  color: #fff;
+  border: 1px solid rgba(201,149,75,.24);
+  border-radius: 28px;
+  padding: 26px;
+  box-shadow: 0 28px 70px rgba(16,18,22,.20);
+}
+
+.special-equipment-page .special-equipment-hero-card h2 {
+  color: #fff;
+  font-size: 28px;
+  line-height: 1.12;
+  margin: 0 0 14px;
+}
+
+.special-equipment-page .special-equipment-hero-card p {
+  color: rgba(255,255,255,.72);
+  font-size: 15.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.special-equipment-page .special-equipment-hero-card__checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin: 20px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.special-equipment-page .special-equipment-hero-card__checks li {
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.055);
+  border-radius: 14px;
+  padding: 11px 12px;
+  color: rgba(255,255,255,.86);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.special-equipment-page .special-equipment-hero-card__checks li::before {
+  content: "";
+  display: block;
+  width: 22px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--gold);
+  margin-bottom: 9px;
+}
+
+.special-equipment-page .special-equipment-hero-card__note {
+  border-top: 1px solid rgba(255,255,255,.12);
+  padding-top: 16px;
+  color: rgba(255,255,255,.78);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.special-equipment-page .special-equipment-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.special-equipment-page .special-equipment-type-grid article {
+  min-height: 170px;
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(222,214,198,.95);
+  box-shadow: 0 12px 28px rgba(16,18,22,.045);
+}
+
+.special-equipment-page .special-equipment-type-grid span {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--gold2);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.special-equipment-page .special-equipment-type-grid h3 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.special-equipment-page .special-equipment-type-grid p {
+  margin: 0;
+  color: #566070;
+  font-size: 15.5px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1020px) {
+  .special-equipment-page .special-equipment-hero__grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .special-equipment-page .special-equipment-hero-card { max-width: 720px; }
+
+  .special-equipment-page .special-equipment-type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .special-equipment-page .special-equipment-hero-card {
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .special-equipment-page .special-equipment-hero-card h2 { font-size: 26px; }
+
+  .special-equipment-page .special-equipment-hero-card__checks,
+  .special-equipment-page .special-equipment-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .special-equipment-page .special-equipment-type-grid article {
+    min-height: 0;
+    padding: 18px;
+  }
+}
