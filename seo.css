@@ -462,23 +462,31 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 
 /* Warehouse and hangar page rebuild */
 .warehouse-hangar-page .page-hero {
-  padding-top: 88px;
-  padding-bottom: 88px;
+  padding-top: 72px;
+  padding-bottom: 64px;
   background: radial-gradient(circle at 86% 18%, rgba(201,149,75,.13), transparent 34%), linear-gradient(180deg, #fffaf1 0%, #f5f0e6 100%);
 }
 .warehouse-hangar-page .page-hero h1 {
-  max-width: 920px;
-  font-size: clamp(42px, 5vw, 66px);
-  line-height: 1.02;
+  max-width: 820px;
+  font-size: clamp(40px, 4.35vw, 60px);
+  line-height: 1.03;
   letter-spacing: -0.055em;
 }
 .warehouse-hangar-page .page-hero .warehouse-hero__content > p:not(.kicker):not(.hero__note) {
-  max-width: 820px;
-  font-size: 19px;
-  line-height: 1.55;
+  max-width: 760px;
+  font-size: 18px;
+  line-height: 1.5;
   color: #343942;
 }
-.warehouse-hangar-page .page-hero .hero__note { max-width: 760px; }
+.warehouse-hangar-page .page-hero .hero__note {
+  max-width: 720px;
+  margin-top: 18px;
+  padding: 16px 20px;
+}
+
+.warehouse-hangar-page .page-hero .page-links {
+  margin-top: 20px;
+}
 
 .warehouse-hangar-page .warehouse-hero__grid {
   display: grid;
@@ -492,17 +500,18 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 }
 
 .warehouse-hangar-page .warehouse-hero-card {
+  max-width: 430px;
   background: linear-gradient(180deg, rgba(16,18,22,.96), rgba(23,26,32,.94));
   color: #fff;
   border: 1px solid rgba(201,149,75,.24);
   border-radius: 28px;
-  padding: 28px;
+  padding: 26px;
   box-shadow: 0 28px 70px rgba(16,18,22,.20);
 }
 
 .warehouse-hangar-page .warehouse-hero-card h2 {
   color: #fff;
-  font-size: 30px;
+  font-size: 28px;
   line-height: 1.12;
   margin: 0 0 14px;
 }
@@ -517,15 +526,15 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 .warehouse-hangar-page .warehouse-hero-card__checks {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 22px 0;
+  gap: 9px;
+  margin: 20px 0;
 }
 
 .warehouse-hangar-page .warehouse-hero-card__checks li {
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.055);
   border-radius: 14px;
-  padding: 12px;
+  padding: 11px 12px;
   color: rgba(255,255,255,.86);
   font-weight: 700;
   font-size: 14px;
