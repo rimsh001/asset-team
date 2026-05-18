@@ -1338,3 +1338,26 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   .special-equipment-page .special-equipment-final-cta__card p{font-size:16px}
   .special-equipment-page .special-equipment-reason-grid,.special-equipment-page .special-equipment-check-grid,.special-equipment-page .special-equipment-buyer-grid,.special-equipment-page .special-equipment-process-grid,.special-equipment-page .special-equipment-related-grid,.special-equipment-page .special-equipment-final-cta__actions{grid-template-columns:1fr}
 }
+
+/* Inventory leftovers SEO page */
+.inventory-leftovers-page .inventory-leftovers-hero__grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:28px;align-items:stretch}
+.inventory-leftovers-page .inventory-leftovers-hero-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 18px 48px rgba(17,19,24,.08)}
+.inventory-leftovers-page .inventory-leftovers-hero-card ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;list-style:none;padding:0;margin:16px 0}
+.inventory-leftovers-page .inventory-leftovers-hero-card li{background:rgba(250,244,231,.9);border:1px solid rgba(214,198,172,.7);border-radius:12px;padding:10px 12px;font-weight:600}
+.inventory-leftovers-page .inventory-leftovers-hero-card__note{margin:0;color:var(--muted)}
+.inventory-leftovers-page .inventory-leftovers-type-grid,
+.inventory-leftovers-page .inventory-leftovers-reason-grid,
+.inventory-leftovers-page .inventory-leftovers-check-grid,
+.inventory-leftovers-page .inventory-leftovers-buyer-grid,
+.inventory-leftovers-page .inventory-leftovers-process-grid,
+.inventory-leftovers-page .inventory-leftovers-related-grid{margin-top:24px}
+.inventory-leftovers-page .inventory-leftovers-need-section .rich-text{background:rgba(255,255,255,.6);border:1px solid rgba(222,214,198,.8);border-radius:22px;padding:28px}
+.inventory-leftovers-page .inventory-leftovers-reason-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.inventory-leftovers-page .inventory-leftovers-reason-grid article{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
+.inventory-leftovers-page .inventory-leftovers-reason-grid span{font-family:var(--mono);font-weight:700;color:var(--gold2)}
+.inventory-leftovers-page .inventory-leftovers-final-cta{padding-top:72px;padding-bottom:72px}
+.inventory-leftovers-page .inventory-leftovers-final-cta__card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.24);border-radius:20px;padding:24px}
+.inventory-leftovers-page .inventory-leftovers-final-cta__actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}
+.inventory-leftovers-page .inventory-leftovers-final-cta__actions .btn{justify-content:center}
+@media(max-width:1020px){.inventory-leftovers-page .inventory-leftovers-hero__grid{grid-template-columns:1fr}.inventory-leftovers-page .inventory-leftovers-reason-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.inventory-leftovers-page .inventory-leftovers-hero-card ul{grid-template-columns:1fr}.inventory-leftovers-page .inventory-leftovers-reason-grid{grid-template-columns:1fr}.inventory-leftovers-page .inventory-leftovers-final-cta__actions{grid-template-columns:1fr}}
