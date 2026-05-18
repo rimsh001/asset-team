@@ -312,3 +312,58 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   body.page-prod-base .cards .card h3{font-size:18px}
   body.page-prod-base .section .rich-text{padding:18px}
 }
+
+/* Warehouse and hangar SEO page visual improvements */
+.warehouse-hangar-page .section .container{max-width:1200px}
+.warehouse-hangar-page .seo-card-grid,
+.warehouse-hangar-page .seo-check-grid,
+.warehouse-hangar-page .seo-buyer-grid,
+.warehouse-hangar-page .seo-related-grid{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.warehouse-hangar-page .seo-card-grid--compact{grid-template-columns:repeat(3,minmax(0,1fr))}
+.warehouse-hangar-page .seo-card-grid article,
+.warehouse-hangar-page .seo-reason-grid article,
+.warehouse-hangar-page .seo-check-grid article,
+.warehouse-hangar-page .seo-buyer-grid article{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 10px 24px rgba(17,19,24,.06)}
+.warehouse-hangar-page .seo-card-grid article span,
+.warehouse-hangar-page .seo-reason-grid span,
+.warehouse-hangar-page .seo-process-grid span{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--gold2)}
+.warehouse-hangar-page .seo-card-grid h3,
+.warehouse-hangar-page .seo-check-grid h3,
+.warehouse-hangar-page .seo-buyer-grid h3,
+.warehouse-hangar-page .seo-process-grid h3,
+.warehouse-hangar-page .seo-related-grid h3{font-size:18px;line-height:1.3;margin:8px 0 6px;color:var(--ink)}
+.warehouse-hangar-page .seo-card-grid p,
+.warehouse-hangar-page .seo-reason-grid p,
+.warehouse-hangar-page .seo-check-grid p,
+.warehouse-hangar-page .seo-buyer-grid p,
+.warehouse-hangar-page .seo-document-list li,
+.warehouse-hangar-page .seo-related-grid p{margin:0;color:var(--muted)}
+.warehouse-hangar-page .seo-reason-grid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.warehouse-hangar-page .seo-process-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.warehouse-hangar-page .seo-process-grid li{background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.26);border-radius:16px;padding:16px}
+.warehouse-hangar-page .seo-process-grid h3{color:var(--paper)}
+.warehouse-hangar-page .seo-process-grid p{margin:0;color:rgba(255,255,255,.75)}
+.warehouse-hangar-page .seo-document-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0;list-style:none}
+.warehouse-hangar-page .seo-document-list li{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.warehouse-hangar-page .seo-related-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.warehouse-hangar-page .seo-related-grid a{display:block;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;text-decoration:none;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.warehouse-hangar-page .seo-related-grid a:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 12px 24px rgba(17,19,24,.08)}
+
+@media (max-width:1020px){
+  .warehouse-hangar-page .seo-card-grid,
+  .warehouse-hangar-page .seo-check-grid,
+  .warehouse-hangar-page .seo-buyer-grid,
+  .warehouse-hangar-page .seo-process-grid,
+  .warehouse-hangar-page .seo-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .warehouse-hangar-page .seo-card-grid--compact{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .warehouse-hangar-page .seo-document-list{grid-template-columns:1fr}
+}
+@media (max-width:680px){
+  .warehouse-hangar-page .seo-card-grid,
+  .warehouse-hangar-page .seo-card-grid--compact,
+  .warehouse-hangar-page .seo-reason-grid,
+  .warehouse-hangar-page .seo-check-grid,
+  .warehouse-hangar-page .seo-buyer-grid,
+  .warehouse-hangar-page .seo-process-grid,
+  .warehouse-hangar-page .seo-related-grid{grid-template-columns:1fr}
+}
