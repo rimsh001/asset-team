@@ -773,3 +773,100 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
     grid-template-columns: 1fr;
   }
 }
+
+.production-final-cta {
+  padding-top: 72px;
+  padding-bottom: 64px;
+  background: radial-gradient(circle at 22% 18%, rgba(201,149,75,.10), transparent 34%), linear-gradient(135deg, #101216 0%, #171a20 62%, #0b0d10 100%);
+}
+
+.page-prod-base .production-final-cta .split {
+  grid-template-columns: minmax(0, .78fr) minmax(520px, .92fr);
+  gap: 72px;
+  align-items: center;
+}
+
+.page-prod-base .production-final-cta h2 {
+  max-width: 580px;
+  font-size: clamp(38px, 4vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.055em;
+}
+
+.page-prod-base .production-final-cta__card {
+  max-width: 640px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 22px 54px rgba(0,0,0,.18);
+}
+
+.page-prod-base .production-final-cta__card p {
+  margin: 0;
+  color: rgba(255,255,255,.82);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.page-prod-base .production-final-cta__actions {
+  display: grid;
+  grid-template-columns: 1.05fr 1.15fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.page-prod-base .production-final-cta__actions .btn {
+  width: 100%;
+  min-height: 52px;
+  padding-left: 14px;
+  padding-right: 14px;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.page-prod-base .production-final-cta__actions .btn--line {
+  border-color: rgba(255,255,255,.22);
+  color: #fff;
+  background: rgba(255,255,255,.05);
+}
+
+@media (max-width: 1020px) {
+  .page-prod-base .production-final-cta .split {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .page-prod-base .production-final-cta__card {
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-prod-base .production-final-cta {
+    padding-top: 58px;
+    padding-bottom: 48px;
+  }
+
+  .page-prod-base .production-final-cta h2 {
+    font-size: 34px;
+  }
+
+  .page-prod-base .production-final-cta__card {
+    padding: 22px;
+    border-radius: 20px;
+  }
+
+  .page-prod-base .production-final-cta__card p {
+    font-size: 16px;
+  }
+
+  .page-prod-base .production-final-cta__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .page-prod-base .production-final-cta__actions .btn {
+    width: 100%;
+  }
+}
