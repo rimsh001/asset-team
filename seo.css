@@ -656,3 +656,96 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
     grid-template-columns: 1fr;
   }
 }
+
+/* Warehouse final CTA compact layout */
+.warehouse-hangar-page .warehouse-final-cta {
+  padding-top: 72px;
+  padding-bottom: 58px;
+  background: radial-gradient(circle at 22% 18%, rgba(201,149,75,.10), transparent 34%), linear-gradient(135deg, #101216 0%, #171a20 62%, #0b0d10 100%);
+}
+.warehouse-hangar-page .warehouse-final-cta .split {
+  grid-template-columns: minmax(0, .82fr) minmax(360px, .88fr);
+  gap: 64px;
+  align-items: center;
+}
+.warehouse-hangar-page .warehouse-final-cta h2 {
+  max-width: 560px;
+  font-size: clamp(38px, 4vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.055em;
+}
+.warehouse-hangar-page .warehouse-final-cta__card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 22px 54px rgba(0,0,0,.18);
+}
+.warehouse-hangar-page .warehouse-final-cta__card p {
+  margin: 0;
+  color: rgba(255,255,255,.82);
+  font-size: 18px;
+  line-height: 1.55;
+}
+.warehouse-hangar-page .warehouse-final-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.warehouse-hangar-page .warehouse-final-cta__actions .btn {
+  width: auto;
+}
+.warehouse-hangar-page .warehouse-final-cta__actions .btn--line {
+  border-color: rgba(255,255,255,.22);
+  color: #fff;
+  background: rgba(255,255,255,.05);
+}
+.warehouse-hangar-page .footer {
+  border-top: 1px solid rgba(255,255,255,.08);
+  background: #0b0d10;
+  padding-top: 30px;
+}
+
+@media (max-width: 1020px) {
+  .warehouse-hangar-page .warehouse-final-cta .split {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta h2 {
+    max-width: 720px;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta__card {
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 680px) {
+  .warehouse-hangar-page .warehouse-final-cta {
+    padding-top: 58px;
+    padding-bottom: 48px;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta h2 {
+    font-size: 34px;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta__card {
+    padding: 22px;
+    border-radius: 20px;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta__card p {
+    font-size: 16px;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta__actions {
+    flex-direction: column;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta__actions .btn {
+    width: 100%;
+  }
+}
