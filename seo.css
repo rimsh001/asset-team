@@ -1393,3 +1393,46 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 @media (max-width:1020px){.inventory-leftovers-page .inventory-leftovers-hero__grid{grid-template-columns:1fr;gap:34px}.inventory-leftovers-page .inventory-leftovers-hero-card{max-width:720px}.inventory-leftovers-page .inventory-leftovers-type-grid,.inventory-leftovers-page .inventory-leftovers-buyer-grid,.inventory-leftovers-page .inventory-leftovers-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inventory-leftovers-page .inventory-leftovers-final-cta .split{grid-template-columns:1fr;gap:30px}.inventory-leftovers-page .inventory-leftovers-final-cta__card{max-width:720px}}
 @media (max-width:760px){.inventory-leftovers-page .inventory-leftovers-reason-grid{grid-template-columns:1fr}.inventory-leftovers-page .inventory-leftovers-final-cta__actions{grid-template-columns:1fr}}
 @media (max-width:680px){.inventory-leftovers-page .inventory-leftovers-hero-card{padding:22px;border-radius:22px}.inventory-leftovers-page .inventory-leftovers-hero-card h2{font-size:26px}.inventory-leftovers-page .inventory-leftovers-hero-card__checks,.inventory-leftovers-page .inventory-leftovers-type-grid,.inventory-leftovers-page .inventory-leftovers-check-grid,.inventory-leftovers-page .inventory-leftovers-buyer-grid,.inventory-leftovers-page .inventory-leftovers-process-grid,.inventory-leftovers-page .inventory-leftovers-related-grid{grid-template-columns:1fr}.inventory-leftovers-page .inventory-leftovers-type-grid article,.inventory-leftovers-page .inventory-leftovers-buyer-grid article{min-height:0;padding:18px}}
+
+/* Nonliquid TMC SEO page */
+.nonliquid-tmc-page .nonliquid-tmc-hero__grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:20px;align-items:start}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 18px 46px rgba(17,19,24,.08)}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card h2{font-size:28px;line-height:1.2;margin:0 0 12px}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card p{margin:0 0 14px;color:var(--muted)}
+.nonliquid-tmc-page .nonliquid-tmc-type-grid,
+.nonliquid-tmc-page .nonliquid-tmc-reason-grid,
+.nonliquid-tmc-page .nonliquid-tmc-check-grid,
+.nonliquid-tmc-page .nonliquid-tmc-buyer-grid,
+.nonliquid-tmc-page .nonliquid-tmc-process-grid,
+.nonliquid-tmc-page .nonliquid-tmc-related-grid{display:grid;gap:14px}
+.nonliquid-tmc-page .nonliquid-tmc-type-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.nonliquid-tmc-page .nonliquid-tmc-need-section .rich-text{background:rgba(255,255,255,.64);border:1px solid var(--line);border-radius:20px;padding:24px}
+.nonliquid-tmc-page .nonliquid-tmc-reason-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.nonliquid-tmc-page .nonliquid-tmc-check-grid,.nonliquid-tmc-page .nonliquid-tmc-buyer-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.nonliquid-tmc-page .nonliquid-tmc-process-grid{grid-template-columns:repeat(2,minmax(0,1fr));list-style:none;padding:0;margin:0}
+.nonliquid-tmc-page .nonliquid-tmc-process-grid li{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px}
+.nonliquid-tmc-page .nonliquid-tmc-process-grid h3{margin:0 0 8px;font-size:20px}
+.nonliquid-tmc-page .nonliquid-tmc-related-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.nonliquid-tmc-page .nonliquid-tmc-related-grid a{display:block;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px;text-decoration:none;color:var(--ink)}
+.nonliquid-tmc-page .nonliquid-tmc-related-grid a p{margin:8px 0 0;color:var(--muted)}
+.nonliquid-tmc-page .nonliquid-tmc-final-cta .container{align-items:center}
+.nonliquid-tmc-page .nonliquid-tmc-final-cta__card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:22px}
+.nonliquid-tmc-page .nonliquid-tmc-final-cta__actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.nonliquid-tmc-page .nonliquid-tmc-final-cta__actions .page-link{width:100%}
+@media(max-width:1120px){
+  .nonliquid-tmc-page .nonliquid-tmc-hero__grid{grid-template-columns:1fr}
+  .nonliquid-tmc-page .nonliquid-tmc-type-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-reason-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-check-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-buyer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nonliquid-tmc-page .nonliquid-tmc-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .nonliquid-tmc-page .nonliquid-tmc-type-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-reason-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-check-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-buyer-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-process-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-related-grid,
+  .nonliquid-tmc-page .nonliquid-tmc-final-cta__actions{grid-template-columns:1fr}
+}
