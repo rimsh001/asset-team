@@ -642,6 +642,17 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   }
 }
 
+
+@media (max-width: 900px) {
+  .warehouse-hangar-page .warehouse-final-cta__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta__actions .btn {
+    width: 100%;
+  }
+}
+
 @media (max-width: 680px) {
   .warehouse-hangar-page .warehouse-hero-card {
     padding: 22px;
@@ -688,13 +699,18 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   line-height: 1.55;
 }
 .warehouse-hangar-page .warehouse-final-cta__actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-top: 24px;
 }
 .warehouse-hangar-page .warehouse-final-cta__actions .btn {
-  width: auto;
+  width: 100%;
+  min-height: 52px;
+  padding-left: 16px;
+  padding-right: 16px;
+  text-align: center;
+  white-space: nowrap;
 }
 .warehouse-hangar-page .warehouse-final-cta__actions .btn--line {
   border-color: rgba(255,255,255,.22);
@@ -722,6 +738,17 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   }
 }
 
+
+@media (max-width: 900px) {
+  .warehouse-hangar-page .warehouse-final-cta__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-hangar-page .warehouse-final-cta__actions .btn {
+    width: 100%;
+  }
+}
+
 @media (max-width: 680px) {
   .warehouse-hangar-page .warehouse-final-cta {
     padding-top: 58px;
@@ -742,10 +769,6 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   }
 
   .warehouse-hangar-page .warehouse-final-cta__actions {
-    flex-direction: column;
-  }
-
-  .warehouse-hangar-page .warehouse-final-cta__actions .btn {
-    width: 100%;
+    grid-template-columns: 1fr;
   }
 }
