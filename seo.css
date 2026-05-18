@@ -660,7 +660,7 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 /* Warehouse final CTA compact layout */
 .warehouse-hangar-page .warehouse-final-cta {
   padding-top: 72px;
-  padding-bottom: 58px;
+  padding-bottom: 64px;
   background: radial-gradient(circle at 22% 18%, rgba(201,149,75,.10), transparent 34%), linear-gradient(135deg, #101216 0%, #171a20 62%, #0b0d10 100%);
 }
 .warehouse-hangar-page .warehouse-final-cta .split {
@@ -702,9 +702,9 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   background: rgba(255,255,255,.05);
 }
 .warehouse-hangar-page .footer {
-  border-top: 1px solid rgba(255,255,255,.08);
+  border-top: 1px solid rgba(255,255,255,.10);
   background: #0b0d10;
-  padding-top: 30px;
+  padding-top: 36px;
 }
 
 @media (max-width: 1020px) {
