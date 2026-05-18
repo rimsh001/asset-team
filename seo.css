@@ -491,12 +491,20 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 .warehouse-hangar-page .warehouse-hero__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(340px, .75fr);
-  gap: 54px;
+  gap: 46px;
   align-items: center;
 }
 
 .warehouse-hangar-page .warehouse-hero__content {
   min-width: 0;
+}
+
+.warehouse-hangar-page .page-hero .warehouse-hero__content h1 {
+  margin: 14px 0 16px;
+}
+
+.warehouse-hangar-page .page-hero .warehouse-hero__content > p:not(.kicker) {
+  margin: 0;
 }
 
 .warehouse-hangar-page .warehouse-hero-card {
