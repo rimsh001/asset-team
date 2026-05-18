@@ -1396,9 +1396,14 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 
 /* Nonliquid TMC SEO page */
 .nonliquid-tmc-page .nonliquid-tmc-hero__grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:20px;align-items:start}
-.nonliquid-tmc-page .nonliquid-tmc-hero-card{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 18px 46px rgba(17,19,24,.08)}
-.nonliquid-tmc-page .nonliquid-tmc-hero-card h2{font-size:28px;line-height:1.2;margin:0 0 12px}
-.nonliquid-tmc-page .nonliquid-tmc-hero-card p{margin:0 0 14px;color:var(--muted)}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card{max-width:430px;background:linear-gradient(180deg, rgba(16,18,22,.96), rgba(23,26,32,.94));color:#fff;border:1px solid rgba(201,149,75,.24);border-radius:28px;padding:26px;box-shadow:0 28px 70px rgba(16,18,22,.20)}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card h2{color:#fff;font-size:28px;line-height:1.12;margin:0 0 14px}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card p{color:rgba(255,255,255,.72);font-size:15.5px;line-height:1.5;margin:0}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card__checks{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:20px 0;padding:0;list-style:none}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card__checks li{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:14px;padding:11px 12px;color:rgba(255,255,255,.86);font-weight:700;font-size:14px;line-height:1.25}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card__checks li::before{content:"";display:block;width:22px;height:3px;border-radius:999px;background:var(--gold);margin-bottom:9px}
+.nonliquid-tmc-page .nonliquid-tmc-hero-card__note{border-top:1px solid rgba(255,255,255,.12);padding-top:16px;color:rgba(255,255,255,.78);font-size:14.5px;line-height:1.45}
+.nonliquid-tmc-page .page-hero .hero__note{color:#343942;background:rgba(255,255,255,.58);border-left:3px solid var(--gold);border-radius:0 16px 16px 0;line-height:1.5}
 .nonliquid-tmc-page .nonliquid-tmc-type-grid,
 .nonliquid-tmc-page .nonliquid-tmc-reason-grid,
 .nonliquid-tmc-page .nonliquid-tmc-check-grid,
@@ -1459,6 +1464,7 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 .nonliquid-tmc-page .nonliquid-tmc-buyer-grid h3 { margin:0 0 10px; color:var(--ink); font-size:20px; line-height:1.25; }
 .nonliquid-tmc-page .nonliquid-tmc-buyer-grid p { margin:0; color:#566070; font-size:15.5px; line-height:1.45; }
 
+.nonliquid-tmc-page .nonliquid-tmc-process-section{background:linear-gradient(135deg, #101216 0%, #171a20 62%, #0b0d10 100%)}
 .nonliquid-tmc-page .nonliquid-tmc-process-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; list-style:none; margin:0; padding:0; }
 .nonliquid-tmc-page .nonliquid-tmc-process-grid li { min-height:170px; padding:20px; border-radius:18px; background:rgba(255,255,255,.07); border:1px solid rgba(201,149,75,.22); }
 .nonliquid-tmc-page .nonliquid-tmc-process-grid span { color:var(--gold); font-family:var(--mono); font-size:12px; font-weight:700; }
