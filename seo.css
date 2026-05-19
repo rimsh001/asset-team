@@ -1912,9 +1912,11 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 
 /* Nonprofile assets SEO page */
 .nonprofile-assets-page .nonprofile-assets-hero__grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.75fr);gap:54px;align-items:center}
-.nonprofile-assets-page .nonprofile-assets-hero-card{background:#16110e;border:1px solid rgba(201,149,75,.28);border-radius:22px;padding:28px;color:#f6efe3;box-shadow:0 16px 36px rgba(0,0,0,.22)}
-.nonprofile-assets-page .nonprofile-assets-hero-card h2,.nonprofile-assets-page .nonprofile-assets-hero-card p,.nonprofile-assets-page .nonprofile-assets-hero-card li{color:#f6efe3}
-.nonprofile-assets-page .nonprofile-assets-hero-card ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin:14px 0 0;padding-left:18px}
+.nonprofile-assets-page .nonprofile-assets-hero-card{background:linear-gradient(180deg,rgba(16,18,22,.96),rgba(23,26,32,.94));color:#fff;border:1px solid rgba(201,149,75,.24);border-radius:28px;padding:26px;box-shadow:0 28px 70px rgba(16,18,22,.20)}
+.nonprofile-assets-page .nonprofile-assets-hero-card h2,.nonprofile-assets-page .nonprofile-assets-hero-card p,.nonprofile-assets-page .nonprofile-assets-hero-card li{color:#fff}
+.nonprofile-assets-page .nonprofile-assets-hero-card__checks{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:20px 0;padding:0;list-style:none}
+.nonprofile-assets-page .nonprofile-assets-hero-card__checks li{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:14px;padding:11px 12px;color:rgba(255,255,255,.9);font-weight:700;font-size:14px;line-height:1.25}
+.nonprofile-assets-page .nonprofile-assets-hero-card__checks li::before{content:"";display:block;width:22px;height:3px;border-radius:999px;background:var(--gold);margin-bottom:9px}
 .nonprofile-assets-page .nonprofile-assets-type-grid,.nonprofile-assets-page .nonprofile-assets-reason-grid,.nonprofile-assets-page .nonprofile-assets-check-grid,.nonprofile-assets-page .nonprofile-assets-buyer-grid,.nonprofile-assets-page .nonprofile-assets-related-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
 .nonprofile-assets-page .nonprofile-assets-need-section{}
 .nonprofile-assets-page .nonprofile-assets-reason-grid .card,.nonprofile-assets-page .nonprofile-assets-buyer-grid .card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
