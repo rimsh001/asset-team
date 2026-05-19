@@ -1787,3 +1787,65 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
     font-size: 14.5px;
   }
 }
+
+.nonliquid-tmc-page .nonliquid-tmc-reason-grid article {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: auto;
+  padding: 18px;
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(201,149,75,.30);
+  box-shadow: 0 18px 40px rgba(0,0,0,.18);
+}
+
+.nonliquid-tmc-page .nonliquid-tmc-reason-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nonliquid-tmc-page .nonliquid-tmc-reason-card__head span {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(201,149,75,.20);
+  color: var(--gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.nonliquid-tmc-page .nonliquid-tmc-reason-card__head h3 {
+  margin: 0;
+  color: #ffffff !important;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.nonliquid-tmc-page .nonliquid-tmc-reason-grid article p {
+  margin: 0;
+  color: rgba(255,255,255,.90) !important;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.nonliquid-tmc-page .nonliquid-tmc-buyer-grid article {
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(201,149,75,.30);
+  box-shadow: 0 18px 40px rgba(0,0,0,.18);
+}
+
+.nonliquid-tmc-page .nonliquid-tmc-buyer-grid article h3 {
+  color: #ffffff !important;
+  font-weight: 800;
+}
+
+.nonliquid-tmc-page .nonliquid-tmc-buyer-grid article p {
+  color: rgba(255,255,255,.90) !important;
+}
