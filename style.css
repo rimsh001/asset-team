@@ -10,7 +10,8 @@
 
 .home #packaging .section-head{max-width:980px;margin-bottom:34px}
 .home #packaging .packaging-disclaimer{margin-top:14px;font-size:16px;line-height:1.55;color:#4f5560}
-.home #packaging .packaging-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.home #packaging .packaging-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.home #packaging .packaging-grid > *{width:100%}
 .home #packaging .packaging-grid .card{display:flex;flex-direction:column;align-items:flex-start;padding:24px;min-height:220px;box-shadow:0 14px 34px rgba(16,18,22,.08);transition:transform .22s ease,box-shadow .22s ease}
 .home #packaging .packaging-grid .card:hover{transform:translateY(-2px);box-shadow:0 20px 42px rgba(16,18,22,.14)}
 .home #packaging .packaging-number{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.07em;color:rgba(167,121,55,.95);margin:0 0 6px}
@@ -31,7 +32,7 @@
 .audit-card li{min-height:66px}
 .audit-card__checks li:last-child{min-height:62px}
 
-@media (max-width: 1020px){.home #packaging .packaging-grid{grid-template-columns:1fr}}
+@media (max-width: 760px){.home #packaging .packaging-grid{grid-template-columns:1fr}}
 @media (max-width: 680px){
   .home #packaging{padding-top:70px;padding-bottom:70px}
   .home #packaging .packaging-grid .card{padding:20px;min-height:0}
