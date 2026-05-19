@@ -1582,10 +1582,17 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   border-color: rgba(201, 149, 75, .55);
 }
 
+.nonliquid-tmc-page .nonliquid-tmc-reason-grid {
+  gap: 14px;
+}
+
 .nonliquid-tmc-page .nonliquid-tmc-reason-grid article {
   background: rgba(255, 255, 255, .085);
   border: 1px solid rgba(201, 149, 75, .28);
   box-shadow: 0 18px 40px rgba(0, 0, 0, .18);
+  padding: 18px 18px 16px;
+  min-height: 136px;
+  align-content: start;
 }
 
 .nonliquid-tmc-page .nonliquid-tmc-reason-grid span {
@@ -1594,9 +1601,10 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
 }
 
 .nonliquid-tmc-page .nonliquid-tmc-reason-grid p {
-  color: rgba(255, 255, 255, .80);
-  font-size: 16px;
-  line-height: 1.5;
+  color: rgba(255, 255, 255, .82);
+  font-size: 15px;
+  line-height: 1.42;
+  margin: 0;
 }
 
 .nonliquid-tmc-page .nonliquid-tmc-reason-grid strong {
@@ -1604,23 +1612,49 @@ body.page-prod-base .related-nav a:hover{border-color:rgba(201,149,75,.45);box-s
   font-weight: 800;
 }
 
+.nonliquid-tmc-page .nonliquid-tmc-buyer-grid {
+  gap: 14px;
+}
+
 .nonliquid-tmc-page .nonliquid-tmc-buyer-grid article {
-  background: rgba(255, 255, 255, .085);
+  background: rgba(255, 255, 255, .10);
   border: 1px solid rgba(201, 149, 75, .28);
   box-shadow: 0 18px 40px rgba(0, 0, 0, .18);
+  padding: 18px 18px 16px;
 }
 
 .nonliquid-tmc-page .nonliquid-tmc-buyer-grid h3 {
   color: #fff;
   font-size: 20px;
-  line-height: 1.25;
+  line-height: 1.24;
   font-weight: 800;
+  margin-bottom: 10px;
 }
 
 .nonliquid-tmc-page .nonliquid-tmc-buyer-grid p {
-  color: rgba(255, 255, 255, .80);
-  font-size: 15.5px;
+  color: rgba(255, 255, 255, .82);
+  font-size: 15px;
   line-height: 1.45;
+  margin: 0;
+}
+
+@media (max-width: 1020px) {
+  .nonliquid-tmc-page .nonliquid-tmc-reason-grid article {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .nonliquid-tmc-page .nonliquid-tmc-buyer-grid article {
+    padding: 16px;
+  }
+
+  .nonliquid-tmc-page .nonliquid-tmc-buyer-grid h3 {
+    font-size: 18px;
+  }
+
+  .nonliquid-tmc-page .nonliquid-tmc-buyer-grid p {
+    font-size: 14.5px;
+  }
 }
 
 .nonliquid-tmc-page .nonliquid-tmc-process-section {
