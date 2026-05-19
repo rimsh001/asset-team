@@ -28,6 +28,19 @@
 }
 
 
+/* Remove residual divider between packaging and assets sections on homepage */
+.home #packaging{border-bottom:0}
+.home #packaging + #services.anchor-offset{
+  display:block;
+  position:relative;
+  height:0;
+  overflow:hidden;
+  margin:0;
+  padding:0;
+}
+.home #services.anchor-offset + #assets.asset-work-section{border-top:0}
+
+
 .audit-card h2{font-size:34px;line-height:1.05}
 .audit-card li b{font-size:15.5px;line-height:1.25}
 .audit-card li span{font-size:13.2px;line-height:1.32}
