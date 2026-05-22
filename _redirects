@@ -12,8 +12,13 @@
 /product/* / 301
 /collection/* / 301
 /page/about-us /contacts.html 301
+/page/about-us/ /contacts.html 301
+/page/contact /contacts.html 301
+/page/contact/ /contacts.html 301
 /page/contacts /contacts.html 301
+/page/contacts/ /contacts.html 301
 /page/terms-of-use /privacy.html 301
+/page/terms-of-use/ /privacy.html 301
 /page/realizaciya-imushchestva-biznesa.html /realizaciya-imushchestva-biznesa.html 301
 /page/prodazha-neprofilnyh-aktivov.html /prodazha-neprofilnyh-aktivov.html 301
 /page/prodazha-oborudovaniya.html /prodazha-oborudovaniya.html 301
