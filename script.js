@@ -97,6 +97,12 @@
   const year = $('#year');
   const form = $('#asset-form');
 
+  $$('nav a[href$="#problem"]').forEach((link) => {
+    if (link.textContent.trim() === 'Проблема') {
+      link.textContent = 'Почему не продаётся';
+    }
+  });
+
   if (year) year.textContent = new Date().getFullYear();
 
   if (form) {
