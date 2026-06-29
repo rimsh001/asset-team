@@ -61,6 +61,37 @@ function max_extract_sender_user_id(array $update): ?string
     return max_find_first_value($update, ['user_id', 'sender_id', 'from_id']);
 }
 
+
+function max_extract_message_unique_id(array $update): string
+{
+    $paths = [
+        ['message', 'body', 'mid'],
+        ['message', 'body', 'seq'],
+        ['message', 'mid'],
+        ['body', 'mid'],
+        ['mid'],
+        ['message', 'timestamp'],
+    ];
+
+    foreach ($paths as $path) {
+        $value = $update;
+        foreach ($path as $key) {
+            if (!is_array($value) || !array_key_exists($key, $value)) {
+                $value = null;
+                break;
+            }
+            $value = $value[$key];
+        }
+
+        if (is_scalar($value) && trim((string)$value) !== '') {
+            return trim((string)$value);
+        }
+    }
+
+    return '';
+}
+
+
 function max_normalize(string $text): string
 {
     return str_replace('ё', 'е', mb_strtolower($text, 'UTF-8'));
@@ -385,6 +416,10 @@ function max_build_client_reply(array $session, string $text): string
         return "Здравствуйте. Чтобы запустить первичный разбор, напишите одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Площадь или объём\n4. Ориентировочную цену\n5. Сколько времени продаётся\n\nДля связи достаточно этого чата в MAX.";
     }
     if (max_is_full_lead_ready($lead)) {
+        if (!empty($session['full_notice_sent'])) {
+            return "Спасибо, дополнил карточку объекта и передал информацию в рабочую группу A&A Asset Team.\n\nЕсли появятся ещё материалы — фото, документы, ссылка или уточнения по цене — отправьте их сюда.";
+        }
+
         return "Спасибо. Карточку объекта собрал и передал в рабочую группу A&A Asset Team.\n\nСледующий шаг — специалист посмотрит вводные и вернётся с уточнениями по документам, материалам, цене, упаковке и маршруту реализации.";
     }
 
@@ -410,7 +445,7 @@ function max_operator_question(string $missing): string
 
 function max_format_operator_hint(?string $chatId, array $lead): string
 {
-    if (!$chatId) return 'MAX Chat ID не найден, ответить командой /max пока нельзя.';
+    if (!$chatId) return 'MAX user ID не найден, ответить командой /max пока нельзя.';
     $missing = max_admin_missing_fields($lead);
     $question = max_operator_question($missing[0] ?? 'документы не уточнены');
     return '/max ' . $chatId . ' Приняли заявку. Начинаем первичный разбор. Уточните, пожалуйста: ' . $question;
@@ -425,6 +460,10 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
     $username = max_find_first_value($update, ['username', 'login', 'nick']);
     $missing = max_admin_missing_fields($lead);
 
+    $replyId = $userId ?: $chatId;
+    $dialogChatId = max_find_first_value($update, ['chat_id']);
+    if ($dialogChatId === $replyId) $dialogChatId = null;
+
     $lines = [$title, ''];
     if ($userName) $lines[] = 'Пользователь: ' . $userName;
     if ($username) {
@@ -432,8 +471,8 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
         $lines[] = 'MAX username: @' . $usernameClean;
         $lines[] = 'Профиль MAX: https://max.ru/' . $usernameClean;
     }
-    if ($userId) $lines[] = 'MAX user ID: ' . $userId;
-    if ($chatId) $lines[] = 'MAX Chat ID: ' . $chatId;
+    if ($replyId) $lines[] = 'MAX user ID для ответа: ' . $replyId;
+    if ($dialogChatId) $lines[] = 'MAX dialog/chat ID: ' . $dialogChatId;
     $lines[] = '';
     $lines[] = 'Карточка лида:';
     $lines[] = max_format_lead_summary($lead);
@@ -445,7 +484,7 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
     }
     $lines[] = '';
     $lines[] = 'Команда ответа клиенту:';
-    $lines[] = max_format_operator_hint($chatId, $lead);
+    $lines[] = max_format_operator_hint($replyId, $lead);
     $lines[] = 'Эту команду можно отправить в Telegram-группе или в MAX-админ-чате, если настроен max_admin_chat_id.';
     $lines[] = '';
     $lines[] = 'Текст клиента:';
@@ -462,6 +501,42 @@ function max_notice_hash(string $title, array $lead, string $text): string
 {
     return hash('sha256', $title . '|' . json_encode($lead, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '|' . $text);
 }
+
+
+function max_send_telegram_notice_threaded(array $config, string $telegramLeadsChatId, string $notice, array &$session): void
+{
+    $threadMessageId = (int)($session['telegram_thread_message_id'] ?? 0);
+
+    $payload = [
+        'chat_id' => $telegramLeadsChatId,
+        'text' => $notice,
+        'disable_web_page_preview' => true,
+    ];
+
+    if ($threadMessageId > 0) {
+        $payload['reply_to_message_id'] = $threadMessageId;
+        $payload['allow_sending_without_reply'] = true;
+    }
+
+    $result = telegram_api($config, 'sendMessage', $payload);
+
+    bot_log('max_telegram_notice_threaded', [
+        'telegram_chat_id' => $telegramLeadsChatId,
+        'thread_message_id' => $threadMessageId,
+        'status' => $result['status'] ?? 0,
+        'error' => $result['error'] ?? '',
+        'response' => $result['response'] ?? null,
+    ]);
+
+    if ($threadMessageId <= 0 && (int)($result['status'] ?? 0) >= 200 && (int)($result['status'] ?? 0) < 300) {
+        $data = json_decode((string)($result['response'] ?? ''), true);
+        $messageId = $data['result']['message_id'] ?? null;
+        if ($messageId) {
+            $session['telegram_thread_message_id'] = (int)$messageId;
+        }
+    }
+}
+
 
 function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId, array $incoming, string $text, array $update, array &$session, array $prevLead): void
 {
@@ -489,7 +564,7 @@ function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId
     if ($title === null) return;
     $hash = max_notice_hash($title, $lead, $text);
     if (($session['last_notice_hash'] ?? '') === $hash) return;
-    telegram_send_message($config, $telegramLeadsChatId, max_format_admin_notice($title, $incoming, $text, $update, $session, $extra));
+    max_send_telegram_notice_threaded($config, $telegramLeadsChatId, max_format_admin_notice($title, $incoming, $text, $update, $session, $extra), $session);
     $session['last_notice_hash'] = $hash;
     $session = max_mark_current_fields_notified($session);
 }
@@ -561,6 +636,24 @@ if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedTe
 }
 
 $session = max_load_session($chatId);
+
+$messageUniqueId = max_extract_message_unique_id($update);
+if ($messageUniqueId !== '') {
+    $processedMessageIds = is_array($session['processed_message_ids'] ?? null) ? $session['processed_message_ids'] : [];
+
+    if (in_array($messageUniqueId, $processedMessageIds, true)) {
+        bot_log('max_duplicate_message_ignored', [
+            'chat_id' => $chatId,
+            'message_id' => $messageUniqueId,
+        ]);
+        max_finish_webhook();
+        exit;
+    }
+
+    $processedMessageIds[] = $messageUniqueId;
+    $session['processed_message_ids'] = array_slice(array_values(array_unique($processedMessageIds)), -100);
+}
+
 $session = max_add_client_message($session, $text !== '' ? $text : '[без текста]');
 $prevLead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
 $patch = max_extract_patch($text);

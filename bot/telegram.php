@@ -102,6 +102,88 @@ function telegram_max_send_message_fast(array $config, string $maxChatId, string
     return $lastResult;
 }
 
+
+function telegram_group_session_path(string $clientChatId): string
+{
+    $dir = __DIR__ . '/sessions/telegram';
+    if (!is_dir($dir)) @mkdir($dir, 0755, true);
+    return $dir . '/' . hash('sha256', $clientChatId) . '.json';
+}
+
+function telegram_group_load_session(string $clientChatId): array
+{
+    $path = telegram_group_session_path($clientChatId);
+    if (!is_file($path)) return [];
+
+    $raw = file_get_contents($path);
+    $data = is_string($raw) ? json_decode($raw, true) : null;
+
+    return is_array($data) ? $data : [];
+}
+
+function telegram_group_save_session(string $clientChatId, array $session): void
+{
+    $session['updated_at'] = date('c');
+    @file_put_contents(
+        telegram_group_session_path($clientChatId),
+        json_encode($session, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+        LOCK_EX
+    );
+}
+
+function telegram_send_admin_notice_threaded(array $config, string $telegramLeadsChatId, string $clientChatId, string $notice): void
+{
+    $session = telegram_group_load_session($clientChatId);
+    $threadMessageId = (int)($session['telegram_thread_message_id'] ?? 0);
+
+    $payload = [
+        'chat_id' => $telegramLeadsChatId,
+        'text' => $notice,
+        'disable_web_page_preview' => true,
+    ];
+
+    if ($threadMessageId > 0) {
+        $payload['reply_to_message_id'] = $threadMessageId;
+        $payload['allow_sending_without_reply'] = true;
+    }
+
+    $result = telegram_api($config, 'sendMessage', $payload);
+
+    bot_log('telegram_admin_notice_threaded', [
+        'client_chat_id' => $clientChatId,
+        'telegram_chat_id' => $telegramLeadsChatId,
+        'thread_message_id' => $threadMessageId,
+        'status' => $result['status'] ?? 0,
+        'error' => $result['error'] ?? '',
+        'response' => $result['response'] ?? null,
+    ]);
+
+    if ($threadMessageId <= 0 && (int)($result['status'] ?? 0) >= 200 && (int)($result['status'] ?? 0) < 300) {
+        $data = json_decode((string)($result['response'] ?? ''), true);
+        $messageId = $data['result']['message_id'] ?? null;
+        if ($messageId) {
+            $session['telegram_thread_message_id'] = (int)$messageId;
+        }
+    }
+
+    telegram_group_save_session($clientChatId, $session);
+}
+
+
+
+function telegram_format_history(array $messages): string
+{
+    $items = array_slice($messages, -5);
+    $lines = [];
+    foreach ($items as $i => $item) {
+        $text = trim((string)($item['text'] ?? ''));
+        if ($text === '') continue;
+        $lines[] = ($i + 1) . ') ' . $text;
+    }
+    return $lines ? implode("\n", $lines) : 'нет истории';
+}
+
+
 $config = bot_load_config();
 
 $secret = trim((string)($config['telegram_webhook_secret'] ?? ''));
@@ -138,7 +220,7 @@ if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', $
     $messageToClient = trim($matches[2]);
 
     if ($messageToClient === '') {
-        telegram_reply_via_webhook($chatId, "Не вижу текст ответа. Формат:\n/max MAX_CHAT_ID текст сообщения клиенту");
+        telegram_reply_via_webhook($chatId, "Не вижу текст ответа. Формат:\n/max MAX_USER_ID текст сообщения клиенту");
         exit;
     }
 
@@ -148,13 +230,13 @@ if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', $
     $status = (int)($sendResult['status'] ?? 0);
 
     if ($status >= 200 && $status < 300) {
-        telegram_send_message($config, $chatId, "Ответ отправлен в MAX чат {$maxChatId}.");
+        telegram_send_message($config, $chatId, "Ответ отправлен в MAX user ID {$maxChatId}.");
     } else {
         $errorText = trim((string)($sendResult['error'] ?? ''));
         $responseText = trim((string)($sendResult['response'] ?? ''));
         $details = $errorText !== '' ? $errorText : $responseText;
         $details = $details !== '' ? "\nДетали: " . mb_substr($details, 0, 500) : '';
-        telegram_send_message($config, $chatId, "Не удалось отправить ответ в MAX чат {$maxChatId}. Статус: {$status}.{$details}");
+        telegram_send_message($config, $chatId, "Не удалось отправить ответ в MAX user ID {$maxChatId}. Статус: {$status}.{$details}");
     }
 
     bot_log('telegram_max_reply_command', [
@@ -172,18 +254,52 @@ if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedTe
     exit;
 }
 
-$hasEnoughData = (bool)preg_match('/база|склад|ангар|помещен|недвиж|земл|участ|оборуд|станок|техник|спецтех|тмц|остат|кран|погруз|авто|актив/u', $normalizedText)
+$clientSession = telegram_group_load_session((string)$chatId);
+
+$messages = is_array($clientSession['messages'] ?? null) ? $clientSession['messages'] : [];
+$messages[] = [
+    'text' => $trimmedText !== '' ? $trimmedText : '[без текста]',
+    'at' => date('c'),
+];
+$clientSession['messages'] = array_slice($messages, -20);
+
+$messageHasLead = (bool)preg_match('/база|склад|ангар|помещен|недвиж|земл|участ|оборуд|станок|техник|спецтех|тмц|остат|кран|погруз|авто|актив/u', $normalizedText)
     && (bool)preg_match('/\d+\s*(млн|тыс|руб|₽|р\b)|цена|стоим/u', $normalizedText);
 
+$hadLeadBefore = !empty($clientSession['lead_ready']);
+
+if ($messageHasLead) {
+    $clientSession['lead_ready'] = true;
+    $clientSession['lead_text'] = $trimmedText;
+}
+
+$hasEnoughData = $messageHasLead || !empty($clientSession['lead_ready']);
+$isSupplement = $hadLeadBefore && !$messageHasLead;
+
 if ($hasEnoughData) {
-    $replyText = "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\nЕсли есть фото, документы или ссылка на объявление — отправьте их следующим сообщением.";
+    if ($isSupplement) {
+        $replyText = "Спасибо, дополнил заявку и передал информацию в рабочую группу A&A Asset Team.\n\nЕсли появятся ещё фото, документы, ссылка или уточнения — отправьте их следующим сообщением.";
+    } else {
+        $replyText = "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\nЕсли есть фото, документы или ссылка на объявление — отправьте их следующим сообщением.";
+    }
 } else {
     $replyText = "Принял. Чтобы передать заявку в работу, добавьте одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Желаемую цену\n4. Есть ли фото, документы или ссылка\n5. Удобный контакт для связи";
 }
 
 telegram_reply_via_webhook($chatId, $replyText);
 
-$adminNotice = bot_format_admin_notice('Telegram', $chatId, $userName, $text !== '' ? $text : '[без текста]', $update);
+if ($isSupplement) {
+    $adminNotice = "📎 ДОПОЛНЕНИЕ К ЗАЯВКЕ ИЗ Telegram\n\n" .
+        ($userName ? "Пользователь: {$userName}\n" : '') .
+        "Chat ID: {$chatId}\n\n" .
+        "Новое сообщение:\n" . ($text !== '' ? $text : '[без текста]') . "\n\n" .
+        "История последних сообщений:\n" . telegram_format_history($clientSession['messages']) . "\n\n" .
+        "Время: " . date('d.m.Y H:i:s') . "\n";
+} else {
+    $adminNotice = bot_format_admin_notice('Telegram', $chatId, $userName, $text !== '' ? $text : '[без текста]', $update);
+}
+
+telegram_group_save_session((string)$chatId, $clientSession);
 
 $telegramLeadsChatId = trim((string)($config['telegram_leads_chat_id'] ?? ''));
 if ($telegramLeadsChatId === '') {
@@ -191,5 +307,5 @@ if ($telegramLeadsChatId === '') {
 }
 
 if ($telegramLeadsChatId !== '' && !str_contains($telegramLeadsChatId, 'PASTE_')) {
-    telegram_send_message($config, $telegramLeadsChatId, $adminNotice);
+    telegram_send_admin_notice_threaded($config, $telegramLeadsChatId, (string)$chatId, $adminNotice);
 }

@@ -76,11 +76,15 @@ function bot_http_post_json(string $url, array $payload, array $headers = []): a
     ];
 
     $ch = curl_init($url);
+    if (str_contains($url, 'api.telegram.org')) {
+    }
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CONNECTTIMEOUT => 10,
         CURLOPT_TIMEOUT => 25,
+        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+        CURLOPT_RESOLVE => ['api.telegram.org:443:149.154.166.110'],
         CURLOPT_HTTPHEADER => array_merge($defaultHeaders, $headers),
         CURLOPT_POSTFIELDS => $body,
     ]);
@@ -155,6 +159,75 @@ function bot_send_email(array $config, string $subject, string $body): void
     @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
 }
 
+
+function telegram_api_via_system_curl_multi(string $url, array $payload): array
+{
+    $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($body === false) {
+        $body = '{}';
+    }
+
+    $tmp = tempnam(sys_get_temp_dir(), 'tg_payload_');
+    if ($tmp === false) {
+        return ['status' => 0, 'error' => 'Failed to create temp payload file', 'response' => null];
+    }
+
+    file_put_contents($tmp, $body);
+
+    $ips = [
+        '149.154.166.110',
+        '149.154.167.220',
+        '149.154.167.99',
+        '149.154.167.50',
+        '149.154.167.51',
+        '149.154.167.91',
+    ];
+
+    $last = ['status' => 0, 'error' => 'Telegram attempts were not executed', 'response' => null];
+
+    foreach ($ips as $ip) {
+        $cmd = 'curl -4 -sS --connect-timeout 7 --max-time 20 '
+            . '--resolve ' . escapeshellarg('api.telegram.org:443:' . $ip) . ' '
+            . '-H ' . escapeshellarg('Content-Type: application/json') . ' '
+            . '-w ' . escapeshellarg("\nHTTP_STATUS:%{http_code}") . ' '
+            . '-X POST --data-binary @' . escapeshellarg($tmp) . ' '
+            . escapeshellarg($url) . ' 2>&1';
+
+        $output = (string)shell_exec($cmd);
+
+        $status = 0;
+        $response = $output;
+        $marker = "\nHTTP_STATUS:";
+        $pos = strrpos($output, $marker);
+        if ($pos !== false) {
+            $response = substr($output, 0, $pos);
+            $status = (int)substr($output, $pos + strlen($marker));
+        }
+
+        bot_log('telegram_system_curl_multi', [
+            'ip' => $ip,
+            'url' => bot_mask_url($url),
+            'status' => $status,
+            'response' => $response,
+        ]);
+
+        $last = [
+            'status' => $status,
+            'error' => $status >= 200 && $status < 300 ? '' : trim($response),
+            'response' => $response,
+        ];
+
+        if ($status >= 200 && $status < 300) {
+            @unlink($tmp);
+            return $last;
+        }
+    }
+
+    @unlink($tmp);
+    return $last;
+}
+
+
 function telegram_api(array $config, string $method, array $payload): array
 {
     $token = trim((string)($config['telegram_bot_token'] ?? ''));
@@ -163,7 +236,8 @@ function telegram_api(array $config, string $method, array $payload): array
         return ['status' => 0, 'error' => 'Missing Telegram token', 'response' => null];
     }
 
-    return bot_http_post_json("https://api.telegram.org/bot{$token}/{$method}", $payload);
+    $url = "https://api.telegram.org/bot{$token}/{$method}";
+    return telegram_api_via_system_curl_multi($url, $payload);
 }
 
 function telegram_send_message(array $config, string $chatId, string $text): array
@@ -282,6 +356,13 @@ function max_extract_message(array $update): array
 
         if (isset($message['sender']) && is_array($message['sender'])) {
             $sender = $message['sender'];
+
+            if (isset($sender['user_id']) && trim((string)$sender['user_id']) !== '') {
+                $chatId = (string)$sender['user_id'];
+            } elseif (isset($sender['id']) && trim((string)$sender['id']) !== '') {
+                $chatId = (string)$sender['id'];
+            }
+
             $userName = trim((string)($sender['name'] ?? $sender['username'] ?? $sender['user_id'] ?? '')) ?: null;
         }
     }
