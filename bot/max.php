@@ -475,6 +475,7 @@ function max_format_lead_summary(array $lead): string
 
 function max_build_client_reply(array $session, string $text): string
 {
+    if (!empty($session['operator_mode']) || !empty($session['bot_paused'])) return '';
     if (!empty($session['operator_mode'])) return '';
     $lead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
     $missing = max_core_missing_fields($lead);
@@ -553,9 +554,8 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
         foreach ($extraLines as $line) $lines[] = $line;
     }
     $lines[] = '';
-    $lines[] = 'Команда ответа клиенту:';
-    $lines[] = max_format_operator_hint($replyId, $lead);
-    $lines[] = 'Эту команду можно отправить в Telegram-группе или в MAX-админ-чате, если настроен max_admin_chat_id.';
+    $lines[] = 'Ответ клиенту:';
+    $lines[] = 'Нажмите кнопку «💬 Ответить клиенту» под этой карточкой, затем отправляйте сообщения командой /to текст.';
     $lines[] = '';
     $lines[] = 'Текст клиента:';
     $lines[] = $messageForHistory;
@@ -577,11 +577,25 @@ function max_send_telegram_notice_threaded(array $config, string $telegramLeadsC
 {
     $threadMessageId = (int)($session['telegram_thread_message_id'] ?? 0);
 
+    $clientIdForButton = trim((string)($session['client_chat_id'] ?? ''));
     $payload = [
         'chat_id' => $telegramLeadsChatId,
         'text' => $notice,
         'disable_web_page_preview' => true,
     ];
+
+    if ($clientIdForButton !== '') {
+        $payload['reply_markup'] = [
+            'inline_keyboard' => [
+                [
+                    [
+                        'text' => '💬 Ответить клиенту',
+                        'callback_data' => 'reply_client|max|' . $clientIdForButton,
+                    ],
+                ],
+            ],
+        ];
+    }
 
     if ($threadMessageId > 0) {
         $payload['reply_to_message_id'] = $threadMessageId;

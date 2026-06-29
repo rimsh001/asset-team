@@ -154,6 +154,16 @@ function telegram_send_admin_notice_threaded(array $config, string $telegramLead
         'chat_id' => $telegramLeadsChatId,
         'text' => $notice,
         'disable_web_page_preview' => true,
+        'reply_markup' => [
+            'inline_keyboard' => [
+                [
+                    [
+                        'text' => '💬 Ответить клиенту',
+                        'callback_data' => 'reply_client|telegram|' . $clientChatId,
+                    ],
+                ],
+            ],
+        ],
     ];
 
     if ($threadMessageId > 0) {
@@ -378,7 +388,45 @@ function telegram_handle_live_chat_operator_reply(array $config, string $operato
 {
     if (telegram_update_from_is_bot($update)) return false;
 
-    if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+/us', trim($text))) {
+    
+$telegramLeadsChatIdButtons = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+if ($telegramLeadsChatIdButtons === '') {
+    $telegramLeadsChatIdButtons = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+}
+
+if (($update['callback_query'] ?? null) && $telegramLeadsChatIdButtons !== '') {
+    if (telegram_handle_reply_button_callback($config, $update, $telegramLeadsChatIdButtons)) {
+        exit;
+    }
+}
+
+if ($telegramLeadsChatIdButtons !== '' && (string)$chatId === (string)$telegramLeadsChatIdButtons) {
+    if (telegram_handle_operator_to_command($config, $update, (string)$chatId, $trimmedText)) {
+        exit;
+    }
+}
+
+
+$telegramLeadsChatIdButtonsV2 = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+if ($telegramLeadsChatIdButtonsV2 === '') {
+    $telegramLeadsChatIdButtonsV2 = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+}
+
+if (($update['callback_query'] ?? null) && $telegramLeadsChatIdButtonsV2 !== '') {
+    if (telegram_handle_reply_button_callback($config, $update, $telegramLeadsChatIdButtonsV2)) {
+        bot_ok();
+        exit;
+    }
+}
+
+if ($telegramLeadsChatIdButtonsV2 !== '' && (string)$chatId === (string)$telegramLeadsChatIdButtonsV2) {
+    if (telegram_handle_operator_to_command($config, $update, (string)$chatId, $trimmedText)) {
+        bot_ok();
+        exit;
+    }
+}
+
+if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+/us', trim($text))) {
         return false;
     }
 
@@ -440,6 +488,244 @@ function telegram_handle_live_chat_operator_reply(array $config, string $operato
     $details = $details !== '' ? "\nДетали: " . mb_substr($details, 0, 500) : '';
 
     telegram_send_message($config, $operatorChatId, "Не удалось отправить сообщение клиенту. Статус: {$status}.{$details}");
+    return true;
+}
+
+
+function telegram_answer_callback_query(array $config, string $callbackQueryId, string $text = ''): void
+{
+    if ($callbackQueryId === '') return;
+
+    telegram_api($config, 'answerCallbackQuery', [
+        'callback_query_id' => $callbackQueryId,
+        'text' => $text,
+        'show_alert' => false,
+    ]);
+}
+
+function telegram_operator_id_from_update(array $update): string
+{
+    $from = $update['callback_query']['from'] ?? (telegram_update_message($update)['from'] ?? []);
+    return trim((string)($from['id'] ?? '')) ?: 'unknown';
+}
+
+function telegram_operator_state_path(string $operatorId): string
+{
+    $dir = __DIR__ . '/sessions/operators';
+    if (!is_dir($dir)) @mkdir($dir, 0755, true);
+    return $dir . '/' . hash('sha256', $operatorId) . '.json';
+}
+
+function telegram_operator_load_state(string $operatorId): array
+{
+    $path = telegram_operator_state_path($operatorId);
+    if (!is_file($path)) return [];
+
+    $raw = file_get_contents($path);
+    $data = is_string($raw) ? json_decode($raw, true) : null;
+
+    return is_array($data) ? $data : [];
+}
+
+function telegram_operator_save_state(string $operatorId, array $state): void
+{
+    $state['operator_id'] = $operatorId;
+    $state['updated_at'] = date('c');
+
+    @file_put_contents(
+        telegram_operator_state_path($operatorId),
+        json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+        LOCK_EX
+    );
+}
+
+function telegram_operator_clear_state(string $operatorId): void
+{
+    $path = telegram_operator_state_path($operatorId);
+    if (is_file($path)) @unlink($path);
+}
+
+function telegram_find_client_session_for_operator(string $source, string $clientId): array
+{
+    $source = $source === 'telegram' ? 'telegram' : 'max';
+    $path = __DIR__ . '/sessions/' . $source . '/' . hash('sha256', $clientId) . '.json';
+
+    $session = [];
+    if (is_file($path)) {
+        $raw = file_get_contents($path);
+        $data = is_string($raw) ? json_decode($raw, true) : null;
+        if (is_array($data)) $session = $data;
+    }
+
+    $session['source'] = $source;
+    $session['client_chat_id'] = $clientId;
+
+    return [
+        'source' => $source,
+        'client_chat_id' => $clientId,
+        'file' => $path,
+        'session' => $session,
+    ];
+}
+
+function telegram_set_client_operator_mode(array $client, bool $enabled): void
+{
+    $session = is_array($client['session'] ?? null) ? $client['session'] : [];
+
+    $session['source'] = $client['source'];
+    $session['client_chat_id'] = $client['client_chat_id'];
+    $session['operator_mode'] = $enabled;
+    $session['bot_paused'] = $enabled;
+    $session['updated_at'] = date('c');
+
+    if ($enabled) {
+        $session['operator_started_at'] = $session['operator_started_at'] ?? date('c');
+    } else {
+        $session['operator_closed_at'] = date('c');
+    }
+
+    @file_put_contents(
+        (string)$client['file'],
+        json_encode($session, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+        LOCK_EX
+    );
+}
+
+function telegram_send_operator_text_to_client(array $config, string $source, string $clientId, string $text): array
+{
+    $text = trim($text);
+    if ($text === '') {
+        return ['status' => 0, 'error' => 'Empty message', 'response' => null];
+    }
+
+    if ($source === 'telegram') {
+        return telegram_api($config, 'sendMessage', [
+            'chat_id' => $clientId,
+            'text' => $text,
+            'disable_web_page_preview' => true,
+        ]);
+    }
+
+    return telegram_max_send_message_fast($config, $clientId, $text);
+}
+
+function telegram_handle_reply_button_callback(array $config, array $update, string $operatorGroupChatId): bool
+{
+    $callback = $update['callback_query'] ?? null;
+    if (!is_array($callback)) return false;
+
+    $data = trim((string)($callback['data'] ?? ''));
+    $callbackId = trim((string)($callback['id'] ?? ''));
+
+    bot_log('telegram_callback_received', [
+        'data' => $data,
+        'from' => $callback['from'] ?? null,
+    ]);
+
+    if (!preg_match('/^reply_client\|(telegram|max)\|(-?\d+)$/', $data, $m)) {
+        telegram_answer_callback_query($config, $callbackId, 'Кнопка не распознана');
+        return false;
+    }
+
+    $source = $m[1];
+    $clientId = $m[2];
+    $operatorId = telegram_operator_id_from_update($update);
+
+    $client = telegram_find_client_session_for_operator($source, $clientId);
+    telegram_set_client_operator_mode($client, true);
+
+    telegram_operator_save_state($operatorId, [
+        'source' => $source,
+        'client_chat_id' => $clientId,
+        'started_at' => date('c'),
+    ]);
+
+    $sourceLabel = $source === 'max' ? 'MAX' : 'Telegram';
+
+    telegram_answer_callback_query($config, $callbackId, 'Оператор подключён');
+
+    telegram_send_message(
+        $config,
+        $operatorGroupChatId,
+        "💬 Оператор подключён к клиенту {$sourceLabel} {$clientId}.\n\nТеперь отправляйте сообщения клиенту так:\n/to текст сообщения\n\nЗавершить чат:\n/close"
+    );
+
+    telegram_send_operator_text_to_client(
+        $config,
+        $source,
+        $clientId,
+        'Оператор A&A Asset Team подключился к вашему обращению. Можно продолжить общение здесь.'
+    );
+
+    return true;
+}
+
+function telegram_handle_operator_to_command(array $config, array $update, string $operatorGroupChatId, string $text): bool
+{
+    if (telegram_update_from_is_bot($update)) return true;
+
+    $operatorId = telegram_operator_id_from_update($update);
+    $trimmed = trim($text);
+
+    if (preg_match('/^\/close(?:\s|$)/u', $trimmed)) {
+        $state = telegram_operator_load_state($operatorId);
+
+        if (!$state) {
+            telegram_send_message($config, $operatorGroupChatId, 'У вас нет активного чата с клиентом.');
+            return true;
+        }
+
+        $source = (string)($state['source'] ?? 'max');
+        $clientId = (string)($state['client_chat_id'] ?? '');
+
+        if ($clientId !== '') {
+            $client = telegram_find_client_session_for_operator($source, $clientId);
+            telegram_set_client_operator_mode($client, false);
+        }
+
+        telegram_operator_clear_state($operatorId);
+        telegram_send_message($config, $operatorGroupChatId, 'Live-чат закрыт. Бот снова может отвечать клиенту автоматически.');
+        return true;
+    }
+
+    if (!preg_match('/^\/(?:to|send)\s+(.+)$/us', $trimmed, $m)) {
+        return false;
+    }
+
+    $state = telegram_operator_load_state($operatorId);
+    if (!$state) {
+        telegram_send_message($config, $operatorGroupChatId, "Сначала нажмите кнопку 💬 Ответить клиенту под карточкой заявки.");
+        return true;
+    }
+
+    $source = (string)($state['source'] ?? '');
+    $clientId = (string)($state['client_chat_id'] ?? '');
+    $messageToClient = trim($m[1]);
+
+    $result = telegram_send_operator_text_to_client($config, $source, $clientId, $messageToClient);
+    $status = (int)($result['status'] ?? 0);
+
+    bot_log('telegram_operator_to_client', [
+        'source' => $source,
+        'client_id' => $clientId,
+        'status' => $status,
+        'error' => $result['error'] ?? '',
+        'response' => $result['response'] ?? null,
+    ]);
+
+    if ($status >= 200 && $status < 300) {
+        return true;
+    }
+
+    $details = trim((string)($result['error'] ?? ''));
+    if ($details === '') $details = trim((string)($result['response'] ?? ''));
+
+    telegram_send_message(
+        $config,
+        $operatorGroupChatId,
+        "Не удалось отправить сообщение клиенту. Статус: {$status}.\n" . mb_substr($details, 0, 500)
+    );
+
     return true;
 }
 
