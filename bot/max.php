@@ -475,6 +475,7 @@ function max_format_lead_summary(array $lead): string
 
 function max_build_client_reply(array $session, string $text): string
 {
+    if (!empty($session['operator_mode'])) return '';
     $lead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
     $missing = max_core_missing_fields($lead);
 
@@ -597,11 +598,18 @@ function max_send_telegram_notice_threaded(array $config, string $telegramLeadsC
         'response' => $result['response'] ?? null,
     ]);
 
-    if ($threadMessageId <= 0 && (int)($result['status'] ?? 0) >= 200 && (int)($result['status'] ?? 0) < 300) {
+    if ((int)($result['status'] ?? 0) >= 200 && (int)($result['status'] ?? 0) < 300) {
         $data = json_decode((string)($result['response'] ?? ''), true);
-        $messageId = $data['result']['message_id'] ?? null;
-        if ($messageId) {
-            $session['telegram_thread_message_id'] = (int)$messageId;
+        $messageId = (int)($data['result']['message_id'] ?? 0);
+
+        if ($messageId > 0) {
+            if ($threadMessageId <= 0) {
+                $session['telegram_thread_message_id'] = $messageId;
+            }
+
+            $adminMessageIds = is_array($session['telegram_admin_message_ids'] ?? null) ? $session['telegram_admin_message_ids'] : [];
+            $adminMessageIds[] = $messageId;
+            $session['telegram_admin_message_ids'] = array_slice(array_values(array_unique(array_map('intval', $adminMessageIds))), -100);
         }
     }
 }
@@ -619,7 +627,10 @@ function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId
         foreach ($attachmentLines as $line) $extra[] = '- ' . $line;
     }
 
-    if (max_is_full_lead_ready($lead) && !($session['full_notice_sent'] ?? false)) {
+    if (!empty($session['operator_mode'])) {
+        $title = '💬 СООБЩЕНИЕ КЛИЕНТА ИЗ MAX';
+        $extra[] = 'Режим live-чата: оператор подключён.';
+    } elseif (max_is_full_lead_ready($lead) && !($session['full_notice_sent'] ?? false)) {
         $title = '✅ ПОЛНАЯ ЗАЯВКА ИЗ MAX';
         $session['full_notice_sent'] = true;
         $session['early_notice_sent'] = true;
@@ -712,6 +723,8 @@ if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedTe
 }
 
 $session = max_load_session($chatId);
+$session['source'] = 'max';
+$session['client_chat_id'] = (string)$chatId;
 
 $messageUniqueId = max_extract_message_unique_id($update);
 if ($messageUniqueId !== '') {
