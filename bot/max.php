@@ -112,9 +112,17 @@ function max_collect_attachments(array $data): array
     $items = [];
 
     foreach ($data as $key => $value) {
-        if ((string)$key === 'attachments' && is_array($value)) {
-            foreach ($value as $item) {
-                if (is_array($item)) $items[] = $item;
+        $keyString = (string)$key;
+
+        if (in_array($keyString, ['attachments', 'attachment', 'files', 'file', 'photos', 'photo', 'videos', 'video', 'media'], true) && is_array($value)) {
+            $isList = array_keys($value) === range(0, count($value) - 1);
+
+            if ($isList) {
+                foreach ($value as $item) {
+                    if (is_array($item)) $items[] = $item;
+                }
+            } else {
+                $items[] = $value;
             }
         }
 
@@ -728,7 +736,11 @@ if ($operatorCommand && max_is_operator_chat($config, $chatId)) {
 }
 
 $normalizedText = max_normalize(trim($text));
-if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedText === 'начать' || $normalizedText === '') {
+$hasMaxAttachmentsAtStart = max_update_has_attachments($update);
+
+// Пустой текст в MAX часто означает фото/файл без подписи.
+// Такое сообщение нельзя считать /start, иначе вложение не попадёт в Telegram-группу.
+if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedText === 'начать' || ($normalizedText === '' && !$hasMaxAttachmentsAtStart)) {
     $session = max_default_session();
     max_save_session($chatId, $session);
     max_finish_webhook();
@@ -931,6 +943,15 @@ if ($messageUniqueId !== '') {
 }
 
 $attachmentLines = max_extract_attachment_lines($update);
+
+if ($attachmentLines) {
+    bot_log('max_attachments_detected', [
+        'chat_id' => $chatId,
+        'text' => $text,
+        'attachments' => $attachmentLines,
+    ]);
+}
+
 $messageForHistory = $text !== '' ? $text : ($attachmentLines ? '[вложение MAX: ' . implode('; ', $attachmentLines) . ']' : '[без текста]');
 $session = max_add_client_message($session, $messageForHistory);
 $prevLead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
@@ -945,10 +966,15 @@ if ($attachmentLines) {
 $session['lead'] = max_merge_lead($prevLead, $patch);
 $replyText = max_build_client_reply($session, $text);
 
+if (trim($text) === '' && !empty($attachmentLines) && empty($session['operator_mode']) && empty($session['bot_paused'])) {
+    $replyText = "Материалы получили. Если это фото, видео или документы по объекту — они добавлены к обращению.\n\nЧтобы мы быстрее разобрали актив, напишите коротко: что продаётся, где находится объект и ориентировочную цену.";
+}
+
+
 $telegramLeadsChatId = trim((string)($config['telegram_leads_chat_id'] ?? ''));
 if ($telegramLeadsChatId === '') $telegramLeadsChatId = trim((string)($config['telegram_admin_chat_id'] ?? ''));
 
-max_notify_manager_if_needed($config, $telegramLeadsChatId, $incoming, $text !== '' ? $text : '[без текста]', $update, $session, $prevLead);
+max_notify_manager_if_needed($config, $telegramLeadsChatId, $incoming, $messageForHistory, $update, $session, $prevLead);
 $isFullReadyAfter = max_is_full_lead_ready(is_array($session['lead'] ?? null) ? $session['lead'] : []);
 if ($isFullReadyAfter && !empty($session['client_full_reply_sent'])) {
     $followupReplyCount = (int)($session['client_followup_auto_reply_count'] ?? 0);
