@@ -947,6 +947,82 @@ $hasClientMedia = telegram_update_has_media($update);
 $wantsOperator = telegram_client_wants_operator($trimmedText);
 
 
+// Plain operator live-chat messages.
+// After operator pressed "💬 Ответить клиенту", ordinary group messages from this operator
+// are sent to the active client without typing /to.
+$telegramLeadsChatIdPlainChat = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+if ($telegramLeadsChatIdPlainChat === '') {
+    $telegramLeadsChatIdPlainChat = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+}
+
+if ($telegramLeadsChatIdPlainChat !== ''
+    && (string)$chatId === (string)$telegramLeadsChatIdPlainChat
+    && isset($update['message'])
+    && is_array($update['message'])
+) {
+    $fromPlain = $update['message']['from'] ?? [];
+    $operatorIdPlain = trim((string)($fromPlain['id'] ?? ''));
+    $isBotPlain = !empty($fromPlain['is_bot']);
+
+    $operatorsDirPlain = __DIR__ . '/sessions/operators';
+    $operatorStateFilePlain = $operatorIdPlain !== ''
+        ? $operatorsDirPlain . '/' . hash('sha256', $operatorIdPlain) . '.json'
+        : '';
+
+    if (!$isBotPlain && $operatorStateFilePlain !== '' && is_file($operatorStateFilePlain)) {
+        $rawStatePlain = file_get_contents($operatorStateFilePlain);
+        $statePlain = is_string($rawStatePlain) ? json_decode($rawStatePlain, true) : null;
+
+        if (is_array($statePlain)) {
+            $sourcePlain = trim((string)($statePlain['source'] ?? ''));
+            $clientIdPlain = trim((string)($statePlain['client_chat_id'] ?? ''));
+
+            // Команды не отправляем как обычный текст.
+            if ($trimmedText !== '' && !str_starts_with($trimmedText, '/')) {
+                if ($sourcePlain === 'telegram') {
+                    $resultPlain = telegram_send_message($config, $clientIdPlain, $trimmedText);
+                } else {
+                    $resultPlain = telegram_max_send_message_fast($config, $clientIdPlain, $trimmedText);
+                }
+
+                $statusPlain = (int)($resultPlain['status'] ?? 0);
+
+                bot_log('telegram_plain_operator_chat_send', [
+                    'operator_id' => $operatorIdPlain,
+                    'source' => $sourcePlain,
+                    'client_id' => $clientIdPlain,
+                    'text' => $trimmedText,
+                    'status' => $statusPlain,
+                    'error' => $resultPlain['error'] ?? '',
+                    'response' => $resultPlain['response'] ?? null,
+                ]);
+
+                if ($statusPlain < 200 || $statusPlain >= 300) {
+                    $detailsPlain = trim((string)($resultPlain['error'] ?? ''));
+                    if ($detailsPlain === '') {
+                        $detailsPlain = trim((string)($resultPlain['response'] ?? ''));
+                    }
+
+                    telegram_send_message(
+                        $config,
+                        (string)$chatId,
+                        "❌ Не удалось отправить клиенту. Статус: {$statusPlain}.\n" . mb_substr($detailsPlain, 0, 700)
+                    );
+                }
+
+                bot_ok();
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
+                }
+                exit;
+            }
+        }
+    }
+}
+
+
+
+
 // Emergency /to handler for operator live chat.
 // Must run before old group handlers, otherwise /to is ignored.
 $telegramLeadsChatIdToCommand = trim((string)($config['telegram_leads_chat_id'] ?? ''));
