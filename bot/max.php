@@ -123,12 +123,7 @@ function max_save_session(string $chatId, array $session): void
 function max_add_client_message(array $session, string $text): array
 {
     $messages = is_array($session['messages'] ?? null) ? $session['messages'] : [];
-    $messages[] = [
-        'role' => 'client',
-        'text' => $text,
-        'at' => date('c'),
-    ];
-
+    $messages[] = ['role' => 'client', 'text' => $text, 'at' => date('c')];
     $session['messages'] = array_slice($messages, -20);
     return $session;
 }
@@ -137,33 +132,15 @@ function max_detect_asset_type(string $text): string
 {
     $t = max_normalize($text);
 
-    if (preg_match('/производствен|промышленн|\bбаз[ауы]?\b/u', $t)) {
-        return 'производственная база';
-    }
-    if (preg_match('/склад|ангар/u', $t)) {
-        return 'склад / ангар';
-    }
-    if (preg_match('/земл|участ/u', $t)) {
-        return 'земельный участок';
-    }
-    if (preg_match('/оборуд|станок|линия/u', $t)) {
-        return 'оборудование';
-    }
-    if (preg_match('/спецтех|погруз|кран|экскават|трактор|авто/u', $t)) {
-        return 'спецтехника';
-    }
-    if (preg_match('/складск.*остат|остатк|партия товара/u', $t)) {
-        return 'складские остатки / ТМЦ';
-    }
-    if (preg_match('/неликвид|тмц/u', $t)) {
-        return 'неликвидные ТМЦ';
-    }
-    if (preg_match('/помещен|недвиж|торговая площад|коммерческ/u', $t)) {
-        return 'коммерческая недвижимость';
-    }
-    if (preg_match('/имуществ.*закрыт|закрытие направления|активы после/u', $t)) {
-        return 'имущество после закрытия направления';
-    }
+    if (preg_match('/производствен|промышленн|\bбаз[ауы]?\b/u', $t)) return 'производственная база';
+    if (preg_match('/склад|ангар/u', $t)) return 'склад / ангар';
+    if (preg_match('/земл|участ/u', $t)) return 'земельный участок';
+    if (preg_match('/оборуд|станок|линия/u', $t)) return 'оборудование';
+    if (preg_match('/спецтех|погруз|кран|экскават|трактор|авто/u', $t)) return 'спецтехника';
+    if (preg_match('/складск.*остат|остатк|партия товара/u', $t)) return 'складские остатки / ТМЦ';
+    if (preg_match('/неликвид|тмц/u', $t)) return 'неликвидные ТМЦ';
+    if (preg_match('/помещен|недвиж|торговая площад|коммерческ/u', $t)) return 'коммерческая недвижимость';
+    if (preg_match('/имуществ.*закрыт|закрытие направления|активы после/u', $t)) return 'имущество после закрытия направления';
 
     return '';
 }
@@ -175,10 +152,7 @@ function max_pick_first_match(string $text, string $pattern): string
 
 function max_extract_url(string $text): string
 {
-    if (!preg_match('/https?:\/\/\S+/ui', $text, $m)) {
-        return '';
-    }
-
+    if (!preg_match('/https?:\/\/\S+/ui', $text, $m)) return '';
     return rtrim($m[0], " \t\n\r\0\x0B.,;)]");
 }
 
@@ -197,8 +171,7 @@ function max_extract_area(string $text): string
         $areas[] = $m[1] . ' м² (из ссылки)';
     }
 
-    $areas = array_values(array_unique(array_filter($areas)));
-    return implode(', ', $areas);
+    return implode(', ', array_values(array_unique(array_filter($areas))));
 }
 
 function max_extract_price(string $text): string
@@ -214,16 +187,9 @@ function max_extract_selling_period(string $text): string
 function max_extract_contact(string $text): string
 {
     $contacts = [];
-    if (preg_match('/(?:\+7|7|8)\D{0,3}\(?\d{3}\)?\D{0,3}\d{3}\D{0,3}\d{2}\D{0,3}\d{2}/u', $text, $m)) {
-        $contacts[] = trim($m[0]);
-    }
-    if (preg_match('/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/u', $text, $m)) {
-        $contacts[] = trim($m[0]);
-    }
-    if (preg_match('/@[a-zA-Z0-9_]{4,}/u', $text, $m)) {
-        $contacts[] = trim($m[0]);
-    }
-
+    if (preg_match('/(?:\+7|7|8)\D{0,3}\(?\d{3}\)?\D{0,3}\d{3}\D{0,3}\d{2}\D{0,3}\d{2}/u', $text, $m)) $contacts[] = trim($m[0]);
+    if (preg_match('/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/u', $text, $m)) $contacts[] = trim($m[0]);
+    if (preg_match('/@[a-zA-Z0-9_]{4,}/u', $text, $m)) $contacts[] = trim($m[0]);
     return implode(', ', array_values(array_unique($contacts)));
 }
 
@@ -232,14 +198,10 @@ function max_extract_location(string $text): string
     $t = max_normalize($text);
     $parts = [];
 
-    if (preg_match('/\bмо\b|московск(?:ая|ой)\s+обл/u', $t)) {
-        $parts[] = 'МО';
-    }
+    if (preg_match('/\bмо\b|московск(?:ая|ой)\s+обл/u', $t)) $parts[] = 'МО';
 
     $settlementPattern = '/(?:деревня|д\.|село|с\.|пос[её]лок|п\.|пгт|город|г\.)\s+([А-ЯЁA-Z][А-ЯЁа-яёA-Za-z\-]+)/u';
-    if (preg_match($settlementPattern, $text, $m)) {
-        $parts[] = trim($m[0]);
-    }
+    if (preg_match($settlementPattern, $text, $m)) $parts[] = trim($m[0]);
 
     $knownLocations = [
         'мисаилово' => 'деревня Мисайлово',
@@ -253,90 +215,108 @@ function max_extract_location(string $text): string
     ];
 
     foreach ($knownLocations as $needle => $label) {
-        if (str_contains($t, $needle)) {
-            $parts[] = $label;
-        }
+        if (str_contains($t, $needle)) $parts[] = $label;
     }
+    if (str_contains($t, 'avito.ru/vidnoe')) $parts[] = 'Видное';
 
-    if (str_contains($t, 'avito.ru/vidnoe')) {
-        $parts[] = 'Видное';
-    }
+    return implode(', ', array_values(array_unique(array_filter($parts))));
+}
 
-    $parts = array_values(array_unique(array_filter($parts)));
-    return implode(', ', $parts);
+function max_has_negative_documents(string $text): bool
+{
+    $t = max_normalize($text);
+    return (bool)preg_match('/(нет|без|отсутств)[^\n,.]{0,40}документ|документ(?:ов|ы)?[^\n,.]{0,40}(нет|отсутств)/u', $t);
+}
+
+function max_has_negative_materials(string $text): bool
+{
+    $t = max_normalize($text);
+    return (bool)preg_match('/(нет|без|отсутств)[^\n,.]{0,50}(фото|ссылк|объявлен|видео)|(фото|ссылк|объявлен|видео)[^\n,.]{0,50}(нет|отсутств)/u', $t);
 }
 
 function max_extract_documents_status(string $text): string
 {
     $t = max_normalize($text);
-    if (preg_match('/нет\s+документ|документ(?:ов)?\s+нет/u', $t)) {
-        return 'документов нет / нужно уточнить';
-    }
-    if (preg_match('/документ|свидетельств|выписк|кадастр|техпаспорт|право/u', $t)) {
-        return 'документы упомянуты';
-    }
+    if (max_has_negative_documents($text)) return 'документов нет / нужно уточнить';
+    if (preg_match('/документ|свидетельств|выписк|кадастр|техпаспорт|право/u', $t)) return 'документы упомянуты';
     return '';
 }
 
-function max_extract_photos_status(string $text): string
+function max_extract_materials_status(string $text): string
 {
     $t = max_normalize($text);
-    if (preg_match('/фото|видео|снимк|изображен|авито|циан|объявлен/u', $t)) {
-        return 'есть фото / ссылка или объявление';
-    }
+    $url = max_extract_url($text);
+    if (max_has_negative_materials($text)) return 'фото / ссылки нет';
+    if ($url !== '') return 'есть ссылка на объявление';
+    if (preg_match('/фото|видео|снимк|изображен|авито|циан|объявлен/u', $t)) return 'есть фото / ссылка или объявление';
     return '';
 }
 
 function max_extract_role(string $text): string
 {
     $t = max_normalize($text);
-    if (preg_match('/\bсобственник\b|мой объект|моя база|мой склад/u', $t)) {
-        return 'собственник';
-    }
-    if (preg_match('/представител|агент|брокер|посредник|по поручению/u', $t)) {
-        return 'представитель';
-    }
+    if (preg_match('/\bсобственник\b|мой объект|моя база|мой склад/u', $t)) return 'собственник';
+    if (preg_match('/представител|агент|брокер|посредник|по поручению/u', $t)) return 'представитель';
     return '';
 }
 
 function max_extract_patch(string $text): array
 {
     $patch = [];
-
     $map = [
         'asset_type' => max_detect_asset_type($text),
         'location' => max_extract_location($text),
         'area' => max_extract_area($text),
         'price' => max_extract_price($text),
         'selling_period' => max_extract_selling_period($text),
-        'url' => max_extract_url($text),
+        'url' => max_has_negative_materials($text) ? '' : max_extract_url($text),
         'contact' => max_extract_contact($text),
         'documents' => max_extract_documents_status($text),
-        'photos' => max_extract_photos_status($text),
+        'materials' => max_extract_materials_status($text),
         'role' => max_extract_role($text),
     ];
 
     $normalized = max_normalize($text);
-    if (str_contains($normalized, 'прод')) {
-        $map['goal'] = 'продажа / реализация';
-    }
-    if (preg_match('/жду звонка|позвоните|свяжитесь|наберите|готов обсудить/u', $normalized)) {
-        $map['call_intent'] = 'клиент ожидает связь';
-    }
+    if (str_contains($normalized, 'прод')) $map['goal'] = 'продажа / реализация';
+    if (preg_match('/жду звонка|позвоните|свяжитесь|наберите|готов обсудить/u', $normalized)) $map['call_intent'] = 'клиент ожидает связь';
 
     foreach ($map as $key => $value) {
-        if (is_string($value) && trim($value) !== '') {
-            $patch[$key] = trim($value);
-        }
+        if (is_string($value) && trim($value) !== '') $patch[$key] = trim($value);
     }
 
     return $patch;
 }
 
+function max_negative_status(string $value): bool
+{
+    $t = max_normalize($value);
+    return $t !== '' && (str_contains($t, 'нет') || str_contains($t, 'отсутств') || str_contains($t, 'нужно уточнить'));
+}
+
+function max_field_ready(array $lead, string $field): bool
+{
+    $value = trim((string)($lead[$field] ?? ''));
+    return $value !== '' && !max_negative_status($value);
+}
+
+function max_materials_ready(array $lead): bool
+{
+    if (trim((string)($lead['url'] ?? '')) !== '') return true;
+    return max_field_ready($lead, 'materials') || max_field_ready($lead, 'photos');
+}
+
+function max_documents_ready(array $lead): bool
+{
+    return max_field_ready($lead, 'documents');
+}
+
 function max_merge_lead(array $lead, array $patch): array
 {
     foreach ($patch as $key => $value) {
-        if ($value === '') {
+        if ($value === '') continue;
+
+        if (in_array($key, ['documents', 'materials', 'photos', 'url'], true)) {
+            $lead[$key] = $value;
             continue;
         }
 
@@ -361,8 +341,8 @@ function max_missing_fields(array $lead): array
     if (($lead['area'] ?? '') === '') $missing[] = 'площадь / объём';
     if (($lead['price'] ?? '') === '') $missing[] = 'ориентировочная цена';
     if (($lead['selling_period'] ?? '') === '') $missing[] = 'сколько времени продаётся';
-    if (($lead['documents'] ?? '') === '') $missing[] = 'что с документами';
-    if (($lead['photos'] ?? '') === '' && ($lead['url'] ?? '') === '') $missing[] = 'фото или ссылка на объявление';
+    if (!max_documents_ready($lead)) $missing[] = 'какие документы есть по объекту';
+    if (!max_materials_ready($lead)) $missing[] = 'фото, видео или ссылка на объявление';
     if (($lead['role'] ?? '') === '') $missing[] = 'вы собственник или представитель';
     return $missing;
 }
@@ -374,17 +354,8 @@ function max_has_asset_context(array $lead, string $text): bool
 
 function max_should_notify_early(array $lead, string $text): bool
 {
-    if (!max_has_asset_context($lead, $text)) {
-        return false;
-    }
-
-    $strongSignals = array_filter([
-        $lead['location'] ?? '',
-        $lead['area'] ?? '',
-        $lead['price'] ?? '',
-        $lead['url'] ?? '',
-    ]);
-
+    if (!max_has_asset_context($lead, $text)) return false;
+    $strongSignals = array_filter([$lead['location'] ?? '', $lead['area'] ?? '', $lead['price'] ?? '', $lead['url'] ?? '']);
     return (($lead['asset_type'] ?? '') !== '') && count($strongSignals) >= 1;
 }
 
@@ -394,8 +365,9 @@ function max_is_full_lead_ready(array $lead): bool
         && (($lead['location'] ?? '') !== '')
         && (($lead['area'] ?? '') !== '')
         && (($lead['price'] ?? '') !== '')
-        && ((($lead['url'] ?? '') !== '') || (($lead['photos'] ?? '') !== ''))
-        && (($lead['documents'] ?? '') !== '')
+        && (($lead['selling_period'] ?? '') !== '')
+        && max_documents_ready($lead)
+        && max_materials_ready($lead)
         && (($lead['role'] ?? '') !== '');
 }
 
@@ -403,15 +375,12 @@ function max_compact_history(array $messages): string
 {
     $clientMessages = array_values(array_filter($messages, static fn($message) => ($message['role'] ?? '') === 'client'));
     $clientMessages = array_slice($clientMessages, -5);
-    if (!$clientMessages) {
-        return 'не указано';
-    }
+    if (!$clientMessages) return 'не указано';
 
     $lines = [];
     foreach ($clientMessages as $index => $message) {
         $lines[] = ($index + 1) . ') ' . trim((string)($message['text'] ?? ''));
     }
-
     return implode("\n", $lines);
 }
 
@@ -419,9 +388,7 @@ function max_mark_current_fields_notified(array $session): array
 {
     $notified = is_array($session['notified_fields'] ?? null) ? $session['notified_fields'] : [];
     foreach (($session['lead'] ?? []) as $key => $value) {
-        if (is_string($value) && trim($value) !== '') {
-            $notified[$key] = true;
-        }
+        if (is_string($value) && trim($value) !== '') $notified[$key] = true;
     }
     $session['notified_fields'] = $notified;
     return $session;
@@ -429,24 +396,16 @@ function max_mark_current_fields_notified(array $session): array
 
 function max_detect_supplement_fields(array $session, array $prevLead, array $nextLead, string $text): array
 {
-    if (!($session['early_notice_sent'] ?? false) && !($session['full_notice_sent'] ?? false)) {
-        return [];
-    }
+    if (!($session['early_notice_sent'] ?? false) && !($session['full_notice_sent'] ?? false)) return [];
 
     $notified = is_array($session['notified_fields'] ?? null) ? $session['notified_fields'] : [];
     $fields = [];
-    foreach (['asset_type', 'location', 'area', 'price', 'selling_period', 'url', 'contact', 'documents', 'photos', 'role', 'goal'] as $field) {
+    foreach (['asset_type', 'location', 'area', 'price', 'selling_period', 'url', 'contact', 'documents', 'materials', 'role', 'goal'] as $field) {
         $wasEmpty = trim((string)($prevLead[$field] ?? '')) === '';
         $isFilled = trim((string)($nextLead[$field] ?? '')) !== '';
-        if ($wasEmpty && $isFilled && empty($notified[$field])) {
-            $fields[] = $field;
-        }
+        if ($wasEmpty && $isFilled && empty($notified[$field])) $fields[] = $field;
     }
-
-    if (preg_match('/жду звонка|позвоните|свяжитесь|наберите|готов обсудить/u', max_normalize($text)) && empty($notified['call_intent'])) {
-        $fields[] = 'call_intent';
-    }
-
+    if (preg_match('/жду звонка|позвоните|свяжитесь|наберите|готов обсудить/u', max_normalize($text)) && empty($notified['call_intent'])) $fields[] = 'call_intent';
     return array_values(array_unique($fields));
 }
 
@@ -461,29 +420,29 @@ function max_human_field(string $field): string
         'url' => 'ссылка',
         'contact' => 'контакт',
         'documents' => 'документы',
+        'materials' => 'фото / ссылка',
         'photos' => 'фото / объявление',
         'role' => 'роль клиента',
         'goal' => 'цель обращения',
         'call_intent' => 'ожидает связь',
     ];
-
     return $labels[$field] ?? $field;
 }
 
 function max_format_lead_summary(array $lead): string
 {
+    $materials = ($lead['url'] ?? '') ?: (($lead['materials'] ?? '') ?: (($lead['photos'] ?? '') ?: 'не указано'));
     $lines = [
         'Тип актива: ' . (($lead['asset_type'] ?? '') ?: 'не указано'),
         'Локация: ' . (($lead['location'] ?? '') ?: 'не указано'),
         'Площадь / объём: ' . (($lead['area'] ?? '') ?: 'не указано'),
         'Цена: ' . (($lead['price'] ?? '') ?: 'не указано'),
         'Срок продажи: ' . (($lead['selling_period'] ?? '') ?: 'не указано'),
-        'Фото / ссылка: ' . (($lead['url'] ?? '') ?: (($lead['photos'] ?? '') ?: 'не указано')),
+        'Фото / ссылка: ' . $materials,
         'Документы: ' . (($lead['documents'] ?? '') ?: 'не указано'),
         'Кто обратился: ' . (($lead['role'] ?? '') ?: 'не указано'),
         'Контакт: ' . (($lead['contact'] ?? '') ?: 'MAX-чат'),
     ];
-
     return implode("\n", $lines);
 }
 
@@ -512,15 +471,27 @@ function max_build_client_reply(array $session, string $text): string
     return "Принял, уже можно начать первичный разбор. Я передал вводные в рабочую группу и продолжаю добирать карточку.\n\nУточните, пожалуйста:\n" . implode("\n", $questionLines) . "\n\nМожно ответить коротко в этом чате.";
 }
 
+function max_operator_question(string $missing): string
+{
+    $map = [
+        'что именно продаётся' => 'что именно продаётся?',
+        'где находится объект' => 'где находится объект?',
+        'площадь / объём' => 'какая площадь или объём объекта?',
+        'ориентировочная цена' => 'какая ориентировочная цена?',
+        'сколько времени продаётся' => 'сколько времени объект продаётся?',
+        'какие документы есть по объекту' => 'какие документы есть по объекту?',
+        'фото, видео или ссылка на объявление' => 'есть ли фото, видео или ссылка на объявление?',
+        'вы собственник или представитель' => 'вы собственник или представитель?',
+    ];
+    return $map[$missing] ?? ($missing . '?');
+}
+
 function max_format_operator_hint(?string $chatId, array $lead): string
 {
-    if (!$chatId) {
-        return 'MAX Chat ID не найден, ответить командой /max пока нельзя.';
-    }
-
+    if (!$chatId) return 'MAX Chat ID не найден, ответить командой /max пока нельзя.';
     $missing = max_missing_fields($lead);
-    $firstMissing = $missing[0] ?? 'пришлите, пожалуйста, документы или фото';
-    return '/max ' . $chatId . ' Приняли заявку. Начинаем первичный разбор. Уточните, пожалуйста: ' . $firstMissing . '?';
+    $question = max_operator_question($missing[0] ?? 'какие документы есть по объекту');
+    return '/max ' . $chatId . ' Приняли заявку. Начинаем первичный разбор. Уточните, пожалуйста: ' . $question;
 }
 
 function max_format_admin_notice(string $title, array $incoming, string $text, array $update, array $session, array $extraLines = []): string
@@ -532,28 +503,15 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
     $username = max_find_first_value($update, ['username', 'login', 'nick']);
     $missing = max_missing_fields($lead);
 
-    $lines = [
-        $title,
-        '',
-    ];
-
-    if ($userName) {
-        $lines[] = 'Пользователь: ' . $userName;
-    }
-
+    $lines = [$title, ''];
+    if ($userName) $lines[] = 'Пользователь: ' . $userName;
     if ($username) {
         $usernameClean = ltrim($username, '@');
         $lines[] = 'MAX username: @' . $usernameClean;
         $lines[] = 'Профиль MAX: https://max.ru/' . $usernameClean;
     }
-
-    if ($userId) {
-        $lines[] = 'MAX user ID: ' . $userId;
-    }
-
-    if ($chatId) {
-        $lines[] = 'MAX Chat ID: ' . $chatId;
-    }
+    if ($userId) $lines[] = 'MAX user ID: ' . $userId;
+    if ($chatId) $lines[] = 'MAX Chat ID: ' . $chatId;
 
     $lines[] = '';
     $lines[] = 'Карточка лида:';
@@ -563,14 +521,13 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
 
     if ($extraLines) {
         $lines[] = '';
-        foreach ($extraLines as $line) {
-            $lines[] = $line;
-        }
+        foreach ($extraLines as $line) $lines[] = $line;
     }
 
     $lines[] = '';
-    $lines[] = 'Как ответить клиенту из Telegram-группы:';
+    $lines[] = 'Команда ответа клиенту:';
     $lines[] = max_format_operator_hint($chatId, $lead);
+    $lines[] = 'Эту команду можно отправить в Telegram-группе или в MAX-админ-чате, если настроен max_admin_chat_id.';
     $lines[] = '';
     $lines[] = 'Текст клиента:';
     $lines[] = $text !== '' ? $text : '[без текста]';
@@ -590,9 +547,7 @@ function max_notice_hash(string $title, array $lead, string $text): string
 
 function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId, array $incoming, string $text, array $update, array &$session, array $prevLead): void
 {
-    if ($telegramLeadsChatId === '' || str_contains($telegramLeadsChatId, 'PASTE_')) {
-        return;
-    }
+    if ($telegramLeadsChatId === '' || str_contains($telegramLeadsChatId, 'PASTE_')) return;
 
     $lead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
     $title = null;
@@ -604,32 +559,53 @@ function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId
         $session['early_notice_sent'] = true;
     } elseif (max_should_notify_early($lead, $text) && !($session['early_notice_sent'] ?? false)) {
         $title = '🟡 РАННИЙ ЛИД ИЗ MAX';
-        $extra[] = 'Статус: клиент обозначил актив, бот продолжает добирать данные. Уже можно начать смотреть объект и ссылку.';
+        $extra[] = 'Статус: клиент обозначил актив, бот продолжает добирать данные. Уже можно начать смотреть объект.';
         $session['early_notice_sent'] = true;
     } else {
         $fields = max_detect_supplement_fields($session, $prevLead, $lead, $text);
         if ($fields) {
             $title = '📎 ДОПОЛНЕНИЕ К ЗАЯВКЕ ИЗ MAX';
             $extra[] = 'Новые данные: ' . implode(', ', array_map('max_human_field', $fields));
-            foreach ($fields as $field) {
-                $session['notified_fields'][$field] = true;
-            }
+            foreach ($fields as $field) $session['notified_fields'][$field] = true;
         }
     }
 
-    if ($title === null) {
-        return;
-    }
-
+    if ($title === null) return;
     $hash = max_notice_hash($title, $lead, $text);
-    if (($session['last_notice_hash'] ?? '') === $hash) {
-        return;
-    }
+    if (($session['last_notice_hash'] ?? '') === $hash) return;
 
-    $notice = max_format_admin_notice($title, $incoming, $text, $update, $session, $extra);
-    telegram_send_message($config, $telegramLeadsChatId, $notice);
+    telegram_send_message($config, $telegramLeadsChatId, max_format_admin_notice($title, $incoming, $text, $update, $session, $extra));
     $session['last_notice_hash'] = $hash;
     $session = max_mark_current_fields_notified($session);
+}
+
+function max_parse_operator_command(string $text): ?array
+{
+    if (!preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', trim($text), $matches)) return null;
+    $clientChatId = trim($matches[1]);
+    $message = trim($matches[2]);
+    if ($clientChatId === '' || $message === '') return null;
+    return ['chat_id' => $clientChatId, 'message' => $message];
+}
+
+function max_is_operator_chat(array $config, ?string $chatId): bool
+{
+    $adminChatId = trim((string)($config['max_admin_chat_id'] ?? ''));
+    return $adminChatId !== '' && !str_contains($adminChatId, 'PASTE_') && $chatId !== null && (string)$chatId === $adminChatId;
+}
+
+function max_handle_operator_command(array $config, string $operatorChatId, array $command): void
+{
+    max_finish_webhook();
+    $result = max_send_message($config, $command['chat_id'], $command['message']);
+    $status = (int)($result['status'] ?? 0);
+
+    if ($status >= 200 && $status < 300) {
+        max_send_message($config, $operatorChatId, 'Ответ отправлен клиенту в MAX чат ' . $command['chat_id'] . '.');
+        return;
+    }
+
+    max_send_message($config, $operatorChatId, 'Не удалось отправить ответ клиенту в MAX чат ' . $command['chat_id'] . '. Статус: ' . $status . '. Проверьте bot/logs/bot.log.');
 }
 
 $config = bot_load_config();
@@ -642,9 +618,7 @@ if ($secret !== '') {
         ?? '';
 
     if (!hash_equals($secret, (string)$headerSecret)) {
-        bot_log('max_invalid_secret', [
-            'received' => $headerSecret ? 'present' : 'missing',
-        ]);
+        bot_log('max_invalid_secret', ['received' => $headerSecret ? 'present' : 'missing']);
         http_response_code(403);
         max_finish_webhook();
         exit;
@@ -653,7 +627,6 @@ if ($secret !== '') {
 
 $update = bot_read_json();
 $incoming = max_extract_message($update);
-
 $chatId = $incoming['chat_id'];
 $text = $incoming['text'];
 
@@ -666,8 +639,13 @@ if ($chatId === null || $chatId === '') {
     exit;
 }
 
-$normalizedText = max_normalize(trim($text));
+$operatorCommand = max_parse_operator_command($text);
+if ($operatorCommand && max_is_operator_chat($config, $chatId)) {
+    max_handle_operator_command($config, $chatId, $operatorCommand);
+    exit;
+}
 
+$normalizedText = max_normalize(trim($text));
 if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedText === 'начать' || $normalizedText === '') {
     $session = max_default_session();
     max_save_session($chatId, $session);
@@ -681,7 +659,6 @@ $session = max_add_client_message($session, $text !== '' ? $text : '[без те
 $prevLead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
 $patch = max_extract_patch($text);
 $session['lead'] = max_merge_lead($prevLead, $patch);
-
 $replyText = max_build_client_reply($session, $text);
 
 $telegramLeadsChatId = trim((string)($config['telegram_leads_chat_id'] ?? ''));
