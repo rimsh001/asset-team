@@ -251,18 +251,6 @@ function telegram_client_wants_operator(string $text): bool
     );
 }
 
-
-
-function telegram_client_wants_operator(string $text): bool
-{
-    $t = mb_strtolower(trim($text), 'UTF-8');
-
-    return (bool)preg_match(
-        '/оператор|менеджер|специалист|человек|живой|связаться|связь|позвоните|позвонить|перезвоните|соедини|контакт|телефон|как с вами связаться/u',
-        $t
-    );
-}
-
 function telegram_live_reply_message_id(array $update): int
 {
     $message = telegram_update_message($update);
@@ -759,6 +747,118 @@ if ($secret !== '') {
 }
 
 $update = bot_read_json();
+
+// Early callback handler for inline button "💬 Ответить клиенту".
+// It must run before normal message/group logic.
+if (isset($update['callback_query']) && is_array($update['callback_query'])) {
+    $callback = $update['callback_query'];
+    $callbackData = trim((string)($callback['data'] ?? ''));
+    $callbackId = trim((string)($callback['id'] ?? ''));
+    $operatorId = trim((string)($callback['from']['id'] ?? 'unknown'));
+
+    bot_log('telegram_callback_early_received', [
+        'data' => $callbackData,
+        'operator_id' => $operatorId,
+        'from' => $callback['from'] ?? null,
+    ]);
+
+    if (preg_match('/^reply_client\|(telegram|max)\|(-?\d+)$/', $callbackData, $cbMatch)) {
+        $source = $cbMatch[1];
+        $clientId = $cbMatch[2];
+
+        // Answer callback so Telegram stops the button loading animation.
+        if ($callbackId !== '') {
+            telegram_api($config, 'answerCallbackQuery', [
+                'callback_query_id' => $callbackId,
+                'text' => 'Оператор подключён',
+                'show_alert' => false,
+            ]);
+        }
+
+        $dir = __DIR__ . '/sessions/operators';
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+
+        @file_put_contents(
+            $dir . '/' . hash('sha256', $operatorId) . '.json',
+            json_encode([
+                'operator_id' => $operatorId,
+                'source' => $source,
+                'client_chat_id' => $clientId,
+                'started_at' => date('c'),
+                'updated_at' => date('c'),
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+            LOCK_EX
+        );
+
+        $clientDir = __DIR__ . '/sessions/' . $source;
+        if (!is_dir($clientDir)) @mkdir($clientDir, 0755, true);
+        $clientFile = $clientDir . '/' . hash('sha256', $clientId) . '.json';
+
+        $clientSession = [];
+        if (is_file($clientFile)) {
+            $raw = file_get_contents($clientFile);
+            $decoded = is_string($raw) ? json_decode($raw, true) : null;
+            if (is_array($decoded)) $clientSession = $decoded;
+        }
+
+        $clientSession['source'] = $source;
+        $clientSession['client_chat_id'] = $clientId;
+        $clientSession['operator_mode'] = true;
+        $clientSession['bot_paused'] = true;
+        $clientSession['operator_started_at'] = $clientSession['operator_started_at'] ?? date('c');
+        $clientSession['updated_at'] = date('c');
+
+        @file_put_contents(
+            $clientFile,
+            json_encode($clientSession, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+            LOCK_EX
+        );
+
+        $telegramLeadsChatIdEarly = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+        if ($telegramLeadsChatIdEarly === '') {
+            $telegramLeadsChatIdEarly = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+        }
+
+        $sourceLabel = $source === 'max' ? 'MAX' : 'Telegram';
+
+        if ($telegramLeadsChatIdEarly !== '') {
+            telegram_send_message(
+                $config,
+                $telegramLeadsChatIdEarly,
+                "💬 Оператор подключён к клиенту {$sourceLabel} {$clientId}.\n\nТеперь отправляйте сообщения клиенту так:\n/to текст сообщения\n\nЗавершить чат:\n/close"
+            );
+        }
+
+        if ($source === 'max') {
+            telegram_max_send_message_fast(
+                $config,
+                $clientId,
+                'Оператор A&A Asset Team подключился к вашему обращению. Можно продолжить общение здесь.'
+            );
+        } else {
+            telegram_send_message(
+                $config,
+                $clientId,
+                'Оператор A&A Asset Team подключился к вашему обращению. Можно продолжить общение здесь.'
+            );
+        }
+
+        bot_ok();
+        exit;
+    }
+
+    if ($callbackId !== '') {
+        telegram_api($config, 'answerCallbackQuery', [
+            'callback_query_id' => $callbackId,
+            'text' => 'Кнопка не распознана',
+            'show_alert' => false,
+        ]);
+    }
+
+    bot_ok();
+    exit;
+}
+
 $incoming = telegram_extract_message($update);
 
 $chatId = $incoming['chat_id'];
