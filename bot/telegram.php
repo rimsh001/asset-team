@@ -879,7 +879,7 @@ if (!function_exists('telegram_notify_client_chat_closed_v1')) {
     {
         $source = $source === 'telegram' ? 'telegram' : 'max';
 
-        $text = 'Чат с оператором завершён. Если у вас появятся дополнительные вопросы, напишите здесь — бот снова примет обращение.';
+        $text = 'Чат с оператором завершён. Если у вас появятся дополнительные вопросы — просто напишите здесь, мы продолжим общение.';
 
         if ($source === 'telegram') {
             return telegram_send_message($config, $clientId, $text);
