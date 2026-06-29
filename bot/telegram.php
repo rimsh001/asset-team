@@ -209,6 +209,18 @@ function telegram_copy_client_media_to_admin_threaded(array $config, string $tel
 }
 
 
+
+function telegram_client_wants_operator(string $text): bool
+{
+    $t = mb_strtolower(trim($text), 'UTF-8');
+
+    return (bool)preg_match(
+        '/оператор|менеджер|специалист|человек|живой|связаться|связь|позвоните|позвонить|перезвоните|соедини|контакт|телефон|как с вами связаться/u',
+        $t
+    );
+}
+
+
 function telegram_format_history(array $messages): string
 {
     $items = array_slice($messages, -5);
@@ -253,6 +265,7 @@ if ($chatId === null || $chatId === '') {
 $trimmedText = trim($text);
 $normalizedText = mb_strtolower($trimmedText);
 $hasClientMedia = telegram_update_has_media($update);
+$wantsOperator = telegram_client_wants_operator($trimmedText);
 
 if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', $trimmedText, $matches)) {
     $maxChatId = trim($matches[1]);
@@ -317,7 +330,10 @@ $hasEnoughData = $messageHasLead || !empty($clientSession['lead_ready']);
 $isSupplement = $hadLeadBefore && !$messageHasLead;
 
 if ($hasEnoughData) {
-    if ($isSupplement) {
+    if ($wantsOperator) {
+        $replyText = "Передал запрос оператору A&A Asset Team. Специалист посмотрит заявку и вернётся с ответом в этом чате.";
+        $clientSession['operator_requested'] = true;
+    } elseif ($isSupplement) {
         $replyText = $hasClientMedia
             ? "Спасибо, получил вложение и добавил его к заявке. Передал в рабочую группу A&A Asset Team."
             : "Спасибо, дополнил заявку и передал информацию в рабочую группу A&A Asset Team.";
@@ -333,7 +349,12 @@ if ($hasEnoughData) {
         $clientSession['auto_reply_count_after_lead'] = 0;
     }
 } else {
-    $replyText = "Принял. Чтобы передать заявку в работу, добавьте одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Желаемую цену\n4. Есть ли фото, документы или ссылка\n5. Удобный контакт для связи";
+    if ($wantsOperator) {
+        $replyText = "Передал запрос оператору A&A Asset Team. Чтобы специалист быстрее разобрал обращение, напишите, пожалуйста, что нужно реализовать, город/регион и ориентировочную цену.";
+        $clientSession['operator_requested'] = true;
+    } else {
+        $replyText = "Принял. Чтобы передать заявку в работу, добавьте одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Желаемую цену\n4. Есть ли фото, документы или ссылка\n5. Удобный контакт для связи";
+    }
 }
 
 if ($replyText !== '') {
@@ -345,7 +366,14 @@ if ($replyText !== '') {
     }
 }
 
-if ($isSupplement) {
+if ($wantsOperator) {
+    $adminNotice = "🚨 КЛИЕНТ ПРОСИТ ОПЕРАТОРА\n\n" .
+        ($userName ? "Пользователь: {$userName}\n" : '') .
+        "Chat ID: {$chatId}\n\n" .
+        "Сообщение клиента:\n" . ($text !== '' ? $text : '[без текста]') . "\n\n" .
+        "История последних сообщений:\n" . telegram_format_history($clientSession['messages']) . "\n\n" .
+        "Время: " . date('d.m.Y H:i:s') . "\n";
+} elseif ($isSupplement) {
     $newDataText = $hasClientMedia
         ? "Новое вложение: " . telegram_media_label($update) . "\nКомментарий:\n" . ($text !== '' ? $text : '[без текста]')
         : "Новое сообщение:\n" . ($text !== '' ? $text : '[без текста]');
