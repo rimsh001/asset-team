@@ -558,7 +558,7 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
     $lines[] = 'Нажмите кнопку «💬 Ответить клиенту» под этой карточкой, затем отправляйте сообщения командой /to текст.';
     $lines[] = '';
     $lines[] = 'Текст клиента:';
-    $lines[] = $messageForHistory;
+    $lines[] = $text !== '' ? $text : '[без текста]';
     $lines[] = '';
     $lines[] = 'История последних сообщений:';
     $lines[] = max_compact_history(is_array($session['messages'] ?? null) ? $session['messages'] : []);
@@ -641,7 +641,7 @@ function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId
         foreach ($attachmentLines as $line) $extra[] = '- ' . $line;
     }
 
-    if (!empty($session['operator_mode'])) {
+    if (!empty($session['operator_mode']) || !empty($session['bot_paused'])) {
         $title = '💬 СООБЩЕНИЕ КЛИЕНТА ИЗ MAX';
         $extra[] = 'Режим live-чата: оператор подключён.';
     } elseif (max_is_full_lead_ready($lead) && !($session['full_notice_sent'] ?? false)) {
@@ -739,6 +739,72 @@ if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedTe
 $session = max_load_session($chatId);
 $session['source'] = 'max';
 $session['client_chat_id'] = (string)$chatId;
+
+// Live-chat incoming route.
+// If operator is connected, every client message from MAX must go to Telegram group.
+// Bot should not auto-answer the client in this mode.
+if (!empty($session['operator_mode']) || !empty($session['bot_paused'])) {
+    $attachmentLinesLive = max_extract_attachment_lines($update);
+    $messageForHistoryLive = $text !== '' ? $text : ($attachmentLinesLive ? '[вложение MAX: ' . implode('; ', $attachmentLinesLive) . ']' : '[без текста]');
+
+    $uniqueBaseLive = max_extract_message_unique_id($update);
+    $fingerprintLive = hash(
+        'sha256',
+        ($uniqueBaseLive !== '' ? $uniqueBaseLive : json_encode($update, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '|' . $messageForHistoryLive
+    );
+
+    $processedLive = is_array($session['processed_live_message_ids'] ?? null) ? $session['processed_live_message_ids'] : [];
+
+    if (in_array($fingerprintLive, $processedLive, true)) {
+        bot_log('max_live_duplicate_message_ignored', [
+            'chat_id' => $chatId,
+            'fingerprint' => $fingerprintLive,
+            'text' => $messageForHistoryLive,
+        ]);
+
+        max_save_session($chatId, $session);
+        max_finish_webhook();
+        exit;
+    }
+
+    $processedLive[] = $fingerprintLive;
+    $session['processed_live_message_ids'] = array_slice(array_values(array_unique($processedLive)), -100);
+
+    $session = max_add_client_message($session, $messageForHistoryLive);
+
+    $telegramLeadsChatIdLive = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+    if ($telegramLeadsChatIdLive === '') {
+        $telegramLeadsChatIdLive = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+    }
+
+    $extraLive = ['Режим live-чата: оператор подключён.'];
+    if ($attachmentLinesLive) {
+        $extraLive[] = 'Вложения клиента:';
+        foreach ($attachmentLinesLive as $line) {
+            $extraLive[] = '- ' . $line;
+        }
+    }
+
+    if ($telegramLeadsChatIdLive !== '' && !str_contains($telegramLeadsChatIdLive, 'PASTE_')) {
+        max_send_telegram_notice_threaded(
+            $config,
+            $telegramLeadsChatIdLive,
+            max_format_admin_notice('💬 СООБЩЕНИЕ КЛИЕНТА ИЗ MAX', $incoming, $messageForHistoryLive, $update, $session, $extraLive),
+            $session
+        );
+    }
+
+    bot_log('max_live_client_message_forwarded', [
+        'chat_id' => $chatId,
+        'text' => $messageForHistoryLive,
+        'telegram_chat_id' => $telegramLeadsChatIdLive,
+    ]);
+
+    max_save_session($chatId, $session);
+    max_finish_webhook();
+    exit;
+}
+
 
 $messageUniqueId = max_extract_message_unique_id($update);
 if ($messageUniqueId !== '') {
