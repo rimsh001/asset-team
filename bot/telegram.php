@@ -638,12 +638,7 @@ function telegram_handle_reply_button_callback(array $config, array $update, str
         "💬 Оператор подключён к клиенту {$sourceLabel} {$clientId}.\n\nТеперь отправляйте сообщения клиенту так:\n/to текст сообщения\n\nЗавершить чат:\n/close"
     );
 
-    telegram_send_operator_text_to_client(
-        $config,
-        $source,
-        $clientId,
-        'Оператор A&A Asset Team подключился к вашему обращению. Можно продолжить общение здесь.'
-    );
+    telegram_maybe_send_operator_intro($config, $source, $clientId);
 
     return true;
 }
@@ -715,6 +710,93 @@ function telegram_handle_operator_to_command(array $config, array $update, strin
     );
 
     return true;
+}
+
+
+
+function telegram_client_session_file_for_source(string $source, string $clientId): string
+{
+    $source = $source === 'telegram' ? 'telegram' : 'max';
+    $dir = __DIR__ . '/sessions/' . $source;
+    if (!is_dir($dir)) @mkdir($dir, 0755, true);
+    return $dir . '/' . hash('sha256', $clientId) . '.json';
+}
+
+function telegram_load_client_session_for_source(string $source, string $clientId): array
+{
+    $file = telegram_client_session_file_for_source($source, $clientId);
+    if (!is_file($file)) return [];
+
+    $raw = file_get_contents($file);
+    $data = is_string($raw) ? json_decode($raw, true) : null;
+
+    return is_array($data) ? $data : [];
+}
+
+function telegram_save_client_session_for_source(string $source, string $clientId, array $session): void
+{
+    $file = telegram_client_session_file_for_source($source, $clientId);
+
+    $session['source'] = $source === 'telegram' ? 'telegram' : 'max';
+    $session['client_chat_id'] = $clientId;
+    $session['updated_at'] = date('c');
+
+    @file_put_contents(
+        $file,
+        json_encode($session, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+        LOCK_EX
+    );
+}
+
+function telegram_maybe_send_operator_intro(array $config, string $source, string $clientId): array
+{
+    $source = $source === 'telegram' ? 'telegram' : 'max';
+    $session = telegram_load_client_session_for_source($source, $clientId);
+
+    $session['source'] = $source;
+    $session['client_chat_id'] = $clientId;
+    $session['operator_mode'] = true;
+    $session['bot_paused'] = true;
+    $session['operator_started_at'] = $session['operator_started_at'] ?? date('c');
+
+    // Главное: приветствие оператора клиенту отправляем только один раз.
+    if (!empty($session['operator_intro_sent_at'])) {
+        telegram_save_client_session_for_source($source, $clientId, $session);
+
+        bot_log('telegram_operator_intro_skipped', [
+            'source' => $source,
+            'client_id' => $clientId,
+            'operator_intro_sent_at' => $session['operator_intro_sent_at'],
+        ]);
+
+        return ['status' => 200, 'error' => '', 'response' => 'operator intro already sent'];
+    }
+
+    $intro = 'Оператор A&A Asset Team подключился к вашему обращению. Можно продолжить общение здесь.';
+
+    if ($source === 'telegram') {
+        $result = telegram_send_message($config, $clientId, $intro);
+    } else {
+        $result = telegram_max_send_message_fast($config, $clientId, $intro);
+    }
+
+    $status = (int)($result['status'] ?? 0);
+
+    if ($status >= 200 && $status < 300) {
+        $session['operator_intro_sent_at'] = date('c');
+    }
+
+    telegram_save_client_session_for_source($source, $clientId, $session);
+
+    bot_log('telegram_operator_intro_sent_once', [
+        'source' => $source,
+        'client_id' => $clientId,
+        'status' => $status,
+        'error' => $result['error'] ?? '',
+        'response' => $result['response'] ?? null,
+    ]);
+
+    return $result;
 }
 
 
@@ -829,19 +911,7 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
             );
         }
 
-        if ($source === 'max') {
-            telegram_max_send_message_fast(
-                $config,
-                $clientId,
-                'Оператор A&A Asset Team подключился к вашему обращению. Можно продолжить общение здесь.'
-            );
-        } else {
-            telegram_send_message(
-                $config,
-                $clientId,
-                'Оператор A&A Asset Team подключился к вашему обращению. Можно продолжить общение здесь.'
-            );
-        }
+        telegram_maybe_send_operator_intro($config, $source, $clientId);
 
         bot_ok();
         exit;
