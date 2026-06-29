@@ -27,6 +27,81 @@ function telegram_reply_via_webhook(string $chatId, string $text): void
     @flush();
 }
 
+function telegram_fast_post_json(string $url, array $payload, array $headers = []): array
+{
+    $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($body === false) {
+        $body = '{}';
+    }
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 1,
+        CURLOPT_TIMEOUT => 2,
+        CURLOPT_NOSIGNAL => true,
+        CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json', 'Accept: application/json'], $headers),
+        CURLOPT_POSTFIELDS => $body,
+    ]);
+
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    bot_log('telegram_fast_post_json', [
+        'url' => bot_mask_url($url),
+        'status' => $status,
+        'error' => $error,
+        'response' => $response,
+    ]);
+
+    return ['status' => $status, 'error' => $error, 'response' => $response];
+}
+
+function telegram_max_send_message_fast(array $config, string $maxChatId, string $text): array
+{
+    $token = trim((string)($config['max_bot_token'] ?? ''));
+    if ($token === '' || str_contains($token, 'PASTE_')) {
+        bot_log('max_missing_token', []);
+        return ['status' => 0, 'error' => 'Missing MAX token', 'response' => null];
+    }
+
+    $apiBase = rtrim((string)($config['max_api_base'] ?? 'https://platform-api.max.ru'), '/');
+    $template = (string)($config['max_send_message_url_template'] ?? '');
+    $attempts = [];
+
+    if ($template !== '') {
+        $url = str_replace(['{token}', '{chat_id}'], [rawurlencode($token), rawurlencode($maxChatId)], $template);
+        $headers = str_contains($template, '{token}') ? [] : ['Authorization: ' . $token];
+        $attempts[] = ['configured_template', $url, ['text' => $text], $headers];
+    }
+
+    $attempts[] = ['platform_query_chat_id', $apiBase . '/messages?chat_id=' . rawurlencode($maxChatId), ['text' => $text], ['Authorization: ' . $token]];
+
+    $lastResult = ['status' => 0, 'error' => 'MAX send attempts were not executed', 'response' => null];
+    foreach (array_slice($attempts, 0, 2) as $attempt) {
+        [$name, $url, $payload, $headers] = $attempt;
+        $result = telegram_fast_post_json($url, $payload, $headers);
+        $lastResult = $result;
+
+        bot_log('telegram_max_send_fast_attempt', [
+            'attempt' => $name,
+            'url' => bot_mask_url($url),
+            'status' => $result['status'],
+            'error' => $result['error'],
+            'response' => $result['response'],
+        ]);
+
+        if ($result['status'] >= 200 && $result['status'] < 300) {
+            return $result;
+        }
+    }
+
+    return $lastResult;
+}
+
 $config = bot_load_config();
 
 $secret = trim((string)($config['telegram_webhook_secret'] ?? ''));
@@ -69,13 +144,17 @@ if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', $
 
     telegram_reply_via_webhook($chatId, "Отправляю ответ клиенту в MAX…");
 
-    $sendResult = max_send_message($config, $maxChatId, $messageToClient);
+    $sendResult = telegram_max_send_message_fast($config, $maxChatId, $messageToClient);
     $status = (int)($sendResult['status'] ?? 0);
 
     if ($status >= 200 && $status < 300) {
         telegram_send_message($config, $chatId, "Ответ отправлен в MAX чат {$maxChatId}.");
     } else {
-        telegram_send_message($config, $chatId, "Не удалось отправить ответ в MAX чат {$maxChatId}. Статус: {$status}. Проверьте bot.log.");
+        $errorText = trim((string)($sendResult['error'] ?? ''));
+        $responseText = trim((string)($sendResult['response'] ?? ''));
+        $details = $errorText !== '' ? $errorText : $responseText;
+        $details = $details !== '' ? "\nДетали: " . mb_substr($details, 0, 500) : '';
+        telegram_send_message($config, $chatId, "Не удалось отправить ответ в MAX чат {$maxChatId}. Статус: {$status}.{$details}");
     }
 
     bot_log('telegram_max_reply_command', [
