@@ -1,0 +1,88 @@
+name: Deploy to Selectel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-selectel
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install rsync
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
+
+      - name: Prepare SSH
+        env:
+          SELECTEL_HOST: ${{ secrets.SELECTEL_HOST }}
+          SELECTEL_PORT: ${{ secrets.SELECTEL_PORT }}
+          SELECTEL_SSH_KEY: ${{ secrets.SELECTEL_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SELECTEL_SSH_KEY" > ~/.ssh/selectel_key
+          chmod 600 ~/.ssh/selectel_key
+
+          PORT="${SELECTEL_PORT:-22}"
+          ssh-keyscan -p "$PORT" -H "$SELECTEL_HOST" >> ~/.ssh/known_hosts
+
+      - name: Prepare server runtime folders
+        env:
+          SELECTEL_HOST: ${{ secrets.SELECTEL_HOST }}
+          SELECTEL_USER: ${{ secrets.SELECTEL_USER }}
+          SELECTEL_PORT: ${{ secrets.SELECTEL_PORT }}
+          SELECTEL_PATH: ${{ secrets.SELECTEL_PATH }}
+        run: |
+          PORT="${SELECTEL_PORT:-22}"
+          ssh -i ~/.ssh/selectel_key -p "$PORT" "$SELECTEL_USER@$SELECTEL_HOST" "
+            mkdir -p '$SELECTEL_PATH/bot/logs' \
+                     '$SELECTEL_PATH/bot/sessions/max' \
+                     '$SELECTEL_PATH/bot/sessions/telegram'
+          "
+
+      - name: Deploy files
+        env:
+          SELECTEL_HOST: ${{ secrets.SELECTEL_HOST }}
+          SELECTEL_USER: ${{ secrets.SELECTEL_USER }}
+          SELECTEL_PORT: ${{ secrets.SELECTEL_PORT }}
+          SELECTEL_PATH: ${{ secrets.SELECTEL_PATH }}
+        run: |
+          PORT="${SELECTEL_PORT:-22}"
+
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='bot/config.php' \
+            --exclude='bot/logs/' \
+            --exclude='bot/sessions/' \
+            --exclude='bot/*.bak*' \
+            -e "ssh -i ~/.ssh/selectel_key -p $PORT" \
+            ./ "$SELECTEL_USER@$SELECTEL_HOST:$SELECTEL_PATH/"
+
+      - name: Check PHP and permissions
+        env:
+          SELECTEL_HOST: ${{ secrets.SELECTEL_HOST }}
+          SELECTEL_USER: ${{ secrets.SELECTEL_USER }}
+          SELECTEL_PORT: ${{ secrets.SELECTEL_PORT }}
+          SELECTEL_PATH: ${{ secrets.SELECTEL_PATH }}
+        run: |
+          PORT="${SELECTEL_PORT:-22}"
+
+          ssh -i ~/.ssh/selectel_key -p "$PORT" "$SELECTEL_USER@$SELECTEL_HOST" "
+            php -l '$SELECTEL_PATH/bot/lib.php' &&
+            php -l '$SELECTEL_PATH/bot/max.php' &&
+            php -l '$SELECTEL_PATH/bot/telegram.php' &&
+            chown -R www-data:www-data '$SELECTEL_PATH/bot/logs' '$SELECTEL_PATH/bot/sessions' &&
+            chmod -R 775 '$SELECTEL_PATH/bot/logs' '$SELECTEL_PATH/bot/sessions' &&
+            systemctl reload php8.3-fpm || true
+          "
