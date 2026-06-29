@@ -92,6 +92,75 @@ function max_extract_message_unique_id(array $update): string
 }
 
 
+
+function max_collect_urls_from_value($value, array &$urls): void
+{
+    if (is_string($value)) {
+        if (preg_match_all('/https?:\/\/[^\s"\']+/ui', $value, $matches)) {
+            foreach ($matches[0] as $url) $urls[] = rtrim($url, ".,;)]");
+        }
+        return;
+    }
+
+    if (is_array($value)) {
+        foreach ($value as $child) max_collect_urls_from_value($child, $urls);
+    }
+}
+
+function max_collect_attachments(array $data): array
+{
+    $items = [];
+
+    foreach ($data as $key => $value) {
+        if ((string)$key === 'attachments' && is_array($value)) {
+            foreach ($value as $item) {
+                if (is_array($item)) $items[] = $item;
+            }
+        }
+
+        if (is_array($value)) {
+            foreach (max_collect_attachments($value) as $item) $items[] = $item;
+        }
+    }
+
+    return $items;
+}
+
+function max_attachment_label(array $attachment): string
+{
+    $type = trim((string)($attachment['type'] ?? $attachment['attachment_type'] ?? 'вложение'));
+    $name = trim((string)($attachment['name'] ?? $attachment['filename'] ?? $attachment['file_name'] ?? ''));
+
+    $urls = [];
+    max_collect_urls_from_value($attachment, $urls);
+    $urls = array_values(array_unique($urls));
+
+    $line = $type !== '' ? $type : 'вложение';
+    if ($name !== '') $line .= ': ' . $name;
+    if ($urls) $line .= ' — ' . implode(' ', array_slice($urls, 0, 3));
+
+    return $line;
+}
+
+function max_extract_attachment_lines(array $update): array
+{
+    $attachments = max_collect_attachments($update);
+    $lines = [];
+
+    foreach ($attachments as $attachment) {
+        $line = max_attachment_label($attachment);
+        if (trim($line) !== '') $lines[] = $line;
+    }
+
+    return array_values(array_unique($lines));
+}
+
+function max_update_has_attachments(array $update): bool
+{
+    return count(max_extract_attachment_lines($update)) > 0;
+}
+
+
 function max_normalize(string $text): string
 {
     return str_replace('ё', 'е', mb_strtolower($text, 'UTF-8'));
@@ -488,7 +557,7 @@ function max_format_admin_notice(string $title, array $incoming, string $text, a
     $lines[] = 'Эту команду можно отправить в Telegram-группе или в MAX-админ-чате, если настроен max_admin_chat_id.';
     $lines[] = '';
     $lines[] = 'Текст клиента:';
-    $lines[] = $text !== '' ? $text : '[без текста]';
+    $lines[] = $messageForHistory;
     $lines[] = '';
     $lines[] = 'История последних сообщений:';
     $lines[] = max_compact_history(is_array($session['messages'] ?? null) ? $session['messages'] : []);
@@ -544,6 +613,11 @@ function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId
     $lead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
     $title = null;
     $extra = [];
+    $attachmentLines = max_extract_attachment_lines($update);
+    if ($attachmentLines) {
+        $extra[] = 'Вложения клиента:';
+        foreach ($attachmentLines as $line) $extra[] = '- ' . $line;
+    }
 
     if (max_is_full_lead_ready($lead) && !($session['full_notice_sent'] ?? false)) {
         $title = '✅ ПОЛНАЯ ЗАЯВКА ИЗ MAX';
@@ -555,10 +629,12 @@ function max_notify_manager_if_needed(array $config, string $telegramLeadsChatId
         $session['early_notice_sent'] = true;
     } else {
         $fields = max_detect_supplement_fields($session, $prevLead, $lead, $text);
-        if ($fields) {
+        if ($fields || $attachmentLines) {
             $title = '📎 ДОПОЛНЕНИЕ К ЗАЯВКЕ ИЗ MAX';
-            $extra[] = 'Новые данные: ' . implode(', ', array_map('max_human_field', $fields));
-            foreach ($fields as $field) $session['notified_fields'][$field] = true;
+            if ($fields) {
+                $extra[] = 'Новые данные: ' . implode(', ', array_map('max_human_field', $fields));
+                foreach ($fields as $field) $session['notified_fields'][$field] = true;
+            }
         }
     }
     if ($title === null) return;
@@ -654,9 +730,18 @@ if ($messageUniqueId !== '') {
     $session['processed_message_ids'] = array_slice(array_values(array_unique($processedMessageIds)), -100);
 }
 
-$session = max_add_client_message($session, $text !== '' ? $text : '[без текста]');
+$attachmentLines = max_extract_attachment_lines($update);
+$messageForHistory = $text !== '' ? $text : ($attachmentLines ? '[вложение MAX: ' . implode('; ', $attachmentLines) . ']' : '[без текста]');
+$session = max_add_client_message($session, $messageForHistory);
 $prevLead = is_array($session['lead'] ?? null) ? $session['lead'] : [];
 $patch = max_extract_patch($text);
+if ($attachmentLines) {
+    $patch['materials'] = 'есть вложения MAX';
+    $attachmentText = max_normalize(implode(' ', $attachmentLines));
+    if (preg_match('/file|document|pdf|doc|xls|документ|файл/u', $attachmentText)) {
+        $patch['documents'] = 'документы приложены';
+    }
+}
 $session['lead'] = max_merge_lead($prevLead, $patch);
 $replyText = max_build_client_reply($session, $text);
 
@@ -664,7 +749,25 @@ $telegramLeadsChatId = trim((string)($config['telegram_leads_chat_id'] ?? ''));
 if ($telegramLeadsChatId === '') $telegramLeadsChatId = trim((string)($config['telegram_admin_chat_id'] ?? ''));
 
 max_notify_manager_if_needed($config, $telegramLeadsChatId, $incoming, $text !== '' ? $text : '[без текста]', $update, $session, $prevLead);
+$isFullReadyAfter = max_is_full_lead_ready(is_array($session['lead'] ?? null) ? $session['lead'] : []);
+if ($isFullReadyAfter && !empty($session['client_full_reply_sent'])) {
+    $followupReplyCount = (int)($session['client_followup_auto_reply_count'] ?? 0);
+    if ($followupReplyCount >= 1) {
+        $replyText = '';
+    } else {
+        $session['client_followup_auto_reply_count'] = $followupReplyCount + 1;
+    }
+} elseif ($isFullReadyAfter) {
+    $session['client_full_reply_sent'] = true;
+    $session['client_followup_auto_reply_count'] = 0;
+} else {
+    $session['client_full_reply_sent'] = false;
+    $session['client_followup_auto_reply_count'] = 0;
+}
+
 max_save_session($chatId, $session);
 
 max_finish_webhook();
-max_send_message($config, $chatId, $replyText);
+if ($replyText !== '') {
+    max_send_message($config, $chatId, $replyText);
+}

@@ -171,6 +171,44 @@ function telegram_send_admin_notice_threaded(array $config, string $telegramLead
 
 
 
+
+function telegram_copy_client_media_to_admin_threaded(array $config, string $telegramLeadsChatId, string $clientChatId, array $update, ?string $userName): void
+{
+    if (!telegram_update_has_media($update)) return;
+
+    $message = telegram_update_message($update);
+    $messageId = (int)($message['message_id'] ?? 0);
+    if ($messageId <= 0) return;
+
+    $session = telegram_group_load_session($clientChatId);
+    $threadMessageId = (int)($session['telegram_thread_message_id'] ?? 0);
+
+    $caption = "📎 " . telegram_media_label($update) . " от клиента Telegram\n\n" .
+        ($userName ? "Пользователь: {$userName}\n" : '') .
+        "Chat ID: {$clientChatId}\n" .
+        "Время: " . date('d.m.Y H:i:s');
+
+    $result = telegram_copy_message(
+        $config,
+        $telegramLeadsChatId,
+        $clientChatId,
+        $messageId,
+        $threadMessageId > 0 ? $threadMessageId : null,
+        $caption
+    );
+
+    bot_log('telegram_copy_client_media_to_admin_threaded', [
+        'client_chat_id' => $clientChatId,
+        'telegram_chat_id' => $telegramLeadsChatId,
+        'message_id' => $messageId,
+        'thread_message_id' => $threadMessageId,
+        'status' => $result['status'] ?? 0,
+        'error' => $result['error'] ?? '',
+        'response' => $result['response'] ?? null,
+    ]);
+}
+
+
 function telegram_format_history(array $messages): string
 {
     $items = array_slice($messages, -5);
@@ -214,6 +252,7 @@ if ($chatId === null || $chatId === '') {
 
 $trimmedText = trim($text);
 $normalizedText = mb_strtolower($trimmedText);
+$hasClientMedia = telegram_update_has_media($update);
 
 if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', $trimmedText, $matches)) {
     $maxChatId = trim($matches[1]);
@@ -249,7 +288,7 @@ if (preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)\s+(.+)$/us', $
     exit;
 }
 
-if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedText === '') {
+if ($normalizedText === '/start' || $normalizedText === 'start' || ($normalizedText === '' && !$hasClientMedia)) {
     telegram_reply_via_webhook($chatId, bot_text_for_start());
     exit;
 }
@@ -257,8 +296,9 @@ if ($normalizedText === '/start' || $normalizedText === 'start' || $normalizedTe
 $clientSession = telegram_group_load_session((string)$chatId);
 
 $messages = is_array($clientSession['messages'] ?? null) ? $clientSession['messages'] : [];
+$messageTextForSession = $trimmedText !== '' ? $trimmedText : ($hasClientMedia ? '[' . telegram_media_label($update) . ']' : '[без текста]');
 $messages[] = [
-    'text' => $trimmedText !== '' ? $trimmedText : '[без текста]',
+    'text' => $messageTextForSession,
     'at' => date('c'),
 ];
 $clientSession['messages'] = array_slice($messages, -20);
@@ -278,25 +318,46 @@ $isSupplement = $hadLeadBefore && !$messageHasLead;
 
 if ($hasEnoughData) {
     if ($isSupplement) {
-        $replyText = "Спасибо, дополнил заявку и передал информацию в рабочую группу A&A Asset Team.\n\nЕсли появятся ещё фото, документы, ссылка или уточнения — отправьте их следующим сообщением.";
+        $replyText = $hasClientMedia
+            ? "Спасибо, получил вложение и добавил его к заявке. Передал в рабочую группу A&A Asset Team."
+            : "Спасибо, дополнил заявку и передал информацию в рабочую группу A&A Asset Team.";
+
+        $autoReplyCountAfterLead = (int)($clientSession['auto_reply_count_after_lead'] ?? 0);
+        if ($autoReplyCountAfterLead >= 1) {
+            $replyText = '';
+        } else {
+            $clientSession['auto_reply_count_after_lead'] = $autoReplyCountAfterLead + 1;
+        }
     } else {
         $replyText = "Спасибо. Заявку получил и передал в рабочую группу A&A Asset Team.\n\nЕсли есть фото, документы или ссылка на объявление — отправьте их следующим сообщением.";
+        $clientSession['auto_reply_count_after_lead'] = 0;
     }
 } else {
     $replyText = "Принял. Чтобы передать заявку в работу, добавьте одним сообщением:\n\n1. Что продаётся / какой актив\n2. Город или регион\n3. Желаемую цену\n4. Есть ли фото, документы или ссылка\n5. Удобный контакт для связи";
 }
 
-telegram_reply_via_webhook($chatId, $replyText);
+if ($replyText !== '') {
+    telegram_reply_via_webhook($chatId, $replyText);
+} else {
+    bot_ok();
+    if (function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
+}
 
 if ($isSupplement) {
+    $newDataText = $hasClientMedia
+        ? "Новое вложение: " . telegram_media_label($update) . "\nКомментарий:\n" . ($text !== '' ? $text : '[без текста]')
+        : "Новое сообщение:\n" . ($text !== '' ? $text : '[без текста]');
+
     $adminNotice = "📎 ДОПОЛНЕНИЕ К ЗАЯВКЕ ИЗ Telegram\n\n" .
         ($userName ? "Пользователь: {$userName}\n" : '') .
         "Chat ID: {$chatId}\n\n" .
-        "Новое сообщение:\n" . ($text !== '' ? $text : '[без текста]') . "\n\n" .
+        $newDataText . "\n\n" .
         "История последних сообщений:\n" . telegram_format_history($clientSession['messages']) . "\n\n" .
         "Время: " . date('d.m.Y H:i:s') . "\n";
 } else {
-    $adminNotice = bot_format_admin_notice('Telegram', $chatId, $userName, $text !== '' ? $text : '[без текста]', $update);
+    $adminNotice = bot_format_admin_notice('Telegram', $chatId, $userName, $messageTextForSession, $update);
 }
 
 telegram_group_save_session((string)$chatId, $clientSession);
@@ -308,4 +369,7 @@ if ($telegramLeadsChatId === '') {
 
 if ($telegramLeadsChatId !== '' && !str_contains($telegramLeadsChatId, 'PASTE_')) {
     telegram_send_admin_notice_threaded($config, $telegramLeadsChatId, (string)$chatId, $adminNotice);
+    if ($hasClientMedia) {
+        telegram_copy_client_media_to_admin_threaded($config, $telegramLeadsChatId, (string)$chatId, $update, $userName);
+    }
 }

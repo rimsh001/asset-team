@@ -249,11 +249,66 @@ function telegram_send_message(array $config, string $chatId, string $text): arr
     ]);
 }
 
+
+function telegram_copy_message(array $config, string $toChatId, string $fromChatId, int $messageId, ?int $replyToMessageId = null, ?string $caption = null): array
+{
+    $payload = [
+        'chat_id' => $toChatId,
+        'from_chat_id' => $fromChatId,
+        'message_id' => $messageId,
+    ];
+
+    if ($replyToMessageId !== null && $replyToMessageId > 0) {
+        $payload['reply_to_message_id'] = $replyToMessageId;
+        $payload['allow_sending_without_reply'] = true;
+    }
+
+    if ($caption !== null && trim($caption) !== '') {
+        $payload['caption'] = mb_substr($caption, 0, 1000);
+    }
+
+    return telegram_api($config, 'copyMessage', $payload);
+}
+
+function telegram_update_message(array $update): array
+{
+    $message = $update['message'] ?? $update['edited_message'] ?? [];
+    return is_array($message) ? $message : [];
+}
+
+function telegram_update_has_media(array $update): bool
+{
+    $message = telegram_update_message($update);
+    foreach (['photo', 'document', 'video', 'audio', 'voice', 'animation', 'sticker'] as $key) {
+        if (isset($message[$key])) return true;
+    }
+    return false;
+}
+
+function telegram_media_label(array $update): string
+{
+    $message = telegram_update_message($update);
+
+    if (isset($message['photo'])) return 'фото';
+    if (isset($message['video'])) return 'видео';
+    if (isset($message['audio'])) return 'аудио';
+    if (isset($message['voice'])) return 'голосовое сообщение';
+    if (isset($message['animation'])) return 'анимация';
+    if (isset($message['sticker'])) return 'стикер';
+
+    if (isset($message['document']) && is_array($message['document'])) {
+        $name = trim((string)($message['document']['file_name'] ?? ''));
+        return $name !== '' ? 'документ: ' . $name : 'документ';
+    }
+
+    return 'вложение';
+}
+
 function telegram_extract_message(array $update): array
 {
     $message = $update['message'] ?? $update['edited_message'] ?? $update['callback_query']['message'] ?? [];
     $from = $update['message']['from'] ?? $update['callback_query']['from'] ?? [];
-    $text = (string)($update['message']['text'] ?? $update['callback_query']['data'] ?? '');
+    $text = (string)($update['message']['text'] ?? $update['message']['caption'] ?? $update['callback_query']['data'] ?? '');
     $chatId = isset($message['chat']['id']) ? (string)$message['chat']['id'] : null;
 
     $nameParts = array_filter([
