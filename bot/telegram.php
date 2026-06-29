@@ -813,6 +813,83 @@ function telegram_format_history(array $messages): string
 }
 
 
+
+if (!function_exists('telegram_close_operator_chat_by_button_v1')) {
+    function telegram_close_operator_chat_by_button_v1(array $config, string $source, string $clientId, string $operatorId = ''): void
+    {
+        $source = $source === 'telegram' ? 'telegram' : 'max';
+
+        $clientDir = __DIR__ . '/sessions/' . $source;
+        if (!is_dir($clientDir)) @mkdir($clientDir, 0755, true);
+
+        $clientFile = $clientDir . '/' . hash('sha256', $clientId) . '.json';
+
+        $session = [];
+        if (is_file($clientFile)) {
+            $raw = file_get_contents($clientFile);
+            $decoded = is_string($raw) ? json_decode($raw, true) : null;
+            if (is_array($decoded)) $session = $decoded;
+        }
+
+        $session['source'] = $source;
+        $session['client_chat_id'] = $clientId;
+        $session['operator_mode'] = false;
+        $session['bot_paused'] = false;
+        $session['operator_closed_at'] = date('c');
+        $session['updated_at'] = date('c');
+
+        @file_put_contents(
+            $clientFile,
+            json_encode($session, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT),
+            LOCK_EX
+        );
+
+        $operatorsDir = __DIR__ . '/sessions/operators';
+        if (is_dir($operatorsDir)) {
+            foreach (glob($operatorsDir . '/*.json') ?: [] as $operatorFile) {
+                $rawOperator = file_get_contents($operatorFile);
+                $operatorState = is_string($rawOperator) ? json_decode($rawOperator, true) : null;
+
+                if (!is_array($operatorState)) continue;
+
+                $sameClient = (string)($operatorState['source'] ?? '') === $source
+                    && (string)($operatorState['client_chat_id'] ?? '') === (string)$clientId;
+
+                $sameOperator = $operatorId !== ''
+                    && (string)($operatorState['operator_id'] ?? '') === (string)$operatorId;
+
+                if ($sameClient || $sameOperator) {
+                    @unlink($operatorFile);
+                }
+            }
+        }
+
+        bot_log('telegram_close_operator_chat_by_button', [
+            'source' => $source,
+            'client_id' => $clientId,
+            'operator_id' => $operatorId,
+        ]);
+    }
+}
+
+
+
+if (!function_exists('telegram_notify_client_chat_closed_v1')) {
+    function telegram_notify_client_chat_closed_v1(array $config, string $source, string $clientId): array
+    {
+        $source = $source === 'telegram' ? 'telegram' : 'max';
+
+        $text = 'Чат с оператором завершён. Если у вас появятся дополнительные вопросы, напишите здесь — бот снова примет обращение.';
+
+        if ($source === 'telegram') {
+            return telegram_send_message($config, $clientId, $text);
+        }
+
+        return telegram_max_send_message_fast($config, $clientId, $text);
+    }
+}
+
+
 $config = bot_load_config();
 
 $secret = trim((string)($config['telegram_webhook_secret'] ?? ''));
@@ -843,6 +920,59 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
         'operator_id' => $operatorId,
         'from' => $callback['from'] ?? null,
     ]);
+
+
+    if (preg_match('/^close_client\|(telegram|max)\|(-?\d+)$/', $callbackData, $closeMatch)) {
+        $source = $closeMatch[1];
+        $clientId = $closeMatch[2];
+
+        telegram_close_operator_chat_by_button_v1($config, $source, $clientId, $operatorId);
+
+        $notifyCloseResult = telegram_notify_client_chat_closed_v1($config, $source, $clientId);
+        bot_log('telegram_close_button_notify_client', [
+            'source' => $source,
+            'client_id' => $clientId,
+            'status' => $notifyCloseResult['status'] ?? 0,
+            'error' => $notifyCloseResult['error'] ?? '',
+            'response' => $notifyCloseResult['response'] ?? null,
+        ]);
+
+        if ($callbackId !== '') {
+            telegram_api($config, 'answerCallbackQuery', [
+                'callback_query_id' => $callbackId,
+                'text' => 'Чат закрыт',
+                'show_alert' => false,
+            ]);
+        }
+
+        $telegramLeadsChatIdClose = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+        if ($telegramLeadsChatIdClose === '') {
+            $telegramLeadsChatIdClose = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+        }
+
+        $sourceLabel = $source === 'max' ? 'MAX' : 'Telegram';
+
+        if ($telegramLeadsChatIdClose !== '') {
+            telegram_api($config, 'sendMessage', [
+                'chat_id' => $telegramLeadsChatIdClose,
+                'text' => "✅ Live-чат с клиентом {$sourceLabel} {$clientId} закрыт.\n\nБот снова может отвечать клиенту автоматически.",
+                'disable_web_page_preview' => true,
+                'reply_markup' => [
+                    'inline_keyboard' => [
+                        [
+                            [
+                                'text' => '💬 Ответить клиенту',
+                                'callback_data' => 'reply_client|' . $source . '|' . $clientId,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        bot_ok();
+        exit;
+    }
 
     if (preg_match('/^reply_client\|(telegram|max)\|(-?\d+)$/', $callbackData, $cbMatch)) {
         $source = $cbMatch[1];
@@ -904,11 +1034,21 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
         $sourceLabel = $source === 'max' ? 'MAX' : 'Telegram';
 
         if ($telegramLeadsChatIdEarly !== '') {
-            telegram_send_message(
-                $config,
-                $telegramLeadsChatIdEarly,
-                "💬 Оператор подключён к клиенту {$sourceLabel} {$clientId}.\n\nТеперь отправляйте сообщения клиенту так:\n/to текст сообщения\n\nЗавершить чат:\n/close"
-            );
+            telegram_api($config, 'sendMessage', [
+                'chat_id' => $telegramLeadsChatIdEarly,
+                'text' => "💬 Оператор подключён к клиенту {$sourceLabel} {$clientId}.\n\nМожно писать клиенту обычным сообщением в этой группе. Команда /to остаётся запасным вариантом.\n\nЧтобы завершить live-чат, нажмите кнопку ниже.",
+                'disable_web_page_preview' => true,
+                'reply_markup' => [
+                    'inline_keyboard' => [
+                        [
+                            [
+                                'text' => '✅ Завершить чат',
+                                'callback_data' => 'close_client|' . $source . '|' . $clientId,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
         }
 
         telegram_maybe_send_operator_intro($config, $source, $clientId);
@@ -1167,6 +1307,17 @@ if ($telegramLeadsChatIdToCommand !== '' && (string)$chatId === (string)$telegra
             }
 
             @unlink($operatorStateFileForTo);
+        }
+
+        if (!empty($sourceTo) && !empty($clientIdTo)) {
+            $notifyCloseResult = telegram_notify_client_chat_closed_v1($config, $sourceTo, $clientIdTo);
+            bot_log('telegram_close_command_notify_client', [
+                'source' => $sourceTo,
+                'client_id' => $clientIdTo,
+                'status' => $notifyCloseResult['status'] ?? 0,
+                'error' => $notifyCloseResult['error'] ?? '',
+                'response' => $notifyCloseResult['response'] ?? null,
+            ]);
         }
 
         telegram_send_message($config, (string)$chatId, "Live-чат закрыт. Бот снова может отвечать клиенту автоматически.");
