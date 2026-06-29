@@ -890,6 +890,50 @@ if (!function_exists('telegram_notify_client_chat_closed_v1')) {
 }
 
 
+
+if (!function_exists('telegram_answer_callback_fast_v1')) {
+    function telegram_answer_callback_fast_v1(string $callbackQueryId, string $text = ''): void
+    {
+        static $alreadyAnswered = false;
+
+        if ($alreadyAnswered || $callbackQueryId === '') {
+            return;
+        }
+
+        $alreadyAnswered = true;
+
+        bot_log('telegram_callback_fast_answer', [
+            'callback_query_id' => $callbackQueryId !== '' ? 'present' : 'missing',
+            'text' => $text,
+        ]);
+
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=UTF-8');
+        }
+
+        echo json_encode([
+            'method' => 'answerCallbackQuery',
+            'callback_query_id' => $callbackQueryId,
+            'text' => $text,
+            'show_alert' => false,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        // Закрываем webhook-ответ Telegram сразу.
+        // Дальше PHP продолжит отправлять сообщения в группу / клиенту уже фоном.
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+            return;
+        }
+
+        if (ob_get_level() > 0) {
+            @ob_flush();
+        }
+
+        @flush();
+    }
+}
+
+
 $config = bot_load_config();
 
 $secret = trim((string)($config['telegram_webhook_secret'] ?? ''));
@@ -937,13 +981,7 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
             'response' => $notifyCloseResult['response'] ?? null,
         ]);
 
-        if ($callbackId !== '') {
-            telegram_api($config, 'answerCallbackQuery', [
-                'callback_query_id' => $callbackId,
-                'text' => 'Чат закрыт',
-                'show_alert' => false,
-            ]);
-        }
+        telegram_answer_callback_fast_v1($callbackId, 'Чат закрыт');
 
         $telegramLeadsChatIdClose = trim((string)($config['telegram_leads_chat_id'] ?? ''));
         if ($telegramLeadsChatIdClose === '') {
@@ -979,13 +1017,7 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
         $clientId = $cbMatch[2];
 
         // Answer callback so Telegram stops the button loading animation.
-        if ($callbackId !== '') {
-            telegram_api($config, 'answerCallbackQuery', [
-                'callback_query_id' => $callbackId,
-                'text' => 'Оператор подключён',
-                'show_alert' => false,
-            ]);
-        }
+        telegram_answer_callback_fast_v1($callbackId, 'Оператор подключён');
 
         $dir = __DIR__ . '/sessions/operators';
         if (!is_dir($dir)) @mkdir($dir, 0755, true);
@@ -1057,13 +1089,7 @@ if (isset($update['callback_query']) && is_array($update['callback_query'])) {
         exit;
     }
 
-    if ($callbackId !== '') {
-        telegram_api($config, 'answerCallbackQuery', [
-            'callback_query_id' => $callbackId,
-            'text' => 'Кнопка не распознана',
-            'show_alert' => false,
-        ]);
-    }
+    telegram_answer_callback_fast_v1($callbackId, 'Кнопка не распознана');
 
     bot_ok();
     exit;
