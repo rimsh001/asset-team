@@ -4,3 +4,6 @@ bot/config.php
 # OS/editor files
 .DS_Store
 *.log
+bot/logs/
+bot/sessions/
+bot/*.bak*
