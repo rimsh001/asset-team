@@ -4,6 +4,139 @@
 
   const COOKIE_CONSENT_KEY = 'cookie_consent';
 
+  function injectMobileMenuPolish() {
+    if (document.getElementById('aa-mobile-menu-polish')) return;
+
+    const style = document.createElement('style');
+    style.id = 'aa-mobile-menu-polish';
+    style.textContent = `
+      @media (max-width: 860px) {
+        .header {
+          background: rgba(16, 18, 22, .94);
+        }
+
+        .header__inner {
+          height: 64px;
+          gap: 14px;
+        }
+
+        .brand__sign {
+          min-width: 42px;
+          min-height: 34px;
+          border-radius: 12px;
+        }
+
+        .brand__text {
+          font-size: 17px;
+        }
+
+        .burger {
+          display: inline-flex;
+          flex: 0 0 auto;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, .06);
+          border-color: rgba(255, 255, 255, .16);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+        }
+
+        .nav {
+          position: fixed;
+          top: 76px;
+          left: 12px;
+          right: 12px;
+          z-index: 80;
+          display: none;
+          flex: none;
+          min-width: 0;
+          max-height: calc(100dvh - 92px);
+          overflow: auto;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+          padding: 16px;
+          border: 1px solid rgba(255, 255, 255, .13);
+          border-radius: 24px;
+          background: linear-gradient(180deg, rgba(22, 24, 30, .98), rgba(13, 15, 20, .98));
+          box-shadow: 0 24px 70px rgba(0, 0, 0, .42);
+          backdrop-filter: blur(18px);
+          color: #fff;
+        }
+
+        .nav.is-open {
+          display: flex;
+        }
+
+        .nav > a {
+          width: 100%;
+          padding: 13px 14px;
+          border: 1px solid rgba(255, 255, 255, .08);
+          border-radius: 16px;
+          background: rgba(255, 255, 255, .055);
+          color: rgba(255, 255, 255, .9);
+          text-align: left;
+          font-size: 15px;
+          font-weight: 700;
+          line-height: 1.2;
+          white-space: normal;
+        }
+
+        .nav > a:hover {
+          background: rgba(255, 255, 255, .09);
+        }
+
+        .header__actions {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+          margin: 8px 0 0;
+          padding: 12px 0 0;
+          border-top: 1px solid rgba(255, 255, 255, .10);
+        }
+
+        .header__actions .btn {
+          width: 100%;
+          min-height: 52px;
+          padding: 14px 16px;
+          border-radius: 18px;
+          font-size: 15px;
+          justify-content: center;
+        }
+
+        .header__cabinet {
+          background: rgba(255, 255, 255, .06);
+          border-color: rgba(255, 255, 255, .16);
+        }
+      }
+
+      @media (max-width: 430px) {
+        .header__inner {
+          height: 62px;
+        }
+
+        .brand__text {
+          font-size: 16px;
+        }
+
+        .nav {
+          top: 72px;
+          left: 10px;
+          right: 10px;
+          padding: 14px;
+          border-radius: 22px;
+        }
+
+        .nav > a {
+          padding: 12px 13px;
+          font-size: 14px;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
   function loadYandexMetrica() {
     if (window.__aaYmLoaded) return;
     window.__aaYmLoaded = true;
@@ -37,6 +170,8 @@
       console.warn('Yandex Metrica goal error:', goalName, error);
     }
   }
+
+  injectMobileMenuPolish();
 
   if (!window.__aaYmGoalsLoaded) {
     window.__aaYmGoalsLoaded = true;
