@@ -68,7 +68,10 @@ function telegram_max_send_message_fast(array $config, string $maxChatId, string
         return ['status' => 0, 'error' => 'Missing MAX token', 'response' => null];
     }
 
-    $apiBase = rtrim((string)($config['max_api_base'] ?? 'https://platform-api.max.ru'), '/');
+    $apiBase = rtrim((string)($config['max_api_base'] ?? 'https://platform-api2.max.ru'), '/');
+        if ($apiBase === 'https://platform-api.max.ru') {
+            $apiBase = 'https://platform-api2.max.ru';
+        }
     $template = (string)($config['max_send_message_url_template'] ?? '');
 
     $attempts = [];
@@ -1244,51 +1247,55 @@ if (!function_exists('telegram_max_send_file_native_v1')) {
             $caption = 'Направляем файл.';
         }
 
-        $payloads = [
-            [
-                'text' => $caption,
-                'attachments' => [
-                    ['type' => 'file', 'payload' => ['token' => $fileToken]],
-                ],
-            ],
-            [
-                'text' => $caption,
-                'attachments' => [
-                    ['type' => 'document', 'payload' => ['token' => $fileToken]],
-                ],
-            ],
-            [
-                'text' => $caption,
-                'attachments' => [
-                    ['type' => 'file', 'payload' => ['file_token' => $fileToken]],
+        // Для отправки файла используем тот же принцип, что и для обычного текста:
+        // сообщение пользователю отправляется через user_id, не через chat_id.
+        // В payload передаём JSON, полученный после загрузки файла в MAX.
+        $payloadFromUpload = is_array($uploadJson) ? $uploadJson : [];
+        if (!isset($payloadFromUpload['token']) || trim((string)$payloadFromUpload['token']) === '') {
+            $payloadFromUpload['token'] = $fileToken;
+        }
+
+        $payload = [
+            'text' => $caption,
+            'attachments' => [
+                [
+                    'type' => 'file',
+                    'payload' => $payloadFromUpload,
                 ],
             ],
         ];
 
-        $urls = [
-            $apiBase . '/messages?user_id=' . rawurlencode($maxUserId),
-            $apiBase . '/messages?chat_id=' . rawurlencode($maxUserId),
-        ];
-
+        $url = $apiBase . '/messages?user_id=' . rawurlencode($maxUserId);
         $last = ['status' => 0, 'error' => 'MAX send file attempts not executed', 'response' => null];
 
-        foreach ($urls as $url) {
-            foreach ($payloads as $payload) {
-                $result = telegram_fast_post_json($url, $payload, $headers);
-                $last = $result;
-                $status = (int)($result['status'] ?? 0);
+        // MAX может обрабатывать файл несколько секунд после загрузки.
+        foreach ([0, 2, 5, 10] as $delaySeconds) {
+            if ($delaySeconds > 0) {
+                sleep($delaySeconds);
+            }
 
-                bot_log('telegram_max_send_file_attempt_v1', [
-                    'url' => bot_mask_url($url),
-                    'file_name' => $fileName,
-                    'status' => $status,
-                    'error' => $result['error'] ?? '',
-                    'response' => $result['response'] ?? null,
-                ]);
+            $result = telegram_fast_post_json($url, $payload, $headers);
+            $last = $result;
+            $status = (int)($result['status'] ?? 0);
+            $responseText = (string)($result['response'] ?? '');
 
-                if ($status >= 200 && $status < 300) {
-                    return $result;
-                }
+            bot_log('telegram_max_send_file_attempt_v1', [
+                'url' => bot_mask_url($url),
+                'file_name' => $fileName,
+                'delay_seconds' => $delaySeconds,
+                'status' => $status,
+                'error' => $result['error'] ?? '',
+                'response' => $responseText,
+            ]);
+
+            if ($status >= 200 && $status < 300) {
+                return $result;
+            }
+
+            if (!str_contains($responseText, 'attachment.not.ready')
+                && !str_contains($responseText, 'file.not.processed')
+                && !str_contains($responseText, 'not.ready')) {
+                break;
             }
         }
 
