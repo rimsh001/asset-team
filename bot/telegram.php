@@ -1037,23 +1037,58 @@ if (!function_exists('telegram_download_telegram_file_for_max_v1')) {
 
         $url = 'https://api.telegram.org/file/bot' . $token . '/' . $filePath;
 
-        $ips = ['149.154.166.110', '149.154.167.220', '149.154.167.99'];
-        $lastOutput = '';
+        $ips = [
+            '149.154.166.110',
+            '149.154.167.220',
+            '149.154.167.99',
+            '149.154.167.50',
+            '149.154.167.51',
+            '149.154.167.91',
+        ];
+
+        $downloadAttempts = [];
 
         foreach ($ips as $ip) {
-            $cmd = 'curl -4 -sS --connect-timeout 10 --max-time 180 '
-                . '--resolve ' . escapeshellarg('api.telegram.org:443:' . $ip) . ' '
-                . '-o ' . escapeshellarg($localPath) . ' '
-                . escapeshellarg($url) . ' 2>&1';
+            $downloadAttempts[] = [
+                'name' => 'telegram_ip_' . $ip,
+                'cmd' => 'curl -4 -L -sS --retry 2 --retry-delay 1 --connect-timeout 15 --max-time 180 --http1.1 --tlsv1.2 '
+                    . '--resolve ' . escapeshellarg('api.telegram.org:443:' . $ip) . ' '
+                    . '-o ' . escapeshellarg($localPath) . ' '
+                    . escapeshellarg($url) . ' 2>&1',
+            ];
+        }
 
-            $output = (string)shell_exec($cmd);
+        $downloadAttempts[] = [
+            'name' => 'direct_dns',
+            'cmd' => 'curl -4 -L -sS --retry 2 --retry-delay 1 --connect-timeout 15 --max-time 180 --http1.1 --tlsv1.2 '
+                . '-o ' . escapeshellarg($localPath) . ' '
+                . escapeshellarg($url) . ' 2>&1',
+        ];
+
+        $lastOutput = '';
+
+        foreach ($downloadAttempts as $attempt) {
+            if (is_file($localPath)) {
+                @unlink($localPath);
+            }
+
+            $output = (string)shell_exec($attempt['cmd']);
             $lastOutput = $output;
+
+            bot_log('telegram_file_download_attempt_for_max', [
+                'attempt' => $attempt['name'],
+                'file_name' => $safeName,
+                'exists' => is_file($localPath),
+                'size' => is_file($localPath) ? filesize($localPath) : 0,
+                'output' => mb_substr($output, 0, 500),
+            ]);
 
             if (is_file($localPath) && filesize($localPath) > 0) {
                 bot_log('telegram_file_downloaded_for_max', [
                     'file_id' => 'present',
                     'file_name' => $safeName,
                     'size' => filesize($localPath),
+                    'attempt' => $attempt['name'],
                 ]);
 
                 return [
