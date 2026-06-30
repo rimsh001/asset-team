@@ -60,7 +60,10 @@ function bot_log(string $name, array $payload): void
 
 function bot_mask_url(string $url): string
 {
-    return preg_replace('/access_token=[^&]+/', 'access_token=***', $url) ?? $url;
+    $url = preg_replace('#/bot[^/]+/#', '/bot***/', $url) ?? $url;
+    $url = preg_replace('/access_token=[^&]+/', 'access_token=***', $url) ?? $url;
+    $url = preg_replace('/Authorization:[^&\s]+/i', 'Authorization:***', $url) ?? $url;
+    return $url;
 }
 
 function bot_http_post_json(string $url, array $payload, array $headers = []): array

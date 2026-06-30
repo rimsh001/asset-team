@@ -934,6 +934,367 @@ if (!function_exists('telegram_answer_callback_fast_v1')) {
 }
 
 
+
+if (!function_exists('telegram_max_find_first_value_v1')) {
+    function telegram_max_find_first_value_v1($value, array $keys): string
+    {
+        if (!is_array($value)) return '';
+
+        foreach ($value as $key => $child) {
+            if (in_array((string)$key, $keys, true) && is_scalar($child) && trim((string)$child) !== '') {
+                return trim((string)$child);
+            }
+
+            if (is_array($child)) {
+                $found = telegram_max_find_first_value_v1($child, $keys);
+                if ($found !== '') return $found;
+            }
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('telegram_extract_file_for_max_v1')) {
+    function telegram_extract_file_for_max_v1(array $update): array
+    {
+        $message = telegram_update_message($update);
+
+        if (isset($message['document']) && is_array($message['document'])) {
+            $doc = $message['document'];
+            return [
+                'file_id' => trim((string)($doc['file_id'] ?? '')),
+                'file_name' => trim((string)($doc['file_name'] ?? 'document.pdf')) ?: 'document.pdf',
+                'mime_type' => trim((string)($doc['mime_type'] ?? 'application/octet-stream')) ?: 'application/octet-stream',
+                'kind' => 'file',
+            ];
+        }
+
+        if (isset($message['photo']) && is_array($message['photo'])) {
+            $photos = $message['photo'];
+            $photo = end($photos);
+            if (is_array($photo)) {
+                return [
+                    'file_id' => trim((string)($photo['file_id'] ?? '')),
+                    'file_name' => 'photo_' . date('Ymd_His') . '.jpg',
+                    'mime_type' => 'image/jpeg',
+                    'kind' => 'file',
+                ];
+            }
+        }
+
+        if (isset($message['video']) && is_array($message['video'])) {
+            $video = $message['video'];
+            return [
+                'file_id' => trim((string)($video['file_id'] ?? '')),
+                'file_name' => trim((string)($video['file_name'] ?? 'video.mp4')) ?: 'video.mp4',
+                'mime_type' => trim((string)($video['mime_type'] ?? 'video/mp4')) ?: 'video/mp4',
+                'kind' => 'file',
+            ];
+        }
+
+        return [];
+    }
+}
+
+if (!function_exists('telegram_safe_filename_v1')) {
+    function telegram_safe_filename_v1(string $name): string
+    {
+        $name = basename($name);
+        $name = preg_replace('/[^A-Za-zА-Яа-яЁё0-9._-]+/u', '_', $name) ?? 'file';
+        $name = trim($name, '._-');
+        return $name !== '' ? $name : 'file';
+    }
+}
+
+if (!function_exists('telegram_download_telegram_file_for_max_v1')) {
+    function telegram_download_telegram_file_for_max_v1(array $config, string $fileId, string $fileName): array
+    {
+        $token = trim((string)($config['telegram_bot_token'] ?? ''));
+        if ($token === '' || str_contains($token, 'PASTE_')) {
+            return ['ok' => false, 'error' => 'Missing Telegram token'];
+        }
+
+        $getFile = telegram_api($config, 'getFile', ['file_id' => $fileId]);
+        $status = (int)($getFile['status'] ?? 0);
+
+        if ($status < 200 || $status >= 300) {
+            return ['ok' => false, 'error' => 'Telegram getFile failed: ' . (($getFile['response'] ?? '') ?: ($getFile['error'] ?? ''))];
+        }
+
+        $data = json_decode((string)($getFile['response'] ?? ''), true);
+        $filePath = trim((string)($data['result']['file_path'] ?? ''));
+
+        if ($filePath === '') {
+            return ['ok' => false, 'error' => 'Telegram file_path missing'];
+        }
+
+        $dir = __DIR__ . '/tmp/max_uploads';
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+
+        $safeName = telegram_safe_filename_v1($fileName);
+        $localPath = $dir . '/' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '_' . $safeName;
+
+        $url = 'https://api.telegram.org/file/bot' . $token . '/' . $filePath;
+
+        $ips = ['149.154.166.110', '149.154.167.220', '149.154.167.99'];
+        $lastOutput = '';
+
+        foreach ($ips as $ip) {
+            $cmd = 'curl -4 -sS --connect-timeout 10 --max-time 180 '
+                . '--resolve ' . escapeshellarg('api.telegram.org:443:' . $ip) . ' '
+                . '-o ' . escapeshellarg($localPath) . ' '
+                . escapeshellarg($url) . ' 2>&1';
+
+            $output = (string)shell_exec($cmd);
+            $lastOutput = $output;
+
+            if (is_file($localPath) && filesize($localPath) > 0) {
+                bot_log('telegram_file_downloaded_for_max', [
+                    'file_id' => 'present',
+                    'file_name' => $safeName,
+                    'size' => filesize($localPath),
+                ]);
+
+                return [
+                    'ok' => true,
+                    'path' => $localPath,
+                    'file_name' => $safeName,
+                ];
+            }
+        }
+
+        return ['ok' => false, 'error' => 'Telegram file download failed: ' . $lastOutput];
+    }
+}
+
+if (!function_exists('telegram_max_json_request_v1')) {
+    function telegram_max_json_request_v1(string $method, string $url, ?array $payload, array $headers = []): array
+    {
+        $ch = curl_init($url);
+
+        $httpHeaders = array_merge(['Accept: application/json'], $headers);
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 60,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_HTTPHEADER => $httpHeaders,
+        ]);
+
+        if ($payload !== null) {
+            $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $body === false ? '{}' : $body);
+            $httpHeaders[] = 'Content-Type: application/json';
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $httpHeaders);
+        }
+
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
+        $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        bot_log('telegram_max_json_request_v1', [
+            'method' => $method,
+            'url' => bot_mask_url($url),
+            'status' => $status,
+            'error' => $error,
+            'response' => $response,
+        ]);
+
+        return ['status' => $status, 'error' => $error, 'response' => $response];
+    }
+}
+
+if (!function_exists('telegram_max_upload_multipart_v1')) {
+    function telegram_max_upload_multipart_v1(string $uploadUrl, string $path, string $fileName, string $mimeType, array $headers = []): array
+    {
+        foreach (['data', 'file'] as $fieldName) {
+            $ch = curl_init($uploadUrl);
+
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT => 180,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTPHEADER => array_merge(['Accept: application/json'], $headers),
+                CURLOPT_POSTFIELDS => [
+                    $fieldName => new CURLFile($path, $mimeType ?: 'application/octet-stream', $fileName),
+                ],
+            ]);
+
+            $response = curl_exec($ch);
+            $error = curl_error($ch);
+            $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            bot_log('telegram_max_upload_multipart_v1', [
+                'field' => $fieldName,
+                'upload_url' => bot_mask_url($uploadUrl),
+                'file_name' => $fileName,
+                'status' => $status,
+                'error' => $error,
+                'response' => $response,
+            ]);
+
+            if ($status >= 200 && $status < 300) {
+                return ['status' => $status, 'error' => $error, 'response' => $response];
+            }
+        }
+
+        return ['status' => 0, 'error' => 'MAX upload attempts failed', 'response' => null];
+    }
+}
+
+if (!function_exists('telegram_max_send_file_native_v1')) {
+    function telegram_max_send_file_native_v1(array $config, string $maxUserId, string $path, string $fileName, string $mimeType, string $caption = ''): array
+    {
+        $token = trim((string)($config['max_bot_token'] ?? ''));
+        if ($token === '' || str_contains($token, 'PASTE_')) {
+            return ['status' => 0, 'error' => 'Missing MAX token', 'response' => null];
+        }
+
+        $apiBase = rtrim((string)($config['max_api_base'] ?? 'https://platform-api.max.ru'), '/');
+        $headers = ['Authorization: ' . $token];
+
+        $uploadUrl = '';
+        $uploadUrlAttempts = [
+            ['POST', $apiBase . '/uploads?type=file', []],
+            ['GET',  $apiBase . '/uploads?type=file', null],
+            ['POST', $apiBase . '/uploads?type=photo', []],
+            ['GET',  $apiBase . '/uploads?type=photo', null],
+        ];
+
+        foreach ($uploadUrlAttempts as $attempt) {
+            [$method, $url, $payload] = $attempt;
+            $result = telegram_max_json_request_v1($method, $url, $payload, $headers);
+            $status = (int)($result['status'] ?? 0);
+
+            if ($status >= 200 && $status < 300) {
+                $json = json_decode((string)($result['response'] ?? ''), true);
+                $uploadUrl = telegram_max_find_first_value_v1($json, ['url', 'upload_url', 'uploadUrl', 'href']);
+
+                if ($uploadUrl !== '') break;
+            }
+        }
+
+        if ($uploadUrl === '') {
+            return ['status' => 0, 'error' => 'MAX upload URL not received', 'response' => null];
+        }
+
+        $uploadResult = telegram_max_upload_multipart_v1($uploadUrl, $path, $fileName, $mimeType);
+        $uploadStatus = (int)($uploadResult['status'] ?? 0);
+
+        if ($uploadStatus < 200 || $uploadStatus >= 300) {
+            $uploadResult = telegram_max_upload_multipart_v1($uploadUrl, $path, $fileName, $mimeType, $headers);
+            $uploadStatus = (int)($uploadResult['status'] ?? 0);
+        }
+
+        if ($uploadStatus < 200 || $uploadStatus >= 300) {
+            return ['status' => $uploadStatus, 'error' => 'MAX file upload failed: ' . ($uploadResult['error'] ?? ''), 'response' => $uploadResult['response'] ?? null];
+        }
+
+        $uploadJson = json_decode((string)($uploadResult['response'] ?? ''), true);
+        $fileToken = telegram_max_find_first_value_v1($uploadJson, ['token', 'file_token', 'attachment_token']);
+
+        if ($fileToken === '') {
+            return ['status' => 0, 'error' => 'MAX file token not found after upload', 'response' => $uploadResult['response'] ?? null];
+        }
+
+        $caption = trim($caption);
+        if ($caption === '') {
+            $caption = 'Направляем файл.';
+        }
+
+        $payloads = [
+            [
+                'text' => $caption,
+                'attachments' => [
+                    ['type' => 'file', 'payload' => ['token' => $fileToken]],
+                ],
+            ],
+            [
+                'text' => $caption,
+                'attachments' => [
+                    ['type' => 'document', 'payload' => ['token' => $fileToken]],
+                ],
+            ],
+            [
+                'text' => $caption,
+                'attachments' => [
+                    ['type' => 'file', 'payload' => ['file_token' => $fileToken]],
+                ],
+            ],
+        ];
+
+        $urls = [
+            $apiBase . '/messages?user_id=' . rawurlencode($maxUserId),
+            $apiBase . '/messages?chat_id=' . rawurlencode($maxUserId),
+        ];
+
+        $last = ['status' => 0, 'error' => 'MAX send file attempts not executed', 'response' => null];
+
+        foreach ($urls as $url) {
+            foreach ($payloads as $payload) {
+                $result = telegram_fast_post_json($url, $payload, $headers);
+                $last = $result;
+                $status = (int)($result['status'] ?? 0);
+
+                bot_log('telegram_max_send_file_attempt_v1', [
+                    'url' => bot_mask_url($url),
+                    'file_name' => $fileName,
+                    'status' => $status,
+                    'error' => $result['error'] ?? '',
+                    'response' => $result['response'] ?? null,
+                ]);
+
+                if ($status >= 200 && $status < 300) {
+                    return $result;
+                }
+            }
+        }
+
+        return $last;
+    }
+}
+
+if (!function_exists('telegram_send_attached_file_to_max_from_update_v1')) {
+    function telegram_send_attached_file_to_max_from_update_v1(array $config, array $update, string $maxUserId, string $caption = ''): array
+    {
+        $file = telegram_extract_file_for_max_v1($update);
+
+        if (!$file || trim((string)($file['file_id'] ?? '')) === '') {
+            return ['status' => 0, 'error' => 'No Telegram file found in message', 'response' => null];
+        }
+
+        $download = telegram_download_telegram_file_for_max_v1(
+            $config,
+            (string)$file['file_id'],
+            (string)$file['file_name']
+        );
+
+        if (empty($download['ok'])) {
+            return ['status' => 0, 'error' => (string)($download['error'] ?? 'Telegram download failed'), 'response' => null];
+        }
+
+        $localPath = (string)$download['path'];
+        $fileName = (string)($download['file_name'] ?? $file['file_name']);
+        $mimeType = (string)($file['mime_type'] ?? 'application/octet-stream');
+
+        $result = telegram_max_send_file_native_v1($config, $maxUserId, $localPath, $fileName, $mimeType, $caption);
+
+        if (is_file($localPath)) {
+            @unlink($localPath);
+        }
+
+        return $result;
+    }
+}
+
+
 $config = bot_load_config();
 
 $secret = trim((string)($config['telegram_webhook_secret'] ?? ''));
@@ -1111,6 +1472,54 @@ $trimmedText = trim($text);
 $normalizedText = mb_strtolower($trimmedText);
 $hasClientMedia = telegram_update_has_media($update);
 $wantsOperator = telegram_client_wants_operator($trimmedText);
+
+
+
+// Send attached Telegram file to MAX by caption:
+// /max 64541293
+// /max 64541293 Текст к файлу
+$telegramLeadsChatIdFileToMax = trim((string)($config['telegram_leads_chat_id'] ?? ''));
+if ($telegramLeadsChatIdFileToMax === '') {
+    $telegramLeadsChatIdFileToMax = trim((string)($config['telegram_admin_chat_id'] ?? ''));
+}
+
+if ($telegramLeadsChatIdFileToMax !== ''
+    && (string)$chatId === (string)$telegramLeadsChatIdFileToMax
+    && $hasClientMedia
+    && preg_match('/^\/(?:max|replymax)(?:@[A-Za-z0-9_]+)?\s+(-?\d+)(?:\s+(.+))?$/us', $trimmedText, $fileMaxMatches)
+) {
+    $maxUserIdForFile = trim((string)$fileMaxMatches[1]);
+    $captionForMaxFile = trim((string)($fileMaxMatches[2] ?? ''));
+
+    telegram_reply_via_webhook((string)$chatId, "Отправляю файл клиенту в MAX user ID {$maxUserIdForFile}…");
+
+    $fileSendResult = telegram_send_attached_file_to_max_from_update_v1($config, $update, $maxUserIdForFile, $captionForMaxFile);
+    $fileSendStatus = (int)($fileSendResult['status'] ?? 0);
+
+    bot_log('telegram_max_file_command_result_v1', [
+        'max_user_id' => $maxUserIdForFile,
+        'status' => $fileSendStatus,
+        'error' => $fileSendResult['error'] ?? '',
+        'response' => $fileSendResult['response'] ?? null,
+    ]);
+
+    if ($fileSendStatus >= 200 && $fileSendStatus < 300) {
+        telegram_send_message($config, (string)$chatId, "✅ Файл отправлен клиенту в MAX user ID {$maxUserIdForFile}.");
+    } else {
+        $detailsFile = trim((string)($fileSendResult['error'] ?? ''));
+        if ($detailsFile === '') {
+            $detailsFile = trim((string)($fileSendResult['response'] ?? ''));
+        }
+
+        telegram_send_message(
+            $config,
+            (string)$chatId,
+            "❌ Не удалось отправить файл в MAX user ID {$maxUserIdForFile}.\n" . mb_substr($detailsFile, 0, 900)
+        );
+    }
+
+    exit;
+}
 
 
 // Plain operator live-chat messages.
