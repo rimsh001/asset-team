@@ -1247,8 +1247,6 @@ if (!function_exists('telegram_max_send_file_native_v1')) {
             $caption = 'Направляем файл.';
         }
 
-        // Для отправки файла используем тот же принцип, что и для обычного текста:
-        // сообщение пользователю отправляется через user_id, не через chat_id.
         // В payload передаём JSON, полученный после загрузки файла в MAX.
         $payloadFromUpload = is_array($uploadJson) ? $uploadJson : [];
         if (!isset($payloadFromUpload['token']) || trim((string)$payloadFromUpload['token']) === '') {
@@ -1265,36 +1263,54 @@ if (!function_exists('telegram_max_send_file_native_v1')) {
             ],
         ];
 
-        $url = $apiBase . '/messages?user_id=' . rawurlencode($maxUserId);
+        // Для разных клиентов MAX может принимать разные идентификаторы.
+        // Поэтому пробуем оба варианта: сначала user_id, потом chat_id/dialog_id.
+        $sendTargets = [
+            [
+                'name' => 'user_id',
+                'url' => $apiBase . '/messages?user_id=' . rawurlencode($maxUserId),
+            ],
+            [
+                'name' => 'chat_id',
+                'url' => $apiBase . '/messages?chat_id=' . rawurlencode($maxUserId),
+            ],
+        ];
+
         $last = ['status' => 0, 'error' => 'MAX send file attempts not executed', 'response' => null];
 
-        // MAX может обрабатывать файл несколько секунд после загрузки.
-        foreach ([0, 2, 5, 10] as $delaySeconds) {
-            if ($delaySeconds > 0) {
-                sleep($delaySeconds);
-            }
+        foreach ($sendTargets as $target) {
+            foreach ([0, 2, 5, 10] as $delaySeconds) {
+                if ($delaySeconds > 0) {
+                    sleep($delaySeconds);
+                }
 
-            $result = telegram_fast_post_json($url, $payload, $headers);
-            $last = $result;
-            $status = (int)($result['status'] ?? 0);
-            $responseText = (string)($result['response'] ?? '');
+                $result = telegram_fast_post_json($target['url'], $payload, $headers);
+                $last = $result;
+                $status = (int)($result['status'] ?? 0);
+                $responseText = (string)($result['response'] ?? '');
 
-            bot_log('telegram_max_send_file_attempt_v1', [
-                'url' => bot_mask_url($url),
-                'file_name' => $fileName,
-                'delay_seconds' => $delaySeconds,
-                'status' => $status,
-                'error' => $result['error'] ?? '',
-                'response' => $responseText,
-            ]);
+                bot_log('telegram_max_send_file_attempt_v1', [
+                    'target' => $target['name'],
+                    'url' => bot_mask_url($target['url']),
+                    'file_name' => $fileName,
+                    'delay_seconds' => $delaySeconds,
+                    'status' => $status,
+                    'error' => $result['error'] ?? '',
+                    'response' => $responseText,
+                ]);
 
-            if ($status >= 200 && $status < 300) {
-                return $result;
-            }
+                if ($status >= 200 && $status < 300) {
+                    return $result;
+                }
 
-            if (!str_contains($responseText, 'attachment.not.ready')
-                && !str_contains($responseText, 'file.not.processed')
-                && !str_contains($responseText, 'not.ready')) {
+                // Если файл ещё обрабатывается MAX — ждём и повторяем этот же target.
+                if (str_contains($responseText, 'attachment.not.ready')
+                    || str_contains($responseText, 'file.not.processed')
+                    || str_contains($responseText, 'not.ready')) {
+                    continue;
+                }
+
+                // Если этот тип ID не подошёл — переходим к следующему: user_id -> chat_id.
                 break;
             }
         }
