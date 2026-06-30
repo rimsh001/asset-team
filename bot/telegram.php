@@ -1051,7 +1051,7 @@ if (!function_exists('telegram_download_telegram_file_for_max_v1')) {
         foreach ($ips as $ip) {
             $downloadAttempts[] = [
                 'name' => 'telegram_ip_' . $ip,
-                'cmd' => 'curl -4 -L -sS --retry 2 --retry-delay 1 --connect-timeout 15 --max-time 180 --http1.1 --tlsv1.2 '
+                'cmd' => 'curl -4 -L -sS --retry 0 --connect-timeout 5 --max-time 12 --http1.1 --tlsv1.2 '
                     . '--resolve ' . escapeshellarg('api.telegram.org:443:' . $ip) . ' '
                     . '-o ' . escapeshellarg($localPath) . ' '
                     . escapeshellarg($url) . ' 2>&1',
@@ -1060,7 +1060,7 @@ if (!function_exists('telegram_download_telegram_file_for_max_v1')) {
 
         $downloadAttempts[] = [
             'name' => 'direct_dns',
-            'cmd' => 'curl -4 -L -sS --retry 2 --retry-delay 1 --connect-timeout 15 --max-time 180 --http1.1 --tlsv1.2 '
+            'cmd' => 'curl -4 -L -sS --retry 0 --connect-timeout 5 --max-time 12 --http1.1 --tlsv1.2 '
                 . '-o ' . escapeshellarg($localPath) . ' '
                 . escapeshellarg($url) . ' 2>&1',
         ];
@@ -1112,7 +1112,7 @@ if (!function_exists('telegram_max_json_request_v1')) {
 
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_CUSTOMREQUEST => $method,
@@ -1152,8 +1152,8 @@ if (!function_exists('telegram_max_upload_multipart_v1')) {
             curl_setopt_array($ch, [
                 CURLOPT_POST => true,
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_CONNECTTIMEOUT => 10,
-                CURLOPT_TIMEOUT => 180,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 60,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTPHEADER => array_merge(['Accept: application/json'], $headers),
                 CURLOPT_POSTFIELDS => [
