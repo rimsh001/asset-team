@@ -24,8 +24,7 @@
           position: fixed;
           inset: 0;
           z-index: 70;
-          background: rgba(8, 10, 14, .58);
-          backdrop-filter: blur(10px);
+          background: rgba(7, 9, 13, .68);
         }
 
         body.aa-menu-open .cookie-banner {
@@ -66,18 +65,18 @@
         }
 
         .nav {
-          position: fixed;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: auto;
-          z-index: 90;
-          display: flex;
-          flex: none;
-          width: min(440px, calc(100vw - 42px));
-          min-width: 0;
-          height: 100dvh;
-          max-height: none;
+          position: fixed !important;
+          top: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          left: auto !important;
+          z-index: 90 !important;
+          display: flex !important;
+          flex: none !important;
+          width: min(430px, calc(100vw - 44px)) !important;
+          min-width: 0 !important;
+          height: 100dvh !important;
+          max-height: none !important;
           overflow: auto;
           flex-direction: column;
           align-items: stretch;
@@ -88,13 +87,12 @@
           border-radius: 28px 0 0 28px;
           background:
             radial-gradient(circle at 20% 0%, rgba(218, 176, 78, .12), transparent 32%),
-            linear-gradient(180deg, rgba(14, 20, 32, .992), rgba(8, 14, 26, .992));
+            linear-gradient(180deg, #0e1420, #080e1a);
           box-shadow: -30px 0 80px rgba(0, 0, 0, .42);
-          backdrop-filter: blur(18px);
           color: #fff;
           opacity: 0;
           pointer-events: none;
-          transform: translateX(105%);
+          transform: translate3d(105%, 0, 0) !important;
           visibility: hidden;
           transition: transform .24s ease, opacity .18s ease, visibility .18s ease;
         }
@@ -102,7 +100,7 @@
         .nav.is-open {
           opacity: 1;
           pointer-events: auto;
-          transform: translateX(0);
+          transform: translate3d(0, 0, 0) !important;
           visibility: visible;
         }
 
@@ -262,7 +260,9 @@
         }
 
         .nav {
-          width: min(390px, calc(100vw - 34px));
+          right: 0 !important;
+          left: auto !important;
+          width: min(390px, calc(100vw - 34px)) !important;
           padding: 18px;
           border-radius: 24px 0 0 24px;
           gap: 10px;
