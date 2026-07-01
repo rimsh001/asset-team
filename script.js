@@ -18,10 +18,11 @@
           content: '';
           position: fixed;
           inset: 0;
-          z-index: 70;
+          z-index: 80;
           background: rgba(8, 12, 18, .46);
           backdrop-filter: blur(5px);
           -webkit-backdrop-filter: blur(5px);
+          pointer-events: none;
         }
 
         body.aa-menu-open .cookie-banner {
@@ -53,7 +54,7 @@
           right: 0 !important;
           bottom: 0 !important;
           left: auto !important;
-          z-index: 90 !important;
+          z-index: 1000 !important;
           display: flex !important;
           width: min(390px, calc(100vw - 34px)) !important;
           height: 100dvh !important;
@@ -76,6 +77,19 @@
           transform: translate3d(105%, 0, 0) !important;
           visibility: hidden;
           transition: transform .24s ease, opacity .18s ease, visibility .18s ease;
+          filter: none !important;
+          -webkit-filter: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          isolation: isolate;
+        }
+
+        .nav,
+        .nav * {
+          filter: none !important;
+          -webkit-filter: none !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
         }
 
         .nav.is-open {
@@ -249,6 +263,10 @@
   const nav = $('#nav');
   const year = $('#year');
   const form = $('#asset-form');
+
+  if (nav && nav.parentElement !== document.body) {
+    document.body.appendChild(nav);
+  }
 
   if (nav && !$('.aa-menu-head', nav)) {
     const menuHead = document.createElement('div');
