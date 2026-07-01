@@ -20,16 +20,7 @@
         }
 
         body.aa-menu-open::before {
-          content: '';
-          position: fixed;
-          inset: 0;
-          z-index: 70;
-          background: rgba(7, 9, 13, .68);
-        }
-
-        body.aa-menu-open .cookie-banner {
-          opacity: 0;
-          pointer-events: none;
+          content: none;
         }
 
         .header {
@@ -37,64 +28,63 @@
         }
 
         .header__inner {
-          height: 62px;
+          height: 60px;
           gap: 12px;
         }
 
         .brand__sign {
-          min-width: 40px;
-          min-height: 32px;
-          border-radius: 12px;
+          min-width: 38px;
+          min-height: 31px;
+          border-radius: 11px;
         }
 
         .brand__text {
-          font-size: 17px;
+          font-size: 16px;
         }
 
         .burger {
           display: inline-flex;
           flex: 0 0 auto;
-          width: 44px;
-          height: 44px;
+          width: 40px;
+          height: 40px;
           align-items: center;
           justify-content: center;
-          border-radius: 16px;
+          border-radius: 14px;
           background: rgba(255, 255, 255, .06);
           border-color: rgba(255, 255, 255, .16);
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 10px 24px rgba(0, 0, 0, .18);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 8px 18px rgba(0, 0, 0, .14);
         }
 
         .nav {
           position: fixed !important;
-          top: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
+          top: 12px !important;
+          right: 12px !important;
+          bottom: 12px !important;
           left: auto !important;
           z-index: 90 !important;
           display: flex !important;
           flex: none !important;
-          width: min(430px, calc(100vw - 44px)) !important;
+          width: min(320px, calc(100vw - 24px)) !important;
           min-width: 0 !important;
-          height: 100dvh !important;
-          max-height: none !important;
+          height: auto !important;
+          max-height: calc(100dvh - 24px) !important;
           overflow: auto;
           flex-direction: column;
           align-items: stretch;
-          gap: 12px;
-          padding: 24px;
+          gap: 8px;
+          padding: 14px;
           border: 1px solid rgba(255, 255, 255, .10);
-          border-right: 0;
-          border-radius: 28px 0 0 28px;
+          border-radius: 22px;
           background:
-            radial-gradient(circle at 20% 0%, rgba(218, 176, 78, .12), transparent 32%),
-            linear-gradient(180deg, #0e1420, #080e1a);
-          box-shadow: -30px 0 80px rgba(0, 0, 0, .42);
+            radial-gradient(circle at 20% 0%, rgba(218, 176, 78, .08), transparent 30%),
+            linear-gradient(180deg, #0d1320, #08101a);
+          box-shadow: 0 18px 48px rgba(0, 0, 0, .26);
           color: #fff;
           opacity: 0;
           pointer-events: none;
-          transform: translate3d(105%, 0, 0) !important;
+          transform: translate3d(112%, 0, 0) !important;
           visibility: hidden;
-          transition: transform .24s ease, opacity .18s ease, visibility .18s ease;
+          transition: transform .22s ease, opacity .18s ease, visibility .18s ease;
         }
 
         .nav.is-open {
@@ -108,12 +98,12 @@
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
-          margin-bottom: 14px;
-          padding: 18px 20px;
-          border-radius: 24px;
-          background: rgba(255, 255, 255, .055);
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .055);
+          gap: 12px;
+          margin-bottom: 8px;
+          padding: 13px 14px;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, .045);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
         }
 
         .aa-menu-brand {
@@ -123,7 +113,7 @@
         .aa-menu-brand__name {
           display: block;
           color: #ffffff;
-          font-size: 28px;
+          font-size: 22px;
           font-weight: 800;
           line-height: 1;
           letter-spacing: -.04em;
@@ -131,21 +121,21 @@
 
         .aa-menu-brand__caption {
           display: block;
-          margin-top: 10px;
+          margin-top: 6px;
           color: #d9ad38;
-          font-size: 12px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: .35em;
+          letter-spacing: .28em;
           text-transform: uppercase;
         }
 
         .aa-menu-close {
-          width: 48px;
-          height: 48px;
+          width: 38px;
+          height: 38px;
           flex: 0 0 auto;
           border: 0;
-          border-radius: 18px;
-          background: rgba(255, 255, 255, .10);
+          border-radius: 14px;
+          background: rgba(255, 255, 255, .08);
           color: #fff;
           cursor: pointer;
           position: relative;
@@ -153,7 +143,7 @@
         }
 
         .aa-menu-close:hover {
-          background: rgba(255, 255, 255, .16);
+          background: rgba(255, 255, 255, .14);
           transform: translateY(-1px);
         }
 
@@ -163,8 +153,8 @@
           position: absolute;
           left: 50%;
           top: 50%;
-          width: 22px;
-          height: 2.5px;
+          width: 18px;
+          height: 2px;
           border-radius: 999px;
           background: currentColor;
         }
@@ -179,33 +169,33 @@
 
         .nav > a {
           width: 100%;
-          min-height: 50px;
-          padding: 12px 22px;
+          min-height: 42px;
+          padding: 10px 14px;
           border: 0;
-          border-radius: 18px;
+          border-radius: 14px;
           background: transparent;
           color: rgba(255, 255, 255, .88);
           text-align: left;
-          font-size: 18px;
-          font-weight: 750;
+          font-size: 15px;
+          font-weight: 700;
           line-height: 1.15;
           white-space: normal;
           display: flex;
           align-items: center;
           justify-content: flex-start;
-          transition: background .18s ease, color .18s ease, transform .18s ease;
+          transition: background .18s ease, color .18s ease;
         }
 
         .nav > a:first-of-type {
           background: #ffffff;
           color: #0b1220;
-          box-shadow: 0 12px 24px rgba(0, 0, 0, .12);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, .10);
         }
 
         .nav > a:hover {
-          background: rgba(255, 255, 255, .07);
+          background: rgba(255, 255, 255, .06);
           color: #fff;
-          transform: translateX(-2px);
+          transform: none;
         }
 
         .nav > a:first-of-type:hover {
@@ -217,95 +207,103 @@
           width: 100%;
           display: grid;
           grid-template-columns: 1fr;
-          gap: 12px;
+          gap: 8px;
           margin: auto 0 0;
-          padding: 22px 0 0;
-          border-top: 1px solid rgba(255, 255, 255, .12);
+          padding: 14px 0 0;
+          border-top: 1px solid rgba(255, 255, 255, .10);
         }
 
         .header__actions .btn {
           width: 100%;
-          min-height: 58px;
-          padding: 15px 18px;
-          border-radius: 18px;
-          font-size: 17px;
-          font-weight: 750;
+          min-height: 44px;
+          padding: 11px 14px;
+          border-radius: 14px;
+          font-size: 14px;
+          font-weight: 700;
           justify-content: center;
         }
 
         .header__cabinet {
           background: transparent;
-          border-color: rgba(255, 255, 255, .18);
+          border-color: rgba(255, 255, 255, .16);
           color: rgba(255, 255, 255, .94);
         }
 
         .header__actions .btn--accent {
-          box-shadow: 0 18px 34px rgba(218, 176, 78, .22);
+          box-shadow: 0 10px 22px rgba(218, 176, 78, .18);
         }
       }
 
       @media (max-width: 430px) {
         .header__inner {
-          height: 60px;
+          height: 58px;
         }
 
         .brand__text {
-          font-size: 16px;
+          font-size: 15px;
         }
 
         .burger {
-          width: 42px;
-          height: 42px;
-          border-radius: 15px;
+          width: 39px;
+          height: 39px;
+          border-radius: 13px;
         }
 
         .nav {
-          right: 0 !important;
+          top: 10px !important;
+          right: 10px !important;
+          bottom: 10px !important;
           left: auto !important;
-          width: min(390px, calc(100vw - 34px)) !important;
-          padding: 18px;
-          border-radius: 24px 0 0 24px;
-          gap: 10px;
+          width: min(300px, calc(100vw - 20px)) !important;
+          max-height: calc(100dvh - 20px) !important;
+          padding: 12px;
+          border-radius: 20px;
+          gap: 7px;
         }
 
         .aa-menu-head {
-          margin-bottom: 12px;
-          padding: 16px;
-          border-radius: 22px;
+          margin-bottom: 7px;
+          padding: 12px 13px;
+          border-radius: 16px;
         }
 
         .aa-menu-brand__name {
-          font-size: 26px;
+          font-size: 20px;
         }
 
         .aa-menu-brand__caption {
-          margin-top: 8px;
-          font-size: 11px;
-          letter-spacing: .31em;
+          margin-top: 5px;
+          font-size: 9px;
+          letter-spacing: .24em;
         }
 
         .aa-menu-close {
-          width: 44px;
-          height: 44px;
-          border-radius: 16px;
+          width: 36px;
+          height: 36px;
+          border-radius: 13px;
+        }
+
+        .aa-menu-close::before,
+        .aa-menu-close::after {
+          width: 16px;
         }
 
         .nav > a {
-          min-height: 48px;
-          padding: 11px 18px;
-          font-size: 16px;
-          border-radius: 16px;
+          min-height: 40px;
+          padding: 9px 13px;
+          font-size: 14px;
+          border-radius: 13px;
         }
 
         .header__actions {
-          gap: 10px;
-          padding-top: 18px;
+          gap: 8px;
+          padding-top: 13px;
         }
 
         .header__actions .btn {
-          min-height: 54px;
-          border-radius: 17px;
-          font-size: 16px;
+          min-height: 42px;
+          border-radius: 13px;
+          font-size: 14px;
         }
       }
     `;
