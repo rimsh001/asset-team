@@ -264,10 +264,6 @@
   const year = $('#year');
   const form = $('#asset-form');
 
-  if (nav && nav.parentElement !== document.body) {
-    document.body.appendChild(nav);
-  }
-
   if (nav && !$('.aa-menu-head', nav)) {
     const menuHead = document.createElement('div');
     menuHead.className = 'aa-menu-head';
