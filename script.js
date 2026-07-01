@@ -17,7 +17,10 @@
         body.aa-menu-open::before {
           content: '';
           position: fixed;
-          inset: 0;
+          top: 0;
+          right: min(390px, calc(100vw - 34px));
+          bottom: 0;
+          left: 0;
           z-index: 80;
           background: rgba(8, 12, 18, .46);
           backdrop-filter: blur(5px);
@@ -28,6 +31,10 @@
         body.aa-menu-open .cookie-banner {
           opacity: 0;
           pointer-events: none;
+        }
+
+        body.aa-menu-open .header {
+          z-index: 1001 !important;
         }
 
         .header { background: rgba(16, 18, 22, .94); }
@@ -54,7 +61,7 @@
           right: 0 !important;
           bottom: 0 !important;
           left: auto !important;
-          z-index: 1000 !important;
+          z-index: 1002 !important;
           display: flex !important;
           width: min(390px, calc(100vw - 34px)) !important;
           height: 100dvh !important;
@@ -215,6 +222,7 @@
       }
 
       @media (max-width: 430px) {
+        body.aa-menu-open::before { right: min(360px, calc(100vw - 28px)); }
         .header__inner { height: 60px; }
         .brand__text { font-size: 16px; }
         .burger { width: 42px; height: 42px; border-radius: 15px; }
