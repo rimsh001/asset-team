@@ -3,6 +3,16 @@
   const $$ = (selector, context = document) => [...context.querySelectorAll(selector)];
   const COOKIE_CONSENT_KEY = 'cookie_consent';
 
+  function injectHeroRedesignStylesheet() {
+    if (document.getElementById('aa-hero-redesign-css')) return;
+
+    const link = document.createElement('link');
+    link.id = 'aa-hero-redesign-css';
+    link.rel = 'stylesheet';
+    link.href = 'hero-redesign.css?v=20260701-1';
+    document.head.appendChild(link);
+  }
+
   function injectMobileMenuPolish() {
     if (document.getElementById('aa-mobile-menu-polish')) return;
 
@@ -263,6 +273,7 @@
     });
   }
 
+  injectHeroRedesignStylesheet();
   injectMobileMenuPolish();
   setupCookieBanner();
 
