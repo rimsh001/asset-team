@@ -1,5 +1,9 @@
 /* Premium hero visual layer. Original page text is unchanged. */
 
+:root {
+  --container: 1320px;
+}
+
 @media (min-width: 1021px) {
   .home .hero {
     min-height: calc(100svh - 68px);
